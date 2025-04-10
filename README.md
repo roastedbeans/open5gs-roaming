@@ -93,7 +93,7 @@ make base-open5gs
 Then select the appropiate deployment (`basic`, `scp-model-d` or `roaming`). From the top level directory of the repository, run:
 ```bash
 # Example using the basic deployment
-docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env up -d
+docker compose -f compose-files/roaming/docker-compose.yaml --env-file=.env up -d
 ```
 
 This command builds all the images for the deployment selected and then runs the deployment.
@@ -126,10 +126,10 @@ Update the `.env` file with the desired values to use:
 Then select the appropiate deployment and from the top level directory of the repository run:
 ```bash
 # Run the basic deployment
-docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env up -d
+docker compose -f compose-files/roaming/docker-compose.yaml --env-file=.env up -d
 
 # Tear down the basic deployment
-docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env down
+docker compose -f compose-files/roaming/docker-compose.yaml --env-file=.env down
 ```
 
 </details>
