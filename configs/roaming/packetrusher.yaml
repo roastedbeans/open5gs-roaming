@@ -17,11 +17,11 @@ gnodeb:
 
 ue:
   hplmn:
-    mcc: '999'
-    mnc: '70'
+    mcc: '001'
+    mnc: '01'
   msin: '1234567891'
-  key: '465B5CE8B199B49FAA5F0A2EE238A6BC'
-  opc: 'E8ED289DEBA952E4283B54E88E6183CA'
+  key: '7F176C500D47CF2090CB6D91F4A73479'
+  opc: '3D45770E83C7BBB6900F3653FDA6330F'
   dnn: 'internet'
   snssai:
     sst: 01
