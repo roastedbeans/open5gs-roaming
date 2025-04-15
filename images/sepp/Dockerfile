@@ -13,7 +13,7 @@ ARG DEBIAN_FRONTEND="noninteractive"
 
 # install dependencies
 RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
-    libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev -y
+    libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev openssl -y
 
 # copy executable, default config and libs
 COPY --from=builder /open5gs/install/bin/open5gs-seppd /usr/local/bin/open5gs-seppd
@@ -27,10 +27,14 @@ COPY --from=builder /open5gs/install/lib/*/libogsproto.so.2 /open5gs/install/lib
 # configure dynamically linked libraries
 RUN ldconfig
 
-# create directory to store the logs
-RUN mkdir -p /var/log/open5gs/
+# create directory to store the logs and certificates
+RUN mkdir -p /var/log/open5gs/ /etc/open5gs/tls/
 
-ENTRYPOINT [ "open5gs-seppd" ]
+# Add entrypoint script
+COPY sepp-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/sepp-entrypoint.sh
+
+ENTRYPOINT [ "sepp-entrypoint.sh" ]
 
 # use CMD to provide arguments to ENTRYPOINT (can be overridden by user)
 CMD [ "-c", "/etc/open5gs/default/sepp.yaml" ]

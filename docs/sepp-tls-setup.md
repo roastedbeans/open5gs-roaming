@@ -6,137 +6,44 @@ This document describes how to set up TLS encryption for SEPP (Security Edge Pro
 
 The SEPP component is used in 5G networks for securing communications between different network operators. By enabling TLS, we ensure that all N32 interface communication between the Home PLMN (HPLMN) and Visited PLMN (VPLMN) is encrypted and secured.
 
-## Prerequisites
+## Automatic TLS Certificate Generation
 
-- Docker and Docker Compose installed
-- Open5GS roaming setup already configured
+In this setup, TLS certificates are automatically generated when the SEPP containers start. The process works as follows:
 
-## Automated Setup
+1. The SEPP Docker image includes an entrypoint script (`sepp-entrypoint.sh`) that generates certificates if they don't exist
+2. Each SEPP container (Home SEPP and Visited SEPP) generates its own certificates
+3. The certificates are stored within the container at `/etc/open5gs/tls/`
 
-The simplest way to set up TLS for SEPP is to use the provided setup script:
+### How it Works
 
-```bash
-# Run the setup script
-./scripts/setup_sepp_tls_roaming.sh
-```
+The entrypoint script performs the following actions:
 
-This script will:
+- Checks if certificates already exist in the container
+- If certificates don't exist, it generates a CA certificate, server certificate, and client certificate
+- It sets the proper file permissions
+- Finally, it starts the SEPP process
 
-1. Generate the TLS certificates for both Home SEPP and Visited SEPP
-2. Verify that the YAML configurations are correct
-3. Provide instructions for starting the containers
+## Starting the Containers
 
-## Manual Setup
-
-If you prefer to set up TLS manually, follow these steps:
-
-### 1. Generate TLS Certificates
-
-Run the certificate generation script:
-
-```bash
-./scripts/generate_sepp_tls.sh
-```
-
-This will create:
-
-- CA certificate and key
-- Server certificates and keys for both Home SEPP and Visited SEPP
-- Client certificates and keys for mutual TLS authentication
-
-The certificates will be stored in the `tls/sepp` directory.
-
-### 2. Modify SEPP Configurations
-
-Update the SEPP configuration files to enable TLS:
-
-- `configs/roaming/h-sepp.yaml` - Home SEPP configuration
-- `configs/roaming/v-sepp.yaml` - Visited SEPP configuration
-
-Ensure the following TLS configuration is present in both files:
-
-```yaml
-sepp:
-  default:
-    tls:
-      server:
-        schema: https
-        private_key: /etc/open5gs/tls/server.key
-        cert: /etc/open5gs/tls/server.crt
-        verify_client: true
-        ca_cert: /etc/open5gs/tls/ca.crt
-      client:
-        schema: https
-        client_private_key: /etc/open5gs/tls/client.key
-        client_cert: /etc/open5gs/tls/client.crt
-        ca_cert: /etc/open5gs/tls/ca.crt
-```
-
-Also ensure that the SBI and N32 interfaces are configured to use TLS:
-
-```yaml
-sbi:
-  server:
-    - address: sepp.5gc.mnc001.mcc001.3gppnetwork.org # or your SEPP FQDN
-      port: 443
-      tls:
-        enabled: true
-n32:
-  server:
-    - sender: sepp.5gc.mnc001.mcc001.3gppnetwork.org # or your SEPP FQDN
-      tls:
-        enabled: true
-  client:
-    sepp:
-      - receiver: sepp.5gc.mnc070.mcc999.3gppnetwork.org # the other SEPP FQDN
-        uri: https://sepp.5gc.mnc070.mcc999.3gppnetwork.org:443
-        tls:
-          enabled: true
-```
-
-### 3. Update Docker Compose Configuration
-
-Modify the `compose-files/roaming/docker-compose.yaml` file to mount the TLS certificates into the SEPP containers:
-
-```yaml
-h-sepp:
-  # ... existing configuration ...
-  volumes:
-    - ../../tls/sepp/h-sepp:/etc/open5gs/tls
-  ports:
-    - '10443:443/tcp'
-
-v-sepp:
-  # ... existing configuration ...
-  volumes:
-    - ../../tls/sepp/v-sepp:/etc/open5gs/tls
-  ports:
-    - '20443:443/tcp'
-```
-
-### 4. Start the Containers
-
-Start the Docker containers with:
+To start the containers with TLS enabled:
 
 ```bash
 cd compose-files/roaming
 docker-compose up -d
 ```
 
-## Testing TLS Connectivity
+## Verifying TLS Setup
 
-To verify that TLS is correctly configured:
+To verify that TLS is working correctly:
 
-1. Check the logs of both SEPP containers:
+1. Check the container logs for certificate generation messages:
 
    ```bash
    docker logs h-sepp
    docker logs v-sepp
    ```
 
-2. You should see messages indicating successful TLS handshakes between the SEPPs.
-
-3. Test HTTPS connectivity with:
+2. Test HTTPS connectivity:
    ```bash
    curl -k https://localhost:10443
    curl -k https://localhost:20443
@@ -144,10 +51,27 @@ To verify that TLS is correctly configured:
 
 ## Troubleshooting
 
-- **Certificate Issues**: Ensure the certificates are properly mounted and accessible in the containers.
-- **TLS Handshake Failures**: Check that both SEPPs are using the same CA certificate.
-- **Connection Refused**: Verify the port mappings and that the containers are running.
-- **Container Crashes**: Inspect logs for any errors related to TLS configuration.
+- **Certificate Generation Failures**: Check the container logs for any error messages during certificate generation
+- **TLS Handshake Failures**: Ensure the SEPP configuration has TLS properly enabled
+- **Connection Refused**: Verify the port mappings and that the containers are running
+- **Container Crashes**: Inspect logs for any errors related to the TLS configuration
+
+## Advanced: Using Custom Certificates
+
+If you want to use custom certificates instead of auto-generated ones, you can modify the Docker Compose file to mount your own certificates:
+
+```yaml
+volumes:
+  - ./your-custom-certs:/etc/open5gs/tls
+```
+
+Make sure your custom certificates have the following filenames:
+
+- `ca.crt`: CA certificate
+- `server.key`: Server private key
+- `server.crt`: Server certificate
+- `client.key`: Client private key
+- `client.crt`: Client certificate
 
 ## References
 

@@ -106,8 +106,6 @@ services:
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
-    volumes:
-      - ../../tls/sepp/h-sepp:/etc/open5gs/tls
     ports:
       - '10443:443/tcp'
     depends_on:
@@ -283,8 +281,6 @@ services:
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
-    volumes:
-      - ../../tls/sepp/v-sepp:/etc/open5gs/tls
     ports:
       - '20443:443/tcp'
     depends_on:
