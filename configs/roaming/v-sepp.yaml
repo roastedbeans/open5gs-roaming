@@ -5,17 +5,36 @@ logger:
 global:
 
 sepp:
+  default:
+    tls:
+      server:
+        schema: https
+        private_key: /etc/open5gs/tls/server.key
+        cert: /etc/open5gs/tls/server.crt
+        verify_client: true
+        ca_cert: /etc/open5gs/tls/ca.crt
+      client:
+        schema: https
+        client_private_key: /etc/open5gs/tls/client.key
+        client_cert: /etc/open5gs/tls/client.crt
+        ca_cert: /etc/open5gs/tls/ca.crt
   sbi:
     server:
       - address: sepp.5gc.mnc070.mcc999.3gppnetwork.org
-        port: 80
+        port: 443
+        tls:
+          enabled: true
     client:
       nrf:
         - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:80
   n32:
     server:
       - sender: sepp.5gc.mnc070.mcc999.3gppnetwork.org
+        tls:
+          enabled: true
     client:
       sepp:
         - receiver: sepp.5gc.mnc001.mcc001.3gppnetwork.org
-          uri: http://sepp.5gc.mnc001.mcc001.3gppnetwork.org:80
+          uri: https://sepp.5gc.mnc001.mcc001.3gppnetwork.org:443
+          tls:
+            enabled: true
