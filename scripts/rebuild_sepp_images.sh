@@ -24,12 +24,20 @@ cd compose-files/roaming
 echo "Stopping existing containers..."
 docker-compose down
 
+# Remove shared volume to start fresh
+echo "Cleaning up old certificates..."
+docker volume rm sepp_shared_certs 2>/dev/null || true
+
 # Rebuild only the SEPP images
 echo "Rebuilding SEPP images..."
 docker-compose build h-sepp v-sepp
 
 echo "Starting containers..."
 docker-compose up -d
+
+# Give containers a moment to start and exchange certificates
+echo "Waiting for containers to exchange certificates..."
+sleep 10
 
 # Show logs to verify certificate generation
 echo "Showing SEPP logs to verify certificate generation..."
@@ -42,4 +50,8 @@ echo ""
 echo "Rebuild complete. SEPP containers should now be running with TLS support."
 echo "You can test the connectivity with:"
 echo "  curl -k https://localhost:10443  # Home SEPP"
-echo "  curl -k https://localhost:20443  # Visited SEPP" 
+echo "  curl -k https://localhost:20443  # Visited SEPP"
+echo ""
+echo "To verify secure communication between SEPPs, check logs for successful handshakes:"
+echo "  docker logs -f h-sepp | grep 'TLS\|handshake'"
+echo "  docker logs -f v-sepp | grep 'TLS\|handshake'" 

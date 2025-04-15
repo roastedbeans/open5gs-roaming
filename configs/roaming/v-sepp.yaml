@@ -17,7 +17,7 @@ sepp:
         schema: https
         client_private_key: /etc/open5gs/tls/client.key
         client_cert: /etc/open5gs/tls/client.crt
-        ca_cert: /etc/open5gs/tls/ca.crt
+        ca_cert: /etc/open5gs/tls/trusted-ca-bundle.crt
   sbi:
     server:
       - address: sepp.5gc.mnc070.mcc999.3gppnetwork.org
@@ -32,9 +32,11 @@ sepp:
       - sender: sepp.5gc.mnc070.mcc999.3gppnetwork.org
         tls:
           enabled: true
+          verify_client: true
     client:
       sepp:
         - receiver: sepp.5gc.mnc001.mcc001.3gppnetwork.org
           uri: https://sepp.5gc.mnc001.mcc001.3gppnetwork.org:443
           tls:
             enabled: true
+            verify_server: true

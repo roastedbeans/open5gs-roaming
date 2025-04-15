@@ -106,6 +106,8 @@ services:
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
+    volumes:
+      - sepp_certs:/shared/certs
     ports:
       - '10443:443/tcp'
     depends_on:
@@ -281,6 +283,8 @@ services:
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
+    volumes:
+      - sepp_certs:/shared/certs
     ports:
       - '20443:443/tcp'
     depends_on:
@@ -349,6 +353,8 @@ volumes:
     name: open5gs_db_config
     labels:
       org.open5gs.mongodb_version: ${MONGODB_VERSION}
+  sepp_certs:
+    name: sepp_shared_certs
 
 configs:
   h-nrf_config:
