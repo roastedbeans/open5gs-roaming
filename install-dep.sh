@@ -2,7 +2,7 @@
 
 set -e
 
-echo "💻 Starting environment setup: Docker, Git, GTP5G..."
+echo "💻 Starting environment setup: Docker (non-root), Git, GTP5G..."
 
 # === Docker Install ===
 echo "🐳 Installing Docker..."
@@ -19,7 +19,16 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Test Docker as root
 sudo docker run hello-world
+
+# Add current user to docker group
+echo "👤 Adding user '$USER' to Docker group..."
+sudo groupadd docker || true
+sudo usermod -aG docker $USER
+
+echo "🚨 Logout and login back OR run: newgrp docker"
+echo "✅ Docker non-root setup complete."
 
 # === Git Install ===
 echo "🐙 Installing Git..."
@@ -57,4 +66,4 @@ echo "gtp5g" | sudo tee /etc/modules-load.d/gtp5g.conf
 
 lsmod | grep gtp5g || echo "⚠️ Module not loaded. Check build logs."
 
-echo "🎯 Environment setup complete! Docker, Git, and GTP5G are ready!"
+echo "🎯 All installations complete! Docker (non-root), Git, GTP5G are ready!"
