@@ -104,13 +104,17 @@ services:
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
           - sepp1.localdomain
+    environment:
+      - REGENERATE_CERTS=true
+      - SEPP_FQDN=sepp1.localdomain
+      - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+    configs:
+      - source: h-sepp_config
+        target: /etc/open5gs/custom/sepp.yaml
     ports:
       - '0.0.0.0:7777:7777/tcp' # SBI Server
       - '0.0.0.0:7778:7778/tcp' # N32c Server
       - '0.0.0.0:7779:7779/tcp' # N32f Server
-    configs:
-      - source: h-sepp_config
-        target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - h-nrf
 
@@ -282,13 +286,17 @@ services:
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
+    environment:
+      - REGENERATE_CERTS=true
+      - SEPP_FQDN=sepp2.localdomain
+      - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
+    configs:
+      - source: v-sepp_config
+        target: /etc/open5gs/custom/sepp.yaml
     ports:
       - '0.0.0.0:8777:7777/tcp' # SBI Server
       - '0.0.0.0:8778:7778/tcp' # N32c Server
       - '0.0.0.0:8779:7779/tcp' # N32f Server
-    configs:
-      - source: v-sepp_config
-        target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - v-nrf
 
