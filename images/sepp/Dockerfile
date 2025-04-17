@@ -30,18 +30,7 @@ RUN ldconfig
 RUN mkdir -p /var/log/open5gs/ \
     && mkdir -p /etc/open5gs/default/tls/
 
-# Generate certificates with multiple domain names
-RUN openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout /etc/open5gs/default/tls/sepp1.key \
-    -out /etc/open5gs/default/tls/sepp1.crt \
-    -subj "/CN=sepp1.localdomain" \
-    -addext "subjectAltName = DNS:sepp1.localdomain,DNS:sepp.5gc.mnc001.mcc001.3gppnetwork.org" \
-    && openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout /etc/open5gs/default/tls/ca.key \
-    -out /etc/open5gs/default/tls/ca.crt \
-    -subj "/CN=open5gs-ca"
-
-# Create a script to generate certificates at runtime (optionally)
+# Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

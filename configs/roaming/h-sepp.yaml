@@ -1,10 +1,19 @@
 logger:
   file:
     path: /var/log/open5gs/sepp.log
-
 global:
-
+  max:
+    ue: 1024
 sepp:
+  default:
+    tls:
+      server:
+        private_key: /etc/open5gs/default/tls/sepp1.key
+        cert: /etc/open5gs/default/tls/sepp1.crt
+      client:
+        cacert: /etc/open5gs/default/tls/ca.crt
+        verify_client: false # Don't require client certificate verification
+        verify: false # Don't verify server certificates (for testing)
   sbi:
     server:
       - address: sepp.5gc.mnc001.mcc001.3gppnetwork.org
@@ -14,8 +23,19 @@ sepp:
         - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org:80
   n32:
     server:
-      - sender: sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      - sender: sepp1.localdomain # Changed to match certificate CN
+        scheme: https
+        address: 0.0.0.0
+        port: 7778
+        n32f:
+          scheme: https
+          address: 0.0.0.0
+          port: 7779
     client:
       sepp:
-        - receiver: sepp.5gc.mnc070.mcc999.3gppnetwork.org
-          uri: http://sepp.5gc.mnc070.mcc999.3gppnetwork.org:80
+        - receiver: sepp2.localdomain # Changed to short hostname for easier certificate management
+          uri: https://sepp2.localdomain:7778
+          verify_client: false
+          n32f:
+            uri: https://sepp2.localdomain:7779
+            verify_client: false
