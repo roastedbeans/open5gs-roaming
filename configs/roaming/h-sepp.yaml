@@ -1,21 +1,37 @@
 logger:
   file:
     path: /var/log/open5gs/sepp.log
-
 global:
-
+  max:
+    ue: 1024
 sepp:
+  default:
+    tls:
+      server:
+        private_key: /etc/open5gs/tls/sepp1.key
+        cert: /etc/open5gs/tls/sepp1.crt
+      client:
+        cacert: /etc/open5gs/tls/ca.crt
   sbi:
     server:
-      - address: sepp.5gc.mnc001.mcc001.3gppnetwork.org
-        port: 80
+      - address: 0.0.0.0
+        port: 7777
     client:
       nrf:
-        - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org:80
+        - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org:7777
   n32:
     server:
       - sender: sepp.5gc.mnc001.mcc001.3gppnetwork.org
+        scheme: https
+        address: 0.0.0.0
+        port: 7778
+        n32f:
+          scheme: https
+          address: 0.0.0.0
+          port: 7779
     client:
       sepp:
         - receiver: sepp.5gc.mnc070.mcc999.3gppnetwork.org
-          uri: http://sepp.5gc.mnc070.mcc999.3gppnetwork.org:80
+          uri: https://sepp.5gc.mnc070.mcc999.3gppnetwork.org:7778
+          n32f:
+            uri: https://sepp.5gc.mnc070.mcc999.3gppnetwork.org:7779

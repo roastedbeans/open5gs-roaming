@@ -1,8 +1,8 @@
 services:
   db:
     container_name: db
-    image: "mongo:${MONGODB_VERSION}"
-    command: "mongod --bind_ip 0.0.0.0 --port 27017"
+    image: 'mongo:${MONGODB_VERSION}'
+    command: 'mongod --bind_ip 0.0.0.0 --port 27017'
     networks:
       open5gs:
         aliases:
@@ -11,17 +11,17 @@ services:
       - db_data:/data/db
       - db_config:/data/configdb
     ports:
-      - "0.0.0.0:27017:27017/tcp"
+      - '0.0.0.0:27017:27017/tcp'
 
   h-nrf:
     container_name: h-nrf
-    image: "nrf:${OPEN5GS_VERSION}"
+    image: 'nrf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/nrf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/nrf.yaml"
+    command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
         aliases:
@@ -32,13 +32,13 @@ services:
 
   h-ausf:
     container_name: h-ausf
-    image: "ausf:${OPEN5GS_VERSION}"
+    image: 'ausf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/ausf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/ausf.yaml"
+    command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
         aliases:
@@ -51,13 +51,13 @@ services:
 
   h-udm:
     container_name: h-udm
-    image: "udm:${OPEN5GS_VERSION}"
+    image: 'udm:${OPEN5GS_VERSION}'
     build:
       context: ../../images/udm
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/udm.yaml"
+    command: '-c /etc/open5gs/custom/udm.yaml'
     networks:
       open5gs:
         aliases:
@@ -70,13 +70,13 @@ services:
 
   h-udr:
     container_name: h-udr
-    image: "udr:${OPEN5GS_VERSION}"
+    image: 'udr:${OPEN5GS_VERSION}'
     build:
       context: ../../images/udr
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/udr.yaml"
+    command: '-c /etc/open5gs/custom/udr.yaml'
     restart: unless-stopped
     networks:
       open5gs:
@@ -91,18 +91,23 @@ services:
 
   h-sepp:
     container_name: h-sepp
-    image: "sepp:${OPEN5GS_VERSION}"
+    image: 'sepp:${OPEN5GS_VERSION}'
     build:
       context: ../../images/sepp
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/sepp.yaml"
+    command: '-c /etc/open5gs/custom/sepp.yaml'
     restart: unless-stopped
     networks:
       open5gs:
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
+          - sepp1.localdomain
+    ports:
+      - '0.0.0.0:7777:7777/tcp' # SBI Server
+      - '0.0.0.0:7778:7778/tcp' # N32c Server
+      - '0.0.0.0:7779:7779/tcp' # N32f Server
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
@@ -111,13 +116,13 @@ services:
 
   v-nrf:
     container_name: v-nrf
-    image: "nrf:${OPEN5GS_VERSION}"
+    image: 'nrf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/nrf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/nrf.yaml"
+    command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
         aliases:
@@ -128,13 +133,13 @@ services:
 
   v-ausf:
     container_name: v-ausf
-    image: "ausf:${OPEN5GS_VERSION}"
+    image: 'ausf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/ausf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/ausf.yaml"
+    command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
         aliases:
@@ -147,13 +152,13 @@ services:
 
   v-nssf:
     container_name: v-nssf
-    image: "nssf:${OPEN5GS_VERSION}"
+    image: 'nssf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/nssf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/nssf.yaml"
+    command: '-c /etc/open5gs/custom/nssf.yaml'
     networks:
       open5gs:
         aliases:
@@ -166,13 +171,13 @@ services:
 
   v-bsf:
     container_name: v-bsf
-    image: "bsf:${OPEN5GS_VERSION}"
+    image: 'bsf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/bsf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/bsf.yaml"
+    command: '-c /etc/open5gs/custom/bsf.yaml'
     networks:
       open5gs:
         aliases:
@@ -185,13 +190,13 @@ services:
 
   v-pcf:
     container_name: v-pcf
-    image: "pcf:${OPEN5GS_VERSION}"
+    image: 'pcf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/pcf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/pcf.yaml"
+    command: '-c /etc/open5gs/custom/pcf.yaml'
     restart: unless-stopped
     networks:
       open5gs:
@@ -205,13 +210,13 @@ services:
 
   v-amf:
     container_name: v-amf
-    image: "amf:${OPEN5GS_VERSION}"
+    image: 'amf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/amf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/amf.yaml"
+    command: '-c /etc/open5gs/custom/amf.yaml'
     networks:
       open5gs:
         aliases:
@@ -224,13 +229,13 @@ services:
 
   v-smf:
     container_name: v-smf
-    image: "smf:${OPEN5GS_VERSION}"
+    image: 'smf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/smf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/smf.yaml"
+    command: '-c /etc/open5gs/custom/smf.yaml'
     networks:
       open5gs:
         aliases:
@@ -244,13 +249,13 @@ services:
 
   v-upf:
     container_name: v-upf
-    image: "upf:${OPEN5GS_VERSION}"
+    image: 'upf:${OPEN5GS_VERSION}'
     build:
       context: ../../images/upf
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/upf.yaml"
+    command: '-c /etc/open5gs/custom/upf.yaml'
     networks:
       open5gs:
         aliases:
@@ -264,18 +269,23 @@ services:
 
   v-sepp:
     container_name: v-sepp
-    image: "sepp:${OPEN5GS_VERSION}"
+    image: 'sepp:${OPEN5GS_VERSION}'
     build:
       context: ../../images/sepp
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: "-c /etc/open5gs/custom/sepp.yaml"
+    command: '-c /etc/open5gs/custom/sepp.yaml'
     restart: unless-stopped
     networks:
       open5gs:
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
+          - sepp2.localdomain
+    ports:
+      - '0.0.0.0:8777:7777/tcp' # SBI Server
+      - '0.0.0.0:8778:7778/tcp' # N32c Server
+      - '0.0.0.0:8779:7779/tcp' # N32f Server
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
@@ -284,8 +294,8 @@ services:
 
   packetrusher:
     container_name: packetrusher
-    image: "ghcr.io/borjis131/packetrusher:20250225"
-    command: "--config /PacketRusher/config/packetrusher.yaml ue"
+    image: 'ghcr.io/borjis131/packetrusher:20250225'
+    command: '--config /PacketRusher/config/packetrusher.yaml ue'
     networks:
       open5gs:
         aliases:
@@ -302,7 +312,7 @@ services:
       - v-smf
       - v-pcf
       - h-udr
-    
+
   webui:
     container_name: webui
     image: 'webui:${OPEN5GS_VERSION}'
