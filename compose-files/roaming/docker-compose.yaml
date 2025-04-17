@@ -105,9 +105,9 @@ services:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
           - sepp1.localdomain
     environment:
+      - SEPP_TYPE=sepp1
       - REGENERATE_CERTS=true
-      - SEPP_FQDN=sepp1.localdomain
-      - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      - TLS_DIR=/etc/open5gs/default/tls
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/custom/sepp.yaml
@@ -287,9 +287,9 @@ services:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
     environment:
+      - SEPP_TYPE=sepp2
       - REGENERATE_CERTS=true
-      - SEPP_FQDN=sepp2.localdomain
-      - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
+      - TLS_DIR=/etc/open5gs/default/tls
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/custom/sepp.yaml

@@ -8,10 +8,10 @@ sepp:
   default:
     tls:
       server:
-        private_key: /etc/open5gs/tls/sepp2.key
-        cert: /etc/open5gs/tls/sepp2.crt
+        private_key: /etc/open5gs/default/tls/sepp2.key
+        cert: /etc/open5gs/default/tls/sepp2.crt
       client:
-        cacert: /etc/open5gs/tls/ca.crt
+        cacert: /etc/open5gs/default/tls/ca.crt
   sbi:
     server:
       - address: 0.0.0.0
@@ -21,7 +21,7 @@ sepp:
         - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:7777
   n32:
     server:
-      - sender: sepp.5gc.mnc070.mcc999.3gppnetwork.org
+      - sender: sepp2.localdomain
         scheme: https
         address: 0.0.0.0
         port: 7778
@@ -31,7 +31,7 @@ sepp:
           port: 7779
     client:
       sepp:
-        - receiver: sepp.5gc.mnc001.mcc001.3gppnetwork.org
-          uri: https://sepp.5gc.mnc001.mcc001.3gppnetwork.org:7778
+        - receiver: sepp1.localdomain
+          uri: https://sepp1.localdomain:7778
           n32f:
-            uri: https://sepp.5gc.mnc001.mcc001.3gppnetwork.org:7779
+            uri: https://sepp1.localdomain:7779
