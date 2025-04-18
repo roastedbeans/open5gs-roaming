@@ -158,6 +158,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/nrf.yaml'
+    restart: on-failure:5
     networks:
       open5gs:
         aliases:
@@ -166,11 +167,16 @@ services:
       - source: v-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
     healthcheck:
-      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 7777 || exit 1']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
 
   v-ausf:
     container_name: v-ausf
@@ -181,6 +187,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/ausf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:
@@ -201,6 +208,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/nssf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:
@@ -221,6 +229,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/bsf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:
@@ -262,6 +271,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/amf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:
@@ -282,6 +292,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/smf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:
@@ -304,6 +315,7 @@ services:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
     command: '-c /etc/open5gs/custom/upf.yaml'
+    restart: on-failure:3
     networks:
       open5gs:
         aliases:

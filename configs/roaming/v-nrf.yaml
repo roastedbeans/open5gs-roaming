@@ -1,8 +1,15 @@
 logger:
   file:
     path: /var/log/open5gs/nrf.log
+  level: info
 
 global:
+  parameter:
+    # NRF uses Node ID instead of IP Address
+    # for client identification
+    no_nrf_server: false
+    no_ipv4v6_local: true
+    prefer_ipv4: true
 
 nrf:
   serving:
@@ -11,5 +18,18 @@ nrf:
         mnc: 70
   sbi:
     server:
-      - address: nrf.5gc.mnc070.mcc999.3gppnetwork.org
-        port: 80
+      - address: 0.0.0.0
+        port: 7777
+    client:
+      heartbeat: 10
+      request_timeout: 15
+    service_name:
+      - nnrf-nfm
+      - nnrf-disc
+    discovery:
+      client:
+        no_service_names: false
+
+  nf_health:
+    interval: 30
+    no_exception: true
