@@ -12,15 +12,14 @@ sepp:
         cert: /etc/open5gs/default/tls/sepp2.crt
       client:
         cacert: /etc/open5gs/default/tls/ca.crt
-        verify_client: false # Don't require client certificate verification
-        verify: false # Don't verify server certificates (for testing)
+        verify: false # For initial testing, can be set to true later
   sbi:
     server:
-      - address: sepp.5gc.mnc070.mcc999.3gppnetwork.org
-        port: 80
+      - address: 0.0.0.0
+        port: 7777
     client:
       nrf:
-        - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:80
+        - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:7777
   n32:
     server:
       - sender: sepp2.localdomain
@@ -35,7 +34,5 @@ sepp:
       sepp:
         - receiver: sepp1.localdomain
           uri: https://sepp1.localdomain:7778
-          verify_client: false
           n32f:
             uri: https://sepp1.localdomain:7779
-            verify_client: false
