@@ -52,7 +52,7 @@ mkdir -p $TLS_DIR
 if ! grep -q "$OTHER_SEPP" /etc/hosts; then
     echo "Adding $OTHER_SEPP to /etc/hosts for DNS resolution..."
     if [ "$SEPP_TYPE" = "sepp1" ]; then
-        echo "$(getent hosts sepp2.localdomain || echo "10.33.33.10 sepp2.localdomain")" >> /etc/hosts
+        echo "$(getent hosts sepp2.localdomain || echo "10.33.33.15 sepp2.localdomain")" >> /etc/hosts
     else
         echo "$(getent hosts sepp1.localdomain || echo "10.33.33.20 sepp1.localdomain")" >> /etc/hosts
     fi
