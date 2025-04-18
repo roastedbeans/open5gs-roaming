@@ -11,6 +11,10 @@ FROM ubuntu:${UBUNTU_VERSION}
 ARG OPEN5GS_VERSION="v2.7.5"
 ARG DEBIAN_FRONTEND="noninteractive"
 
+RUN apt-get clean 
+RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get upgrade -y
+
 # install dependencies
 RUN apt-get update --fix-missing && apt-get install -y \
     python3-pip python3-setuptools python3-wheel ninja-build build-essential \

@@ -13,6 +13,7 @@ ARG DEBIAN_FRONTEND="noninteractive"
 
 RUN rm -rf /var/lib/apt/lists/*                             
 RUN apt-get clean   
+RUN apt-get upgrade -y
 
 # install dependencies including networking tools for troubleshooting
 RUN apt-get update --fix-missing && apt-get install -y \

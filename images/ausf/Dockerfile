@@ -11,6 +11,10 @@ FROM ubuntu:${UBUNTU_VERSION}
 # build-time arguments
 ARG DEBIAN_FRONTEND="noninteractive"
 
+RUN apt-get clean 
+RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get upgrade -y
+
 # install dependencies
 RUN apt-get update --fix-missing && apt-get install -y \
     libgnutls28-dev libgcrypt-dev libtalloc-dev \
