@@ -44,6 +44,7 @@ SEPP_FQDN=${SEPP_FQDN_OVERRIDE:-"$SEPP_FQDN"}
 SEPP_PLMN_FQDN=${SEPP_PLMN_FQDN_OVERRIDE:-"$SEPP_PLMN_FQDN"}
 CERT_DAYS=${CERT_DAYS:-3650}
 TLS_DIR=${TLS_DIR:-"/etc/open5gs/default/tls"}
+SHARED_CA=${SHARED_CA:-"false"}
 
 # Ensure TLS directory exists
 mkdir -p $TLS_DIR
@@ -59,26 +60,55 @@ if ! grep -q "$OTHER_SEPP" /etc/hosts; then
     cat /etc/hosts
 fi
 
-# Always regenerate certificates to ensure they're correct
-echo "Generating new certificates for $SEPP_FQDN..."
+# Generate or use the CA certificate
+if [ "$SHARED_CA" = "true" ] && [ -f "$TLS_DIR/ca.crt" ] && [ -f "$TLS_DIR/ca.key" ]; then
+    echo "Using existing shared CA certificate"
+    # Verify the existing CA certificate
+    openssl x509 -in "$TLS_DIR/ca.crt" -noout -text | grep -A2 "Subject:" || {
+        echo "Invalid CA certificate, regenerating..."
+        rm -f "$TLS_DIR/ca.crt" "$TLS_DIR/ca.key"
+        SHARED_CA="false"
+    }
+fi
 
-# Create the CA certificate
-echo "Generating CA certificate..."
-openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
-    -keyout "$TLS_DIR/ca.key" \
-    -out "$TLS_DIR/ca.crt" \
-    -subj "/CN=open5gs-ca" \
-    -addext "basicConstraints=critical,CA:TRUE"
+if [ "$SHARED_CA" != "true" ] || [ ! -f "$TLS_DIR/ca.crt" ] || [ ! -f "$TLS_DIR/ca.key" ]; then
+    echo "Generating new CA certificate..."
+    openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
+        -keyout "$TLS_DIR/ca.key" \
+        -out "$TLS_DIR/ca.crt" \
+        -subj "/CN=open5gs-ca" \
+        -addext "basicConstraints=critical,CA:TRUE"
+fi
 
-# Generate the SEPP certificate with both domain names
+# Generate the SEPP certificate signed by the CA (not self-signed)
 echo "Generating SEPP certificate for $CERT_PREFIX..."
-openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
-    -keyout "$TLS_DIR/$CERT_PREFIX.key" \
+
+# Generate private key
+openssl genrsa -out "$TLS_DIR/$CERT_PREFIX.key" 2048
+
+# Create a CSR (Certificate Signing Request)
+openssl req -new -key "$TLS_DIR/$CERT_PREFIX.key" \
+    -out "$TLS_DIR/$CERT_PREFIX.csr" \
+    -subj "/CN=$SEPP_FQDN"
+
+# Create extensions file
+cat > "$TLS_DIR/$CERT_PREFIX.ext" << EOF
+subjectAltName = DNS:$SEPP_FQDN,DNS:$SEPP_PLMN_FQDN
+keyUsage = critical,digitalSignature,keyEncipherment
+extendedKeyUsage = serverAuth,clientAuth
+EOF
+
+# Sign the CSR with the CA
+openssl x509 -req -in "$TLS_DIR/$CERT_PREFIX.csr" \
+    -CA "$TLS_DIR/ca.crt" \
+    -CAkey "$TLS_DIR/ca.key" \
+    -CAcreateserial \
     -out "$TLS_DIR/$CERT_PREFIX.crt" \
-    -subj "/CN=$SEPP_FQDN" \
-    -addext "subjectAltName = DNS:$SEPP_FQDN,DNS:$SEPP_PLMN_FQDN" \
-    -addext "keyUsage=critical,digitalSignature,keyEncipherment" \
-    -addext "extendedKeyUsage=serverAuth,clientAuth"
+    -days $CERT_DAYS \
+    -extfile "$TLS_DIR/$CERT_PREFIX.ext"
+
+# Clean up CSR and extensions file
+rm -f "$TLS_DIR/$CERT_PREFIX.csr" "$TLS_DIR/$CERT_PREFIX.ext"
 
 # Set proper permissions on keys
 chmod 600 "$TLS_DIR/$CERT_PREFIX.key"
@@ -92,6 +122,8 @@ echo "Certificates generated successfully."
 echo "Certificate information for $CERT_PREFIX:"
 openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -text | grep -A2 "Subject:"
 openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -text | grep -A2 "Subject Alternative Name"
+echo "CA certificate information:"
+openssl x509 -in "$TLS_DIR/ca.crt" -noout -text | grep -A2 "Subject:"
 
 # Update configuration file with the correct certificate paths
 CONFIG_FILE="${1#-c }"
@@ -119,7 +151,8 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
         sed -i "s|https://sepp1.localdomain:8779|https://sepp1.localdomain:7779|g" "$CONFIG_FILE"
     fi
     
-    # Verify client settings
+    # For troubleshooting, we'll disable verification initially
+    # Later this can be removed for production use
     if ! grep -q "verify: false" "$CONFIG_FILE"; then
         sed -i "/client:/a \ \ \ \ \ \ \ \ verify: false" "$CONFIG_FILE"
     fi

@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# global build-time arguments for FROM statements
 ARG OPEN5GS_VERSION="v2.7.5"
 ARG UBUNTU_VERSION="jammy"
 
@@ -11,22 +10,14 @@ FROM ubuntu:${UBUNTU_VERSION}
 # build-time arguments
 ARG DEBIAN_FRONTEND="noninteractive"
 
-# install dependencies including networking tools for troubleshooting
-RUN apt-get update && apt-get install -y \
+# Install only the essential dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnutls28-dev \
-    libgcrypt-dev \
-    libtalloc-dev \
-    libnghttp2-dev \
-    libmicrohttpd-dev \
     libcurl4-gnutls-dev \
     libyaml-dev \
     openssl \
     ca-certificates \
-    iputils-ping \
-    iproute2 \
-    net-tools \
-    dnsutils \
-    curl
+    && rm -rf /var/lib/apt/lists/*
 
 # copy executable, default config and libs
 COPY --from=builder /open5gs/install/bin/open5gs-seppd /usr/local/bin/open5gs-seppd
@@ -40,7 +31,8 @@ RUN ldconfig
 
 # create directory to store the logs and certs
 RUN mkdir -p /var/log/open5gs/ \
-    && mkdir -p /etc/open5gs/default/tls/
+    && mkdir -p /etc/open5gs/default/tls/ \
+    && chmod 755 /etc/open5gs/default/tls/
 
 # Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
