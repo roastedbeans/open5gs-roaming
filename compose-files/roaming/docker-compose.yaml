@@ -105,9 +105,13 @@ services:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
           - sepp1.localdomain
     environment:
+      - SEPP_TYPE=sepp1
       - REGENERATE_CERTS=true
+      - TLS_DIR=/etc/open5gs/default/tls
       - SEPP_FQDN=sepp1.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+    volumes:
+      - sepp_certs:/etc/open5gs/default/tls
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -287,9 +291,13 @@ services:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
     environment:
+      - SEPP_TYPE=sepp2
       - REGENERATE_CERTS=true
+      - TLS_DIR=/etc/open5gs/default/tls
       - SEPP_FQDN=sepp2.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
+    volumes:
+      - sepp_certs:/etc/open5gs/default/tls
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -363,6 +371,8 @@ volumes:
     name: open5gs_db_config
     labels:
       org.open5gs.mongodb_version: ${MONGODB_VERSION}
+  sepp_certs:
+    name: open5gs_sepp_certs
 
 configs:
   h-nrf_config:

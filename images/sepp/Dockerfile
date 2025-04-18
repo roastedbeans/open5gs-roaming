@@ -11,10 +11,22 @@ FROM ubuntu:${UBUNTU_VERSION}
 # build-time arguments
 ARG DEBIAN_FRONTEND="noninteractive"
 
-# install dependencies
-RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
-    libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev \
-    openssl ca-certificates -y
+# install dependencies including networking tools for troubleshooting
+RUN apt-get update && apt-get install -y \
+    libgnutls28-dev \
+    libgcrypt-dev \
+    libtalloc-dev \
+    libnghttp2-dev \
+    libmicrohttpd-dev \
+    libcurl4-gnutls-dev \
+    libyaml-dev \
+    openssl \
+    ca-certificates \
+    iputils-ping \
+    iproute2 \
+    net-tools \
+    dnsutils \
+    curl
 
 # copy executable, default config and libs
 COPY --from=builder /open5gs/install/bin/open5gs-seppd /usr/local/bin/open5gs-seppd
