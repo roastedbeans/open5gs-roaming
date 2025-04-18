@@ -11,8 +11,11 @@ FROM ubuntu:${UBUNTU_VERSION}
 # build-time arguments
 ARG DEBIAN_FRONTEND="noninteractive"
 
+RUN rm -rf /var/lib/apt/lists/*                             
+RUN apt-get clean   
+
 # install dependencies including networking tools for troubleshooting
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y \
     libgnutls28-dev \
     libgcrypt-dev \
     libtalloc-dev \
@@ -27,7 +30,7 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     dnsutils \
     curl
-
+    
 # copy executable, default config and libs
 COPY --from=builder /open5gs/install/bin/open5gs-seppd /usr/local/bin/open5gs-seppd
 COPY --from=builder /open5gs/install/etc/open5gs/sepp1.yaml /etc/open5gs/default/sepp.yaml
