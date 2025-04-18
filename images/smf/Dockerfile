@@ -12,7 +12,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 ARG DEBIAN_FRONTEND="noninteractive"
 
 # install dependencies
-RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
+RUN apt-get update --fix-missing && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
     libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev libsctp-dev libidn-dev -y
 
 # copy executable, default config and libs
