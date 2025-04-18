@@ -62,29 +62,64 @@ fi
 # Always regenerate certificates to ensure they're correct
 echo "Generating new certificates for $SEPP_FQDN..."
 
-# Create the CA certificate
+# Create a proper CA certificate
 echo "Generating CA certificate..."
-openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
-    -keyout "$TLS_DIR/ca.key" \
+# Generate CA private key
+openssl genrsa -out "$TLS_DIR/ca.key" 2048
+
+# Generate CA certificate
+openssl req -x509 -new -nodes -key "$TLS_DIR/ca.key" -sha256 -days $CERT_DAYS \
     -out "$TLS_DIR/ca.crt" \
     -subj "/CN=open5gs-ca" \
-    -addext "basicConstraints=critical,CA:TRUE"
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "keyUsage=critical,keyCertSign,cRLSign"
 
-# Generate the SEPP certificate with both domain names
-echo "Generating SEPP certificate for $CERT_PREFIX..."
-openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
-    -keyout "$TLS_DIR/$CERT_PREFIX.key" \
-    -out "$TLS_DIR/$CERT_PREFIX.crt" \
-    -subj "/CN=$SEPP_FQDN" \
-    -addext "subjectAltName = DNS:$SEPP_FQDN,DNS:$SEPP_PLMN_FQDN" \
-    -addext "keyUsage=critical,digitalSignature,keyEncipherment" \
-    -addext "extendedKeyUsage=serverAuth,clientAuth"
+# Create a CSR (Certificate Signing Request) for SEPP
+echo "Generating SEPP CSR for $CERT_PREFIX..."
+openssl genrsa -out "$TLS_DIR/$CERT_PREFIX.key" 2048
+openssl req -new -key "$TLS_DIR/$CERT_PREFIX.key" \
+    -out "$TLS_DIR/$CERT_PREFIX.csr" \
+    -subj "/CN=$SEPP_FQDN"
+
+# Create a config file for the certificate extensions
+cat > "$TLS_DIR/csr.conf" << EOF
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+
+[req_distinguished_name]
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $SEPP_FQDN
+DNS.2 = $SEPP_PLMN_FQDN
+EOF
+
+# Generate SEPP certificate signed by the CA
+echo "Signing SEPP certificate with CA..."
+openssl x509 -req -in "$TLS_DIR/$CERT_PREFIX.csr" \
+    -CA "$TLS_DIR/ca.crt" -CAkey "$TLS_DIR/ca.key" \
+    -CAcreateserial -out "$TLS_DIR/$CERT_PREFIX.crt" \
+    -days $CERT_DAYS -sha256 \
+    -extfile "$TLS_DIR/csr.conf" -extensions v3_req
+
+# Create a certificate chain file
+cat "$TLS_DIR/$CERT_PREFIX.crt" "$TLS_DIR/ca.crt" > "$TLS_DIR/$CERT_PREFIX.chain.crt"
 
 # Set proper permissions on keys
 chmod 600 "$TLS_DIR/$CERT_PREFIX.key"
 chmod 600 "$TLS_DIR/ca.key"
 chmod 644 "$TLS_DIR/$CERT_PREFIX.crt"
 chmod 644 "$TLS_DIR/ca.crt"
+chmod 644 "$TLS_DIR/$CERT_PREFIX.chain.crt"
+
+# Clean up temporary files
+rm -f "$TLS_DIR/$CERT_PREFIX.csr" "$TLS_DIR/csr.conf" "$TLS_DIR/ca.srl"
 
 echo "Certificates generated successfully."
 
@@ -92,6 +127,7 @@ echo "Certificates generated successfully."
 echo "Certificate information for $CERT_PREFIX:"
 openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -text | grep -A2 "Subject:"
 openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -text | grep -A2 "Subject Alternative Name"
+openssl verify -CAfile "$TLS_DIR/ca.crt" "$TLS_DIR/$CERT_PREFIX.crt" || echo "Certificate verification failed, but continuing..."
 
 # Update configuration file with the correct certificate paths
 CONFIG_FILE="${1#-c }"
@@ -119,9 +155,19 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
         sed -i "s|https://sepp1.localdomain:8779|https://sepp1.localdomain:7779|g" "$CONFIG_FILE"
     fi
     
-    # Verify client settings
-    if ! grep -q "verify: false" "$CONFIG_FILE"; then
-        sed -i "/client:/a \ \ \ \ \ \ \ \ verify: false" "$CONFIG_FILE"
+    # Make sure CA paths are properly set
+    if grep -q "cacert:" "$CONFIG_FILE"; then
+        sed -i "s|cacert:.*|cacert: $TLS_DIR/ca.crt|g" "$CONFIG_FILE"
+    else
+        # Add CA certificate if it doesn't exist
+        sed -i "/key:/a \ \ \ \ \ \ \ \ cacert: $TLS_DIR/ca.crt" "$CONFIG_FILE"
+    fi
+    
+    # Ensure client verification is properly set
+    if grep -q "verify:" "$CONFIG_FILE"; then
+        sed -i "s|verify:.*|verify: true|g" "$CONFIG_FILE"
+    else
+        sed -i "/client:/a \ \ \ \ \ \ \ \ verify: true" "$CONFIG_FILE"
     fi
     
     echo "Configuration file updated."
