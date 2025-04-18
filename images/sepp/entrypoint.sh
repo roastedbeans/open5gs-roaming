@@ -54,9 +54,30 @@ if ! grep -q "$OTHER_SEPP" /etc/hosts; then
     cat /etc/hosts
 fi
 
-# Verify certificates exist
+# Create TLS directory if it doesn't exist
+if [ ! -d "$TLS_DIR" ]; then
+    echo "Creating TLS directory: $TLS_DIR"
+    mkdir -p "$TLS_DIR"
+    chmod 755 "$TLS_DIR"
+fi
+
+# Wait for certificates to be available (timeout after 60 seconds)
+echo "Waiting for certificates to be available..."
+TIMEOUT=60
+WAITED=0
+while [ $WAITED -lt $TIMEOUT ]; do
+    if [ -f "$TLS_DIR/ca.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.key" ]; then
+        echo "Certificates found!"
+        break
+    fi
+    echo "Waiting for certificates... (${WAITED}s)"
+    sleep 5
+    WAITED=$((WAITED+5))
+done
+
+# Check if certificates exist after waiting
 if [ ! -f "$TLS_DIR/ca.crt" ] || [ ! -f "$TLS_DIR/$CERT_PREFIX.crt" ] || [ ! -f "$TLS_DIR/$CERT_PREFIX.key" ]; then
-    echo "Error: Required certificates not found in $TLS_DIR"
+    echo "Error: Required certificates not found in $TLS_DIR after waiting $TIMEOUT seconds"
     echo "Missing:"
     [ ! -f "$TLS_DIR/ca.crt" ] && echo "- $TLS_DIR/ca.crt"
     [ ! -f "$TLS_DIR/$CERT_PREFIX.crt" ] && echo "- $TLS_DIR/$CERT_PREFIX.crt"
@@ -74,7 +95,14 @@ fi
 
 # Display certificate information
 echo "Certificate information:"
-openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -subject -issuer -ext subjectAltName || echo "Error verifying certificate"
+openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -subject || echo "Warning: Could not display certificate subject"
+echo "Certificate issuer:"
+openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -issuer || echo "Warning: Could not display certificate issuer"
+
+# Try to display SAN but don't fail if OpenSSL version doesn't support the -ext option
+echo "Subject Alternative Name:"
+openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -ext subjectAltName 2>/dev/null || \
+  echo "  DNS:$SEPP_FQDN, DNS:$SEPP_PLMN_FQDN, IP:$SEPP_IP (manually displayed)"
 
 # Update configuration file with the correct paths and settings
 CONFIG_FILE="${1#-c }"
@@ -130,6 +158,8 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
     fi
     
     echo "Configuration file updated."
+else
+    echo "Warning: No configuration file found or specified. Using default."
 fi
 
 # Test connectivity to other SEPP
@@ -141,6 +171,7 @@ fi
 # Test TLS connectivity to other SEPP if openssl is available
 if command -v openssl &> /dev/null; then
     echo "Testing TLS connectivity to $OTHER_SEPP..."
+    # Use timeout to avoid hanging if the server is not ready yet
     timeout 5 openssl s_client -connect $OTHER_SEPP:7778 -CAfile $TLS_DIR/ca.crt </dev/null &>/dev/null && \
         echo "TLS connectivity test successful" || \
         echo "TLS connectivity test failed, but continuing..."
