@@ -113,6 +113,7 @@ services:
       - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
     volumes:
       - sepp_certs:/etc/open5gs/default/tls
+      - sepp_ca:/etc/open5gs/default/ca
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -300,6 +301,7 @@ services:
       - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
     volumes:
       - sepp_certs:/etc/open5gs/default/tls
+      - sepp_ca:/etc/open5gs/default/ca
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -375,6 +377,8 @@ volumes:
       org.open5gs.mongodb_version: ${MONGODB_VERSION}
   sepp_certs:
     name: open5gs_sepp_certs
+  sepp_ca:
+    name: open5gs_sepp_ca
 
 configs:
   h-nrf_config:

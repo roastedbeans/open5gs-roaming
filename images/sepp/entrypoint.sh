@@ -32,11 +32,17 @@ if [ "$SEPP_TYPE" = "sepp1" ]; then
     SEPP_PLMN_FQDN="sepp.5gc.mnc001.mcc001.3gppnetwork.org"
     CERT_PREFIX="sepp1"
     OTHER_SEPP="sepp2.localdomain"
+    IP_ADDRESS="10.33.33.20"
+    OTHER_IP="10.33.33.15"
+    OTHER_CERT_PREFIX="sepp2"
 else
     SEPP_FQDN="sepp2.localdomain"
     SEPP_PLMN_FQDN="sepp.5gc.mnc070.mcc999.3gppnetwork.org"
     CERT_PREFIX="sepp2"
     OTHER_SEPP="sepp1.localdomain"
+    IP_ADDRESS="10.33.33.15"
+    OTHER_IP="10.33.33.20"
+    OTHER_CERT_PREFIX="sepp1"
 fi
 
 # Allow overriding of values through environment variables
@@ -44,18 +50,16 @@ SEPP_FQDN=${SEPP_FQDN_OVERRIDE:-"$SEPP_FQDN"}
 SEPP_PLMN_FQDN=${SEPP_PLMN_FQDN_OVERRIDE:-"$SEPP_PLMN_FQDN"}
 CERT_DAYS=${CERT_DAYS:-3650}
 TLS_DIR=${TLS_DIR:-"/etc/open5gs/default/tls"}
+CA_DIR="/etc/open5gs/default/ca"
 
-# Ensure TLS directory exists
+# Ensure directories exist
 mkdir -p $TLS_DIR
+mkdir -p $CA_DIR
 
 # Add the other SEPP to hosts file for DNS resolution if not already there
 if ! grep -q "$OTHER_SEPP" /etc/hosts; then
     echo "Adding $OTHER_SEPP to /etc/hosts for DNS resolution..."
-    if [ "$SEPP_TYPE" = "sepp1" ]; then
-        echo "$(getent hosts sepp2.localdomain || echo "10.33.33.15 sepp2.localdomain")" >> /etc/hosts
-    else
-        echo "$(getent hosts sepp1.localdomain || echo "10.33.33.20 sepp1.localdomain")" >> /etc/hosts
-    fi
+    echo "$OTHER_IP $OTHER_SEPP" >> /etc/hosts
     cat /etc/hosts
 fi
 
@@ -70,7 +74,7 @@ openssl genrsa -out "$TLS_DIR/ca.key" 2048
 # Generate CA certificate
 openssl req -x509 -new -nodes -key "$TLS_DIR/ca.key" -sha256 -days $CERT_DAYS \
     -out "$TLS_DIR/ca.crt" \
-    -subj "/CN=open5gs-ca" \
+    -subj "/CN=open5gs-ca-$CERT_PREFIX" \
     -addext "basicConstraints=critical,CA:TRUE" \
     -addext "keyUsage=critical,keyCertSign,cRLSign"
 
@@ -98,6 +102,9 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = $SEPP_FQDN
 DNS.2 = $SEPP_PLMN_FQDN
+DNS.3 = localhost
+IP.1 = $IP_ADDRESS
+IP.2 = 127.0.0.1
 EOF
 
 # Generate SEPP certificate signed by the CA
@@ -111,12 +118,52 @@ openssl x509 -req -in "$TLS_DIR/$CERT_PREFIX.csr" \
 # Create a certificate chain file
 cat "$TLS_DIR/$CERT_PREFIX.crt" "$TLS_DIR/ca.crt" > "$TLS_DIR/$CERT_PREFIX.chain.crt"
 
-# Set proper permissions on keys
+# Copy certificates to the shared CA directory
+cp "$TLS_DIR/ca.crt" "$CA_DIR/$CERT_PREFIX-ca.crt"
+cp "$TLS_DIR/$CERT_PREFIX.crt" "$CA_DIR/$CERT_PREFIX.crt"
+cp "$TLS_DIR/$CERT_PREFIX.chain.crt" "$CA_DIR/$CERT_PREFIX.chain.crt"
+
+# Set proper permissions on keys and certificates
 chmod 600 "$TLS_DIR/$CERT_PREFIX.key"
 chmod 600 "$TLS_DIR/ca.key"
 chmod 644 "$TLS_DIR/$CERT_PREFIX.crt"
 chmod 644 "$TLS_DIR/ca.crt"
 chmod 644 "$TLS_DIR/$CERT_PREFIX.chain.crt"
+chmod 644 "$CA_DIR/$CERT_PREFIX-ca.crt"
+chmod 644 "$CA_DIR/$CERT_PREFIX.crt"
+chmod 644 "$CA_DIR/$CERT_PREFIX.chain.crt"
+
+# Wait for the other SEPP's CA certificate to be available
+echo "Waiting for $OTHER_SEPP's CA certificate..."
+for i in {1..30}; do
+    if [ -f "$CA_DIR/$OTHER_CERT_PREFIX-ca.crt" ]; then
+        echo "Found $OTHER_SEPP's CA certificate"
+        
+        # Copy other SEPP's CA certificate to our TLS dir for verification
+        cp "$CA_DIR/$OTHER_CERT_PREFIX-ca.crt" "$TLS_DIR/$OTHER_CERT_PREFIX-ca.crt"
+        
+        # Create a combined CA bundle for verification
+        cat "$TLS_DIR/ca.crt" "$TLS_DIR/$OTHER_CERT_PREFIX-ca.crt" > "$TLS_DIR/ca-bundle.crt"
+        chmod 644 "$TLS_DIR/ca-bundle.crt"
+        
+        # Check if we can verify the other SEPP's certificate
+        if [ -f "$CA_DIR/$OTHER_CERT_PREFIX.crt" ]; then
+            echo "Verifying $OTHER_SEPP's certificate..."
+            openssl verify -CAfile "$TLS_DIR/$OTHER_CERT_PREFIX-ca.crt" "$CA_DIR/$OTHER_CERT_PREFIX.crt" || echo "Warning: Could not verify $OTHER_SEPP's certificate, but continuing..."
+        fi
+        break
+    fi
+    
+    if [ $i -eq 30 ]; then
+        echo "Warning: Could not find $OTHER_SEPP's CA certificate after waiting, proceeding without it..."
+        # Create a fallback CA bundle with just our CA
+        cp "$TLS_DIR/ca.crt" "$TLS_DIR/ca-bundle.crt"
+        chmod 644 "$TLS_DIR/ca-bundle.crt"
+    else
+        echo "Waiting for $OTHER_SEPP's CA certificate (attempt $i/30)..."
+        sleep 2
+    fi
+done
 
 # Clean up temporary files
 rm -f "$TLS_DIR/$CERT_PREFIX.csr" "$TLS_DIR/csr.conf" "$TLS_DIR/ca.srl"
@@ -139,7 +186,10 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
     if [ "$SEPP_TYPE" = "sepp2" ]; then
         echo "Updating certificate paths in config file to use $CERT_PREFIX..."
         sed -i "s|sepp1.key|$CERT_PREFIX.key|g" "$CONFIG_FILE"
-        sed -i "s|sepp1.crt|$CERT_PREFIX.crt|g" "$CONFIG_FILE"
+        sed -i "s|sepp1.crt|$CERT_PREFIX.chain.crt|g" "$CONFIG_FILE"
+    else
+        # Update to use chain certificate
+        sed -i "s|sepp1.crt|$CERT_PREFIX.chain.crt|g" "$CONFIG_FILE"
     fi
     
     # Make sure sender and receiver are set correctly
@@ -155,12 +205,27 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
         sed -i "s|https://sepp1.localdomain:8779|https://sepp1.localdomain:7779|g" "$CONFIG_FILE"
     fi
     
-    # Make sure CA paths are properly set
+    # Make sure CA paths are properly set to use the bundle
     if grep -q "cacert:" "$CONFIG_FILE"; then
-        sed -i "s|cacert:.*|cacert: $TLS_DIR/ca.crt|g" "$CONFIG_FILE"
+        sed -i "s|cacert:.*|cacert: $TLS_DIR/ca-bundle.crt|g" "$CONFIG_FILE"
     else
         # Add CA certificate if it doesn't exist
-        sed -i "/key:/a \ \ \ \ \ \ \ \ cacert: $TLS_DIR/ca.crt" "$CONFIG_FILE"
+        sed -i "/key:/a \ \ \ \ \ \ \ \ cacert: $TLS_DIR/ca-bundle.crt" "$CONFIG_FILE"
+    fi
+
+    # Add missing server parameters if needed
+    if ! grep -q "tls:" "$CONFIG_FILE"; then
+        # Add TLS section if missing
+        cat >> "$CONFIG_FILE" << EOF
+
+    tls:
+      server:
+        key: $TLS_DIR/$CERT_PREFIX.key
+        cert: $TLS_DIR/$CERT_PREFIX.chain.crt
+      client:
+        cacert: $TLS_DIR/ca-bundle.crt
+        verify: true
+EOF
     fi
     
     # Ensure client verification is properly set
