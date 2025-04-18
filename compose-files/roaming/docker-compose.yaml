@@ -101,6 +101,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.20
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
           - sepp1.localdomain
@@ -287,6 +288,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.10
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
