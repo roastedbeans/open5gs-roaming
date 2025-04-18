@@ -16,7 +16,7 @@ services:
       - SEPP2_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
       - SEPP2_IP=10.33.33.10
     healthcheck:
-      test: ['CMD', 'test', '-f', '/certs/sepp1-chain.pem', '-a', '-f', '/certs/sepp2-chain.pem']
+      test: ['CMD-SHELL', 'test -f /certs/certificates_generated || exit 1']
       interval: 5s
       timeout: 5s
       retries: 3

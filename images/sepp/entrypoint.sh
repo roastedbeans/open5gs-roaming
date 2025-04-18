@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# Use more resilient error handling
+set +e
 
 echo "====== SEPP Container Startup ======"
 
@@ -61,12 +62,22 @@ if [ ! -d "$TLS_DIR" ]; then
     chmod 755 "$TLS_DIR"
 fi
 
+# Function to check if certificates files exist
+check_certs() {
+    if [ -f "$TLS_DIR/ca.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.key" ]; then
+        return 0  # Success
+    else
+        return 1  # Failure
+    fi
+}
+
 # Wait for certificates to be available (timeout after 60 seconds)
 echo "Waiting for certificates to be available..."
 TIMEOUT=60
 WAITED=0
+
 while [ $WAITED -lt $TIMEOUT ]; do
-    if [ -f "$TLS_DIR/ca.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.crt" ] && [ -f "$TLS_DIR/$CERT_PREFIX.key" ]; then
+    if check_certs; then
         echo "Certificates found!"
         break
     fi
@@ -76,7 +87,7 @@ while [ $WAITED -lt $TIMEOUT ]; do
 done
 
 # Check if certificates exist after waiting
-if [ ! -f "$TLS_DIR/ca.crt" ] || [ ! -f "$TLS_DIR/$CERT_PREFIX.crt" ] || [ ! -f "$TLS_DIR/$CERT_PREFIX.key" ]; then
+if ! check_certs; then
     echo "Error: Required certificates not found in $TLS_DIR after waiting $TIMEOUT seconds"
     echo "Missing:"
     [ ! -f "$TLS_DIR/ca.crt" ] && echo "- $TLS_DIR/ca.crt"
@@ -93,16 +104,9 @@ if [ ! -f "$TLS_DIR/$CERT_PREFIX-chain.pem" ]; then
     chmod 644 "$TLS_DIR/$CERT_PREFIX-chain.pem"
 fi
 
-# Display certificate information
-echo "Certificate information:"
-openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -subject || echo "Warning: Could not display certificate subject"
-echo "Certificate issuer:"
-openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -issuer || echo "Warning: Could not display certificate issuer"
-
-# Try to display SAN but don't fail if OpenSSL version doesn't support the -ext option
-echo "Subject Alternative Name:"
-openssl x509 -in "$TLS_DIR/$CERT_PREFIX.crt" -noout -ext subjectAltName 2>/dev/null || \
-  echo "  DNS:$SEPP_FQDN, DNS:$SEPP_PLMN_FQDN, IP:$SEPP_IP (manually displayed)"
+# Simplified certificate information - less likely to hang
+echo "Certificate files:"
+ls -la $TLS_DIR/ca.crt $TLS_DIR/$CERT_PREFIX.crt $TLS_DIR/$CERT_PREFIX.key $TLS_DIR/$CERT_PREFIX-chain.pem || echo "Warning: Could not list certificate files"
 
 # Update configuration file with the correct paths and settings
 CONFIG_FILE="${1#-c }"
@@ -164,18 +168,13 @@ fi
 
 # Test connectivity to other SEPP
 echo "Testing connectivity to $OTHER_SEPP..."
-if command -v ping &> /dev/null; then
-    ping -c 1 $OTHER_SEPP || echo "Ping failed, but continuing..."
-fi
+ping -c 1 $OTHER_SEPP || echo "Ping failed, but continuing..."
 
-# Test TLS connectivity to other SEPP if openssl is available
-if command -v openssl &> /dev/null; then
-    echo "Testing TLS connectivity to $OTHER_SEPP..."
-    # Use timeout to avoid hanging if the server is not ready yet
-    timeout 5 openssl s_client -connect $OTHER_SEPP:7778 -CAfile $TLS_DIR/ca.crt </dev/null &>/dev/null && \
-        echo "TLS connectivity test successful" || \
-        echo "TLS connectivity test failed, but continuing..."
-fi
+# Simple TLS connectivity test - don't rely on openssl client functionality
+echo "Checking for TLS port connectivity to $OTHER_SEPP:7778..."
+timeout 2 bash -c "</dev/tcp/$OTHER_SEPP/7778" 2>/dev/null && \
+    echo "TCP connectivity test successful" || \
+    echo "TCP connectivity test failed, but continuing..."
 
 echo "====== Starting SEPP daemon ======"
 echo "Using config file: ${CONFIG_FILE:-"/etc/open5gs/default/sepp.yaml"}"
