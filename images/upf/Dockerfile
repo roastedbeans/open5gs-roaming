@@ -15,6 +15,10 @@ ARG TARGETARCH
 ARG DEBIAN_FRONTEND="noninteractive"
 ARG YQ_VERSION="v4.30.6"
 
+RUN apt-get clean 
+RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get upgrade -y
+
 # install dependencies
 RUN apt-get update --fix-missing && apt-get install libssl-dev libtalloc-dev libtins-dev \
     libyaml-dev iproute2 iptables wget libmicrohttpd-dev -y
