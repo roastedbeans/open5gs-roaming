@@ -8,20 +8,23 @@ CERT_DAYS=${CERT_DAYS:-3650}
 CA_CN=${CA_CN:-"open5gs-ca"}
 SEPP1_FQDN=${SEPP1_FQDN:-"sepp1.localdomain"}
 SEPP1_PLMN_FQDN=${SEPP1_PLMN_FQDN:-"sepp.5gc.mnc001.mcc001.3gppnetwork.org"}
+SEPP1_IP=${SEPP1_IP:-"10.33.33.20"}
 SEPP2_FQDN=${SEPP2_FQDN:-"sepp2.localdomain"}
 SEPP2_PLMN_FQDN=${SEPP2_PLMN_FQDN:-"sepp.5gc.mnc070.mcc999.3gppnetwork.org"}
+SEPP2_IP=${SEPP2_IP:-"10.33.33.10"}
 TLS_DIR="/certs"
 
 # Ensure TLS directory exists
 mkdir -p $TLS_DIR
 
-# Generate CA certificate
+# Generate CA certificate with proper extensions
 echo "Generating CA certificate..."
 openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:2048 \
     -keyout "$TLS_DIR/ca.key" \
     -out "$TLS_DIR/ca.crt" \
     -subj "/CN=$CA_CN" \
-    -addext "basicConstraints=critical,CA:TRUE"
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "keyUsage=critical,keyCertSign,cRLSign"
 
 # Generate SEPP1 certificate
 echo "Generating SEPP1 certificate..."
@@ -31,7 +34,7 @@ openssl req -new -key "$TLS_DIR/sepp1.key" \
     -subj "/CN=$SEPP1_FQDN"
 
 cat > "$TLS_DIR/sepp1.ext" << EOF
-subjectAltName = DNS:$SEPP1_FQDN,DNS:$SEPP1_PLMN_FQDN
+subjectAltName = DNS:$SEPP1_FQDN,DNS:$SEPP1_PLMN_FQDN,IP:$SEPP1_IP
 keyUsage = critical,digitalSignature,keyEncipherment
 extendedKeyUsage = serverAuth,clientAuth
 EOF
@@ -44,7 +47,7 @@ openssl x509 -req -in "$TLS_DIR/sepp1.csr" \
     -days $CERT_DAYS \
     -extfile "$TLS_DIR/sepp1.ext"
 
-# Generate SEPP2 certificate (similar process)
+# Generate SEPP2 certificate
 echo "Generating SEPP2 certificate..."
 openssl genrsa -out "$TLS_DIR/sepp2.key" 2048
 openssl req -new -key "$TLS_DIR/sepp2.key" \
@@ -52,7 +55,7 @@ openssl req -new -key "$TLS_DIR/sepp2.key" \
     -subj "/CN=$SEPP2_FQDN"
 
 cat > "$TLS_DIR/sepp2.ext" << EOF
-subjectAltName = DNS:$SEPP2_FQDN,DNS:$SEPP2_PLMN_FQDN
+subjectAltName = DNS:$SEPP2_FQDN,DNS:$SEPP2_PLMN_FQDN,IP:$SEPP2_IP
 keyUsage = critical,digitalSignature,keyEncipherment
 extendedKeyUsage = serverAuth,clientAuth
 EOF
@@ -65,9 +68,14 @@ openssl x509 -req -in "$TLS_DIR/sepp2.csr" \
     -days $CERT_DAYS \
     -extfile "$TLS_DIR/sepp2.ext"
 
+# Create PEM certificate chain files for each SEPP
+echo "Creating certificate chain files..."
+cat "$TLS_DIR/sepp1.crt" "$TLS_DIR/ca.crt" > "$TLS_DIR/sepp1-chain.pem"
+cat "$TLS_DIR/sepp2.crt" "$TLS_DIR/ca.crt" > "$TLS_DIR/sepp2-chain.pem"
+
 # Set proper permissions
 chmod 600 "$TLS_DIR/sepp1.key" "$TLS_DIR/sepp2.key" "$TLS_DIR/ca.key"
-chmod 644 "$TLS_DIR/sepp1.crt" "$TLS_DIR/sepp2.crt" "$TLS_DIR/ca.crt"
+chmod 644 "$TLS_DIR/sepp1.crt" "$TLS_DIR/sepp2.crt" "$TLS_DIR/ca.crt" "$TLS_DIR/sepp1-chain.pem" "$TLS_DIR/sepp2-chain.pem"
 
 # Clean up
 rm -f "$TLS_DIR/sepp1.csr" "$TLS_DIR/sepp1.ext" \
@@ -77,8 +85,8 @@ echo "Certificate generation complete!"
 echo "CA certificate info:"
 openssl x509 -in "$TLS_DIR/ca.crt" -noout -text | grep -A2 "Subject:"
 echo "SEPP1 certificate info:"
-openssl x509 -in "$TLS_DIR/sepp1.crt" -noout -text | grep -A2 "Subject:"
+openssl x509 -in "$TLS_DIR/sepp1.crt" -noout -text | grep -A5 "Subject:" | grep -A3 "Subject Alternative Name"
 echo "SEPP2 certificate info:"
-openssl x509 -in "$TLS_DIR/sepp2.crt" -noout -text | grep -A2 "Subject:"
+openssl x509 -in "$TLS_DIR/sepp2.crt" -noout -text | grep -A5 "Subject:" | grep -A3 "Subject Alternative Name"
 
 exit 0

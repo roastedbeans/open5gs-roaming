@@ -2,7 +2,8 @@ services:
   cert-manager:
     container_name: cert-manager
     image: 'sepp:${OPEN5GS_VERSION}'
-    command: '/generate-certs.sh'
+    entrypoint: ['/generate-certs.sh'] # Override the default entrypoint
+    command: [] # No command needed since entrypoint handles everything
     volumes:
       - sepp_certs:/certs
     environment:
@@ -10,8 +11,10 @@ services:
       - CA_CN=open5gs-ca
       - SEPP1_FQDN=sepp1.localdomain
       - SEPP1_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      - SEPP1_IP=10.33.33.20
       - SEPP2_FQDN=sepp2.localdomain
       - SEPP2_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
+      - SEPP2_IP=10.33.33.10
   db:
     container_name: db
     image: 'mongo:${MONGODB_VERSION}'
@@ -117,12 +120,15 @@ services:
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
           - sepp1.localdomain
+        ipv4_address: 10.33.33.20
     environment:
       - SEPP_TYPE=sepp1
-      - REGENERATE_CERTS=true
+      - REGENERATE_CERTS=false
       - TLS_DIR=/etc/open5gs/default/tls
       - SEPP_FQDN=sepp1.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      - SEPP_IP=10.33.33.20
+      - DISABLE_VERIFY=false
     volumes:
       - sepp_certs:/etc/open5gs/default/tls:ro
     configs:
@@ -306,12 +312,15 @@ services:
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
+        ipv4_address: 10.33.33.10
     environment:
       - SEPP_TYPE=sepp2
-      - REGENERATE_CERTS=true
+      - REGENERATE_CERTS=false
       - TLS_DIR=/etc/open5gs/default/tls
       - SEPP_FQDN=sepp2.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
+      - SEPP_IP=10.33.33.10
+      - DISABLE_VERIFY=false
     volumes:
       - sepp_certs:/etc/open5gs/default/tls:ro
     configs:

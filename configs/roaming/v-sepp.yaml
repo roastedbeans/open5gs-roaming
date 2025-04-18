@@ -9,10 +9,10 @@ sepp:
     tls:
       server:
         private_key: /etc/open5gs/default/tls/sepp2.key
-        cert: /etc/open5gs/default/tls/sepp2.crt
+        cert: /etc/open5gs/default/tls/sepp2-chain.pem
       client:
         cacert: /etc/open5gs/default/tls/ca.crt
-        verify: false # For initial testing, can be set to true later
+        verify: true
   sbi:
     server:
       - address: 0.0.0.0
