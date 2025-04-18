@@ -1,4 +1,17 @@
 services:
+  cert-manager:
+    container_name: cert-manager
+    image: 'sepp:${OPEN5GS_VERSION}'
+    command: '/generate-certs.sh'
+    volumes:
+      - sepp_certs:/certs
+    environment:
+      - CERT_DAYS=3650
+      - CA_CN=open5gs-ca
+      - SEPP1_FQDN=sepp1.localdomain
+      - SEPP1_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      - SEPP2_FQDN=sepp2.localdomain
+      - SEPP2_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
   db:
     container_name: db
     image: 'mongo:${MONGODB_VERSION}'
@@ -111,7 +124,7 @@ services:
       - SEPP_FQDN=sepp1.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
     volumes:
-      - sepp_certs:/etc/open5gs/default/tls
+      - sepp_certs:/etc/open5gs/default/tls:ro
     configs:
       - source: h-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -120,7 +133,10 @@ services:
       - '0.0.0.0:7778:7778/tcp' # N32c Server
       - '0.0.0.0:7779:7779/tcp' # N32f Server
     depends_on:
-      - h-nrf
+      cert-manager:
+        condition: service_completed_successfully
+      h-nrf:
+        condition: service_started
 
   v-nrf:
     container_name: v-nrf
@@ -297,7 +313,7 @@ services:
       - SEPP_FQDN=sepp2.localdomain
       - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
     volumes:
-      - sepp_certs:/etc/open5gs/default/tls
+      - sepp_certs:/etc/open5gs/default/tls:ro
     configs:
       - source: v-sepp_config
         target: /etc/open5gs/default/sepp.yaml
@@ -306,7 +322,10 @@ services:
       - '0.0.0.0:8778:7778/tcp' # N32c Server
       - '0.0.0.0:8779:7779/tcp' # N32f Server
     depends_on:
-      - v-nrf
+      cert-manager:
+        condition: service_completed_successfully
+      v-nrf:
+        condition: service_started
 
   packetrusher:
     container_name: packetrusher
