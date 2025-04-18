@@ -12,6 +12,12 @@ services:
       - db_config:/data/configdb
     ports:
       - '0.0.0.0:27017:27017/tcp'
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   h-nrf:
     container_name: h-nrf
@@ -29,6 +35,12 @@ services:
     configs:
       - source: h-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
+    healthcheck:
+      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   h-ausf:
     container_name: h-ausf
@@ -47,7 +59,8 @@ services:
       - source: h-ausf_config
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
-      - h-nrf
+      h-nrf:
+        condition: service_healthy
 
   h-udm:
     container_name: h-udm
@@ -66,7 +79,8 @@ services:
       - source: h-udm_config
         target: /etc/open5gs/custom/udm.yaml
     depends_on:
-      - h-nrf
+      h-nrf:
+        condition: service_healthy
 
   h-udr:
     container_name: h-udr
@@ -86,8 +100,10 @@ services:
       - source: h-udr_config
         target: /etc/open5gs/custom/udr.yaml
     depends_on:
-      - db
-      - h-nrf
+      db:
+        condition: service_healthy
+      h-nrf:
+        condition: service_healthy
 
   h-sepp:
     container_name: h-sepp
@@ -122,7 +138,16 @@ services:
       - '0.0.0.0:7778:7778/tcp' # N32c Server
       - '0.0.0.0:7779:7779/tcp' # N32f Server
     depends_on:
-      - h-nrf
+      h-nrf:
+        condition: service_healthy
+      v-sepp:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   v-nrf:
     container_name: v-nrf
@@ -140,6 +165,12 @@ services:
     configs:
       - source: v-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
+    healthcheck:
+      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   v-ausf:
     container_name: v-ausf
@@ -158,7 +189,8 @@ services:
       - source: v-ausf_config
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
 
   v-nssf:
     container_name: v-nssf
@@ -177,7 +209,8 @@ services:
       - source: v-nssf_config
         target: /etc/open5gs/custom/nssf.yaml
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
 
   v-bsf:
     container_name: v-bsf
@@ -196,7 +229,8 @@ services:
       - source: v-bsf_config
         target: /etc/open5gs/custom/bsf.yaml
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
 
   v-pcf:
     container_name: v-pcf
@@ -216,7 +250,8 @@ services:
       - source: v-pcf_config
         target: /etc/open5gs/custom/pcf.yaml
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
 
   v-amf:
     container_name: v-amf
@@ -235,7 +270,8 @@ services:
       - source: v-amf_config
         target: /etc/open5gs/custom/amf.yaml
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
 
   v-smf:
     container_name: v-smf
@@ -254,8 +290,10 @@ services:
       - source: v-smf_config
         target: /etc/open5gs/custom/smf.yaml
     depends_on:
-      - v-nrf
-      - v-upf
+      v-nrf:
+        condition: service_healthy
+      v-upf:
+        condition: service_started
 
   v-upf:
     container_name: v-upf
@@ -310,7 +348,14 @@ services:
       - '0.0.0.0:8778:7778/tcp' # N32c Server
       - '0.0.0.0:8779:7779/tcp' # N32f Server
     depends_on:
-      - v-nrf
+      v-nrf:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   packetrusher:
     container_name: packetrusher
@@ -328,10 +373,18 @@ services:
       - ALL
       - NET_ADMIN
     depends_on:
-      - v-amf
-      - v-smf
-      - v-pcf
-      - h-udr
+      v-amf:
+        condition: service_started
+      v-smf:
+        condition: service_started
+      v-pcf:
+        condition: service_started
+      h-udr:
+        condition: service_started
+      h-sepp:
+        condition: service_healthy
+      v-sepp:
+        condition: service_healthy
 
   webui:
     container_name: webui
@@ -352,7 +405,8 @@ services:
         aliases:
           - webui.open5gs.org
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - '0.0.0.0:9999:9999/tcp'
 
