@@ -13,10 +13,16 @@ ARG DEBIAN_FRONTEND="noninteractive"
 # Install only the essential dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgnutls28-dev \
+    libgcrypt-dev \
+    libtalloc-dev \
+    libnghttp2-dev \
+    libmicrohttpd-dev \
     libcurl4-gnutls-dev \
     libyaml-dev \
     openssl \
     ca-certificates \
+    iputils-ping \
+    iproute2 \
     && rm -rf /var/lib/apt/lists/*
 
 # copy executable, default config and libs
