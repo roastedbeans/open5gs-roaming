@@ -36,7 +36,7 @@ services:
       - source: h-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
     healthcheck:
-      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 80 || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -143,7 +143,7 @@ services:
       v-sepp:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 7777 || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -167,7 +167,7 @@ services:
       - source: v-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
     healthcheck:
-      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 7777 || exit 1']
+      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 80 || exit 1']
       interval: 15s
       timeout: 10s
       retries: 5
@@ -363,7 +363,7 @@ services:
       v-nrf:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'netstat -tulpn | grep 7777 || exit 1']
+      test: ['CMD-SHELL', 'netstat -tulpn | grep -q 7777 || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
