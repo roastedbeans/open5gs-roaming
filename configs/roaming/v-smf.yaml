@@ -24,6 +24,16 @@ smf:
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1
+      dnn: internet
+      plmn_id:
+        mcc: 999
+        mnc: 70
+    - subnet: 10.46.0.0/16
+      gateway: 10.46.0.1
+      dnn: internet
+      plmn_id:
+        mcc: 001
+        mnc: 01
   dns:
     - 8.8.8.8
     - 8.8.4.4

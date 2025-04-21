@@ -35,6 +35,13 @@ if [ "$SEPP_TYPE" = "sepp1" ]; then
     IP_ADDRESS="10.33.33.20"
     OTHER_IP="10.33.33.15"
     OTHER_CERT_PREFIX="sepp2"
+    # For home SEPP, internal and external ports are the same (7778, 7779)
+    INTERNAL_PORT_N32C="7778"
+    INTERNAL_PORT_N32F="7779"
+    OTHER_EXTERNAL_PORT_N32C="8778"
+    OTHER_EXTERNAL_PORT_N32F="8779"
+    OTHER_INTERNAL_PORT_N32C="7778"
+    OTHER_INTERNAL_PORT_N32F="7779"
 else
     SEPP_FQDN="sepp2.localdomain"
     SEPP_PLMN_FQDN="sepp.5gc.mnc070.mcc999.3gppnetwork.org"
@@ -43,6 +50,13 @@ else
     IP_ADDRESS="10.33.33.15"
     OTHER_IP="10.33.33.20"
     OTHER_CERT_PREFIX="sepp1"
+    # For visiting SEPP, internal ports are 7778, 7779, but external ports are 8778, 8779
+    INTERNAL_PORT_N32C="7778"
+    INTERNAL_PORT_N32F="7779"
+    OTHER_EXTERNAL_PORT_N32C="7778"
+    OTHER_EXTERNAL_PORT_N32F="7779"
+    OTHER_INTERNAL_PORT_N32C="7778"
+    OTHER_INTERNAL_PORT_N32F="7779"
 fi
 
 # Allow overriding of values through environment variables
@@ -196,13 +210,15 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
     if [ "$SEPP_TYPE" = "sepp1" ]; then
         sed -i "s|sender:.*|sender: $SEPP_FQDN|g" "$CONFIG_FILE"
         sed -i "s|receiver:.*|receiver: sepp2.localdomain|g" "$CONFIG_FILE"
-        sed -i "s|https://sepp2.localdomain:8778|https://sepp2.localdomain:7778|g" "$CONFIG_FILE"
-        sed -i "s|https://sepp2.localdomain:8779|https://sepp2.localdomain:7779|g" "$CONFIG_FILE"
+        # Use correct port mapping - direct to container internal ports
+        sed -i "s|https://sepp2.localdomain:[0-9]*|https://sepp2.localdomain:$OTHER_INTERNAL_PORT_N32C|g" "$CONFIG_FILE"
+        sed -i "/n32f:/!s|https://sepp2.localdomain:[0-9]*|https://sepp2.localdomain:$OTHER_INTERNAL_PORT_N32F|g" "$CONFIG_FILE"
     else
         sed -i "s|sender:.*|sender: $SEPP_FQDN|g" "$CONFIG_FILE"
         sed -i "s|receiver:.*|receiver: sepp1.localdomain|g" "$CONFIG_FILE"
-        sed -i "s|https://sepp1.localdomain:8778|https://sepp1.localdomain:7778|g" "$CONFIG_FILE"
-        sed -i "s|https://sepp1.localdomain:8779|https://sepp1.localdomain:7779|g" "$CONFIG_FILE"
+        # Use correct port mapping - direct to container internal ports
+        sed -i "s|https://sepp1.localdomain:[0-9]*|https://sepp1.localdomain:$OTHER_INTERNAL_PORT_N32C|g" "$CONFIG_FILE"
+        sed -i "/n32f:/!s|https://sepp1.localdomain:[0-9]*|https://sepp1.localdomain:$OTHER_INTERNAL_PORT_N32F|g" "$CONFIG_FILE"
     fi
     
     # Make sure CA paths are properly set to use the bundle

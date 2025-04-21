@@ -9,11 +9,10 @@ sepp:
     tls:
       server:
         private_key: /etc/open5gs/default/tls/sepp2.key
-        cert: /etc/open5gs/default/tls/sepp2.crt
+        cert: /etc/open5gs/default/tls/sepp2.chain.crt
       client:
-        cacert: /etc/open5gs/default/tls/ca.crt
-        verify_client: false # Don't require client certificate verification
-        verify: false # Don't verify server certificates (for testing)
+        cacert: /etc/open5gs/default/tls/ca-bundle.crt
+        verify: true
   sbi:
     server:
       - address: sepp.5gc.mnc070.mcc999.3gppnetwork.org
@@ -24,6 +23,7 @@ sepp:
   n32:
     server:
       - sender: sepp2.localdomain
+        
         scheme: https
         address: 0.0.0.0
         port: 7778
