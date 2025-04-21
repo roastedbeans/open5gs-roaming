@@ -14,7 +14,6 @@ gnodeb:
     sst: '01'
     sd: '000001'
 
-
 ue:
   hplmn:
     mcc: '001'
@@ -46,6 +45,3 @@ amfif:
     port: 38412
 logs:
   level: 4
-
-
-

@@ -5,6 +5,7 @@ logger:
 global:
 
 nrf:
+  # Visited PLMN information
   serving:
     - plmn_id:
         mcc: 999
