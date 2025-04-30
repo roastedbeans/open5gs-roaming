@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
 # Create necessary directories
 RUN mkdir -p /etc/tshark /captures /var/log
 
-# Copy configuration file
-COPY config/tshark.yaml /etc/tshark/
-
 # Set working directory
 WORKDIR /captures
 

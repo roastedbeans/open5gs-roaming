@@ -393,6 +393,12 @@ services:
         target: /etc/tshark/tshark.yaml
     depends_on:
       - db
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
 networks:
   open5gs:
