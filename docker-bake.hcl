@@ -12,7 +12,7 @@ variable "NODE_VERSION" {
 
 group "default" {
   targets = ["base-open5gs", "amf", "ausf", "bsf", "nrf", "nssf",
-              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui"]
+              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui", "tshark"]
 }
 
 target "base-open5gs" {
@@ -188,5 +188,15 @@ target "webui" {
   }
   context = "./images/webui"
   tags = ["webui:${OPEN5GS_VERSION}"]
+  output = ["type=image"]
+}
+
+target "tshark" {
+  args = {
+    UBUNTU_VERSION = "${UBUNTU_VERSION}"
+    OPEN5GS_VERSION = "${OPEN5GS_VERSION}"
+  }
+  context = "./images/tshark"
+  tags = ["tshark:${OPEN5GS_VERSION}"]
   output = ["type=image"]
 }
