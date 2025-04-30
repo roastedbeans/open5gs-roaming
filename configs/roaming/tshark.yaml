@@ -7,17 +7,17 @@ capture:
   max_files: 24 # Keep last 24 hours of captures
   max_size: 100 # Maximum file size in MB before rotation
 
-# Capture filters
+# Capture filters (using BPF syntax)
 filters:
-  # Basic 5G core network protocols
-  - 'ngap || http2 || pfcp || diameter || gtp'
+  # 5G core network protocols - using port-based filters for BPF
+  - 'port 36412 or port 38412 or port 8805 or port 2152 or port 2123 or port 3868 or port 8080'
   # Add more specific filters as needed
-  # - "ip.addr == 10.33.33.0/24"  # Filter for Open5GS network
-  # - "tcp.port == 7777 || tcp.port == 7778 || tcp.port == 7779"  # SEPP ports
+  # - "net 10.33.33.0/24"  # Filter for Open5GS network
+  # - "port 7777 or port 7778 or port 7779"  # SEPP ports
 
 # Display filters (for real-time analysis)
 display_filters:
-  - 'ngap || http2 || pfcp || diameter || gtp'
+  - 'ngap or http2 or pfcp or diameter or gtp'
 
 # Logging configuration
 logging:
@@ -30,4 +30,4 @@ logging:
 performance:
   buffer_size: 100 # MB
   max_packets: 1000000
-  promiscuous_mode: true
+  promiscuous_mode: false # Note: in tshark, -p actually turns promiscuous mode OFF

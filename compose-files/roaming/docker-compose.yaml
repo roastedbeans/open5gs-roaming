@@ -367,7 +367,6 @@ services:
       - db
     ports:
       - '0.0.0.0:9999:9999/tcp'
-
   tshark:
     container_name: tshark
     image: 'tshark:${OPEN5GS_VERSION}'
@@ -376,7 +375,7 @@ services:
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: ['tshark', '-c', '/etc/tshark/tshark.yaml']
+    command: ['python3', '/usr/local/bin/tshark-wrapper.py', '/etc/tshark/tshark.yaml']
     networks:
       open5gs:
         aliases:

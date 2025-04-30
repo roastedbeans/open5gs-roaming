@@ -10,6 +10,7 @@ RUN apt-get update && \
     tshark \
     python3 \
     python3-pip \
+    python3-yaml \
     && rm -rf /var/lib/apt/lists/*
 
 # Create necessary directories
@@ -26,8 +27,12 @@ ENV LANG=C.UTF-8
 RUN useradd -m -s /bin/bash tshark && \
     chown -R tshark:tshark /captures /var/log
 
+# Add a startup script to read YAML config and execute tshark
+COPY tshark-wrapper.py /usr/local/bin/tshark-wrapper.py
+RUN chmod +x /usr/local/bin/tshark-wrapper.py
+
 # Switch to non-root user
 USER tshark
 
-# Command to run tshark
-CMD ["tshark", "-c", "/etc/tshark/tshark.yaml"] 
+# Command to run using our wrapper
+CMD ["python3", "/usr/local/bin/tshark-wrapper.py", "/etc/tshark/tshark.yaml"]
