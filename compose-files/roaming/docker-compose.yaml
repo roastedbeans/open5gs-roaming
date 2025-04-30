@@ -24,6 +24,7 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.10
         aliases:
           - nrf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -41,6 +42,7 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.11
         aliases:
           - ausf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -60,6 +62,7 @@ services:
     command: '-c /etc/open5gs/custom/udm.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.12
         aliases:
           - udm.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -80,6 +83,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.13
         aliases:
           - udr.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -135,6 +139,7 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.30
         aliases:
           - nrf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -152,6 +157,7 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.31
         aliases:
           - ausf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -171,6 +177,7 @@ services:
     command: '-c /etc/open5gs/custom/nssf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.32
         aliases:
           - nssf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -190,6 +197,7 @@ services:
     command: '-c /etc/open5gs/custom/bsf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.33
         aliases:
           - bsf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -210,6 +218,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.34
         aliases:
           - pcf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -229,6 +238,7 @@ services:
     command: '-c /etc/open5gs/custom/amf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.35
         aliases:
           - amf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -248,6 +258,7 @@ services:
     command: '-c /etc/open5gs/custom/smf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.36
         aliases:
           - smf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -268,6 +279,7 @@ services:
     command: '-c /etc/open5gs/custom/upf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.37
         aliases:
           - upf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -289,7 +301,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
-        ipv4_address: 10.33.33.15
+        ipv4_address: 10.33.33.21
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
           - sepp2.localdomain
@@ -356,6 +368,23 @@ services:
     ports:
       - '0.0.0.0:9999:9999/tcp'
 
+  tshark:
+    container_name: tshark
+    image: 'ghcr.io/borjis131/tshark:20250225'
+    command: '-i br-ogs -w /captures/network_traffic.pcap'
+    networks:
+      open5gs:
+        aliases:
+          - tshark.open5gs.org
+    volumes:
+      - tshark_captures:/captures
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    depends_on:
+      - db
+
 networks:
   open5gs:
     name: open5gs
@@ -379,6 +408,10 @@ volumes:
     name: open5gs_sepp_certs
   sepp_ca:
     name: open5gs_sepp_ca
+  tshark_captures:
+    name: open5gs_tshark_captures
+    labels:
+      org.open5gs.tshark_captures: 'true'
 
 configs:
   h-nrf_config:
