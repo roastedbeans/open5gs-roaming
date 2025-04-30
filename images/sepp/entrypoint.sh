@@ -33,7 +33,7 @@ if [ "$SEPP_TYPE" = "sepp1" ]; then
     CERT_PREFIX="sepp1"
     OTHER_SEPP="sepp2.localdomain"
     IP_ADDRESS="10.33.33.20"
-    OTHER_IP="10.33.33.15"
+    OTHER_IP="10.33.33.21"
     OTHER_CERT_PREFIX="sepp2"
     # For home SEPP, internal and external ports are the same (7778, 7779)
     INTERNAL_PORT_N32C="7778"
@@ -47,7 +47,7 @@ else
     SEPP_PLMN_FQDN="sepp.5gc.mnc070.mcc999.3gppnetwork.org"
     CERT_PREFIX="sepp2"
     OTHER_SEPP="sepp1.localdomain"
-    IP_ADDRESS="10.33.33.15"
+    IP_ADDRESS="10.33.33.21"
     OTHER_IP="10.33.33.20"
     OTHER_CERT_PREFIX="sepp1"
     # For visiting SEPP, internal ports are 7778, 7779, but external ports are 8778, 8779
