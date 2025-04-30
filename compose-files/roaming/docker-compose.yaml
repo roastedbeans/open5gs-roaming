@@ -370,17 +370,18 @@ services:
 
   tshark:
     container_name: tshark
-    image: 'corfr/tcpdump' # Using a lightweight image with tshark/tcpdump
+    image: 'nicolaka/netshoot' # This image contains tshark and many networking tools
     command: >
-      sh -c "tshark -i any -f 'host 10.33.33.0/24' 
+      sh -c "mkdir -p /captures &&
+             tshark -i br-ogs -f 'host 10.33.33.0/24' 
              -w /captures/open5gs_all.pcap &
-             tshark -i any -f 'port 7777 or port 8777' 
+             tshark -i br-ogs -f 'port 7777 or port 8777' 
              -w /captures/sepp_sbi.pcap &
-             tshark -i any -f 'port 7778 or port 7779 or port 8778 or port 8779' 
+             tshark -i br-ogs -f 'port 7778 or port 7779 or port 8778 or port 8779' 
              -w /captures/n32_interfaces.pcap &
-             tshark -i any -f 'sctp' 
+             tshark -i br-ogs -f 'sctp' 
              -w /captures/n1_n2_interfaces.pcap &
-             tshark -i any -f 'udp port 2152' 
+             tshark -i br-ogs -f 'udp port 2152' 
              -w /captures/n3_interface.pcap &
              tail -f /dev/null"
     network_mode: 'host'
