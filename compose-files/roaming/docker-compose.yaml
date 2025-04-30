@@ -5,21 +5,24 @@ services:
     command: >
       sh -c "mkdir -p /captures &&
              chmod 777 /captures &&
-             tshark -i br-ogs -f 'host 10.33.33.0/24' -w /captures/open5gs_all.pcap -P &
-             sleep infinity"
+             echo 'Starting packet capture...' &&
+             # Capture all traffic on br-ogs interface
+             tshark -i br-ogs -w /captures/open5gs_all.pcap -P &
+             # Specific protocol captures
+             tshark -i br-ogs -f 'port 7777 or port 8777' -w /captures/sepp_sbi.pcap -P &
+             tshark -i br-ogs -f 'port 7778 or port 7779 or port 8778 or port 8779' -w /captures/n32_interfaces.pcap -P &
+             tshark -i br-ogs -f 'sctp' -w /captures/n1_n2_interfaces.pcap -P &
+             tshark -i br-ogs -f 'udp port 2152' -w /captures/n3_interface.pcap -P &&
+             echo 'Packet capture started successfully' &&
+             tail -f /dev/null"
     network_mode: 'host'
     cap_add:
       - NET_ADMIN
       - NET_RAW
     volumes:
       - ./captures:/captures
-    healthcheck:
-      test: ['CMD', 'ls', '/captures']
-      interval: 2s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
     restart: unless-stopped
+
   db:
     container_name: db
     image: 'mongo:${MONGODB_VERSION}'
