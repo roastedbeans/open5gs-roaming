@@ -16,7 +16,7 @@ RUN apt-get clean
 RUN apt-get upgrade -y
 
 # install dependencies including networking tools for troubleshooting
-RUN apt-get update --fix-missing && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     libgnutls28-dev \
     libgcrypt-dev \
     libtalloc-dev \
