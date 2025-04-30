@@ -370,18 +370,27 @@ services:
 
   tshark:
     container_name: tshark
-    image: 'ghcr.io/borjis131/tshark:20250225'
-    command: '-i br-ogs -w /captures/network_traffic.pcap'
+    image: 'tshark:${OPEN5GS_VERSION}'
+    build:
+      context: ../../images/tshark
+      args:
+        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+    command: '-c /etc/tshark/tshark.yaml'
     networks:
       open5gs:
         aliases:
           - tshark.open5gs.org
     volumes:
       - tshark_captures:/captures
+      - tshark_logs:/var/log
     privileged: true
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    configs:
+      - source: tshark_config
+        target: /etc/tshark/tshark.yaml
     depends_on:
       - db
 
@@ -412,6 +421,10 @@ volumes:
     name: open5gs_tshark_captures
     labels:
       org.open5gs.tshark_captures: 'true'
+  tshark_logs:
+    name: open5gs_tshark_logs
+    labels:
+      org.open5gs.tshark_logs: 'true'
 
 configs:
   h-nrf_config:
@@ -444,3 +457,5 @@ configs:
     file: ../../configs/roaming/v-sepp.yaml
   packetrusher_config:
     file: ../../configs/roaming/packetrusher.yaml
+  tshark_config:
+    file: ../../configs/roaming/tshark.yaml

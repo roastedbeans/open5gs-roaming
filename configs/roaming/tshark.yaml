@@ -1,0 +1,33 @@
+# TShark Configuration for Open5GS Network Capture
+capture:
+  interface: br-ogs
+  output: /captures/network_traffic.pcap
+  rotate: true
+  rotate_interval: 3600 # Rotate files every hour
+  max_files: 24 # Keep last 24 hours of captures
+  max_size: 100 # Maximum file size in MB before rotation
+
+# Capture filters
+filters:
+  # Basic 5G core network protocols
+  - 'ngap || http2 || pfcp || diameter || gtp'
+  # Add more specific filters as needed
+  # - "ip.addr == 10.33.33.0/24"  # Filter for Open5GS network
+  # - "tcp.port == 7777 || tcp.port == 7778 || tcp.port == 7779"  # SEPP ports
+
+# Display filters (for real-time analysis)
+display_filters:
+  - 'ngap || http2 || pfcp || diameter || gtp'
+
+# Logging configuration
+logging:
+  level: info
+  file: /var/log/tshark.log
+  max_size: 10 # MB
+  backups: 5
+
+# Performance settings
+performance:
+  buffer_size: 100 # MB
+  max_packets: 1000000
+  promiscuous_mode: true
