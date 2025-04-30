@@ -367,37 +367,29 @@ services:
       - db
     ports:
       - '0.0.0.0:9999:9999/tcp'
+
   tshark:
     container_name: tshark
-    image: 'tshark:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/tshark
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: ['python3', '/usr/local/bin/tshark-wrapper.py', '/etc/tshark/tshark.yaml']
-    networks:
-      open5gs:
-        aliases:
-          - tshark.open5gs.org
-    volumes:
-      - tshark_captures:/captures
-      - tshark_logs:/var/log
-    privileged: true
+    image: 'corfr/tcpdump' # Using a lightweight image with tshark/tcpdump
+    command: >
+      sh -c "tshark -i any -f 'host 10.33.33.0/24' 
+             -w /captures/open5gs_all.pcap &
+             tshark -i any -f 'port 7777 or port 8777' 
+             -w /captures/sepp_sbi.pcap &
+             tshark -i any -f 'port 7778 or port 7779 or port 8778 or port 8779' 
+             -w /captures/n32_interfaces.pcap &
+             tshark -i any -f 'sctp' 
+             -w /captures/n1_n2_interfaces.pcap &
+             tshark -i any -f 'udp port 2152' 
+             -w /captures/n3_interface.pcap &
+             tail -f /dev/null"
+    network_mode: 'host'
     cap_add:
       - NET_ADMIN
       - NET_RAW
-    configs:
-      - source: tshark_config
-        target: /etc/tshark/tshark.yaml
-    depends_on:
-      - db
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
+    volumes:
+      - ./captures:/captures
+    restart: unless-stopped
 
 networks:
   open5gs:
@@ -422,14 +414,8 @@ volumes:
     name: open5gs_sepp_certs
   sepp_ca:
     name: open5gs_sepp_ca
-  tshark_captures:
-    name: open5gs_tshark_captures
-    labels:
-      org.open5gs.tshark_captures: 'true'
-  tshark_logs:
-    name: open5gs_tshark_logs
-    labels:
-      org.open5gs.tshark_logs: 'true'
+  captures:
+    name: open5gs_captures
 
 configs:
   h-nrf_config:
@@ -462,5 +448,3 @@ configs:
     file: ../../configs/roaming/v-sepp.yaml
   packetrusher_config:
     file: ../../configs/roaming/packetrusher.yaml
-  tshark_config:
-    file: ../../configs/roaming/tshark.yaml
