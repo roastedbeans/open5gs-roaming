@@ -101,6 +101,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.20
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -274,6 +275,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.21
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -302,6 +304,8 @@ services:
       - v-smf
       - v-pcf
       - h-udr
+      - v-sepp
+      - h-sepp
     
   webui:
     container_name: webui
