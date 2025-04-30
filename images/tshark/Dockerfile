@@ -1,8 +1,12 @@
 ARG UBUNTU_VERSION=22.04
 FROM ubuntu:${UBUNTU_VERSION}
 
-# Install required packages
-RUN apt-get update && apt-get install -y \
+# Set environment variables to automatically accept prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages with automatic yes to prompts
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     tshark \
     python3 \
     python3-pip \
