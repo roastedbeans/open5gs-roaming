@@ -376,7 +376,7 @@ services:
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/tshark/tshark.yaml'
+    command: ['tshark', '-c', '/etc/tshark/tshark.yaml']
     networks:
       open5gs:
         aliases:
