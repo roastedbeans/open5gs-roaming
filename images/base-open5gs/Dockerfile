@@ -16,7 +16,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get upgrade -y
 
 # install dependencies
-RUN apt-get update --fix-missing && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     python3-pip python3-setuptools python3-wheel ninja-build build-essential \
 	flex bison git cmake libsctp-dev libgnutls28-dev libgcrypt-dev libssl-dev libmongoc-dev libbson-dev \
 	libyaml-dev libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libtins-dev libtalloc-dev meson libidn-dev -y

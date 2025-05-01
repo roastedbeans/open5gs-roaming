@@ -1,4 +1,28 @@
 services:
+  tshark:
+    container_name: tshark
+    image: 'nicolaka/netshoot'
+    command: >
+      sh -c "mkdir -p /captures &&
+             chmod 777 /captures &&
+             echo 'Starting packet capture...' &&
+             # Capture all traffic on br-ogs interface
+             tshark -i br-ogs -w /captures/open5gs_all.pcap -P &
+             # Specific protocol captures
+             tshark -i br-ogs -f 'port 7777 or port 8777' -w /captures/sepp_sbi.pcap -P &
+             tshark -i br-ogs -f 'port 7778 or port 7779 or port 8778 or port 8779' -w /captures/n32_interfaces.pcap -P &
+             tshark -i br-ogs -f 'sctp' -w /captures/n1_n2_interfaces.pcap -P &
+             tshark -i br-ogs -f 'udp port 2152' -w /captures/n3_interface.pcap -P &&
+             echo 'Packet capture started successfully' &&
+             tail -f /dev/null"
+    network_mode: 'host'
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./captures:/captures
+    restart: unless-stopped
+
   db:
     container_name: db
     image: 'mongo:${MONGODB_VERSION}'
@@ -12,6 +36,8 @@ services:
       - db_config:/data/configdb
     ports:
       - '0.0.0.0:27017:27017/tcp'
+    depends_on:
+      - tshark
 
   h-nrf:
     container_name: h-nrf
@@ -24,11 +50,14 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.10
         aliases:
           - nrf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
       - source: h-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
+    depends_on:
+      - tshark
 
   h-ausf:
     container_name: h-ausf
@@ -41,6 +70,7 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.11
         aliases:
           - ausf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -60,6 +90,7 @@ services:
     command: '-c /etc/open5gs/custom/udm.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.12
         aliases:
           - udm.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -80,6 +111,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.13
         aliases:
           - udr.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -135,6 +167,7 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.30
         aliases:
           - nrf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -152,6 +185,7 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.31
         aliases:
           - ausf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -171,6 +205,7 @@ services:
     command: '-c /etc/open5gs/custom/nssf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.32
         aliases:
           - nssf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -190,6 +225,7 @@ services:
     command: '-c /etc/open5gs/custom/bsf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.33
         aliases:
           - bsf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -210,6 +246,7 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
+        ipv4_address: 10.33.33.34
         aliases:
           - pcf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -229,6 +266,7 @@ services:
     command: '-c /etc/open5gs/custom/amf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.35
         aliases:
           - amf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -248,6 +286,7 @@ services:
     command: '-c /etc/open5gs/custom/smf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.36
         aliases:
           - smf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -268,6 +307,7 @@ services:
     command: '-c /etc/open5gs/custom/upf.yaml'
     networks:
       open5gs:
+        ipv4_address: 10.33.33.37
         aliases:
           - upf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -379,6 +419,8 @@ volumes:
     name: open5gs_sepp_certs
   sepp_ca:
     name: open5gs_sepp_ca
+  captures:
+    name: open5gs_captures
 
 configs:
   h-nrf_config:
