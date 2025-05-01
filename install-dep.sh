@@ -41,7 +41,7 @@ git --version
 # === GTP5G Install ===
 echo "📡 Installing GTP5G module for 5G kernel support..."
 
-sudo apt-get install -y build-essential linux-headers-$(uname -r) git
+sudo apt-get install -y build-essential gcc-12 linux-headers-$(uname -r) git
 
 cd /usr/src
 if [ -d "gtp5g" ]; then

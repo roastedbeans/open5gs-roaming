@@ -184,8 +184,7 @@ make ausf
 ### Starting the Containers
 
 ```bash
-cd open5gs-roaming/compose-files/roaming
-docker-compose up -d
+docker compose -f compose-files/roaming/docker-compose.yaml --env-file=.env up -d
 ```
 
 ### Adding a Subscriber
