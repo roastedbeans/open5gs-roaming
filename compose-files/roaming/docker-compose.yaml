@@ -141,6 +141,9 @@ services:
         target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - h-nrf
+    ports:
+      - '0.0.0.0:7777:7777'
+      - '0.0.0.0:8777:8777'
 
   v-nrf:
     container_name: v-nrf
@@ -260,6 +263,8 @@ services:
         target: /etc/open5gs/custom/amf.yaml
     depends_on:
       - v-nrf
+    ports:
+      - '0.0.0.0:38412:38412/sctp'
 
   v-smf:
     container_name: v-smf
@@ -302,6 +307,8 @@ services:
     privileged: true
     cap_add:
       - NET_ADMIN
+    ports:
+      - '0.0.0.0:2152:2152/udp'
 
   v-sepp:
     container_name: v-sepp
@@ -323,6 +330,9 @@ services:
         target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - v-nrf
+    ports:
+      - '0.0.0.0:7778:7778'
+      - '0.0.0.0:7779:7779'
 
   packetrusher:
     container_name: packetrusher
@@ -374,6 +384,8 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.bridge.name: br-ogs
+      com.docker.network.bridge.host_binding_ipv4: '0.0.0.0'
+      com.docker.network.bridge.enable_ip_masquerade: 'true'
     ipam:
       config:
         - subnet: 10.33.33.0/24
