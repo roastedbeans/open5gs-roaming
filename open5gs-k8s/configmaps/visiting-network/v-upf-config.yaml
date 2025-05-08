@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: v-upf-config
+data:
+  upf.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/upf.log
+
+    global:
+
+    upf:
+      pfcp:
+        server:
+          - address: 0.0.0.0
+        client:
+      gtpu:
+        server:
+          - address: 0.0.0.0
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1

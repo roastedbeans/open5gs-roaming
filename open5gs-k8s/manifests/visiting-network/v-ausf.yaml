@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-ausf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-ausf
+  template:
+    metadata:
+      labels:
+        app: v-ausf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-ausf
+        image: ghcr.io/borjis131/ausf:v2.7.5
+        command: [ "open5gs-ausfd" ]
+        args: [ "-c", "/etc/open5gs/ausf.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: v-ausf-config
+          mountPath: /etc/open5gs/ausf.yaml
+          subPath: ausf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-ausf-config
+        configMap:
+          name: v-ausf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-ausf
+spec:
+  selector:
+    app: v-ausf
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-nrf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-nrf
+  template:
+    metadata:
+      labels:
+        app: v-nrf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-nrf
+        image: ghcr.io/borjis131/nrf:v2.7.5
+        command: [ "open5gs-nrfd" ]
+        args: [ "-c", "/etc/open5gs/nrf.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: v-nrf-config
+          mountPath: /etc/open5gs/nrf.yaml
+          subPath: nrf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-nrf-config
+        configMap:
+          name: v-nrf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-nrf
+spec:
+  selector:
+    app: v-nrf
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

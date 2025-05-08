@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-smf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-smf
+  template:
+    metadata:
+      labels:
+        app: v-smf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-smf
+        image: ghcr.io/borjis131/smf:v2.7.5
+        command: [ "open5gs-smfd" ]
+        args: [ "-c", "/etc/open5gs/smf.yaml" ]
+        ports:
+        - containerPort: 80
+          name: sbi
+        - containerPort: 8805
+          name: pfcp
+          protocol: UDP
+        volumeMounts:
+        - name: v-smf-config
+          mountPath: /etc/open5gs/smf.yaml
+          subPath: smf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-smf-config
+        configMap:
+          name: v-smf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-smf
+spec:
+  selector:
+    app: v-smf
+  ports:
+  - name: sbi
+    port: 80
+    targetPort: 80
+  - name: pfcp
+    port: 8805
+    targetPort: 8805
+    protocol: UDP
+  type: ClusterIP

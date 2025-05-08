@@ -1,0 +1,65 @@
+apiVersion: 'k8s.cni.cncf.io/v1'
+kind: NetworkAttachmentDefinition
+metadata:
+  name: n4-network
+  namespace: open5gs
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "macvlan",
+      "master": "eth0",
+      "mode": "bridge",
+      "ipam": {
+        "type": "host-local",
+        "subnet": "10.0.0.0/24",
+        "rangeStart": "10.0.0.100",
+        "rangeEnd": "10.0.0.200",
+        "gateway": "10.0.0.1"
+      }
+    }
+---
+apiVersion: 'k8s.cni.cncf.io/v1'
+kind: NetworkAttachmentDefinition
+metadata:
+  name: n3-network
+  namespace: open5gs
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "macvlan",
+      "master": "eth0",
+      "mode": "bridge",
+      "ipam": {
+        "type": "host-local",
+        "subnet": "10.33.33.0/24",
+        "rangeStart": "10.33.33.10",
+        "rangeEnd": "10.33.33.50",
+        "routes": [
+          { "dst": "0.0.0.0/0" }
+        ],
+        "gateway": "10.33.33.1"
+      }
+    }
+---
+apiVersion: 'k8s.cni.cncf.io/v1'
+kind: NetworkAttachmentDefinition
+metadata:
+  name: n6-network
+  namespace: open5gs
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "macvlan",
+      "master": "eth0",
+      "mode": "bridge",
+      "ipam": {
+        "type": "host-local",
+        "subnet": "10.2.0.0/24",
+        "rangeStart": "10.2.0.100",
+        "rangeEnd": "10.2.0.200",
+        "gateway": "10.2.0.1"
+      }
+    }

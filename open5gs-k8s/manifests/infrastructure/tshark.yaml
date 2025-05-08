@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tshark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tshark
+  template:
+    metadata:
+      labels:
+        app: tshark
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      hostNetwork: true
+      containers:
+      - name: tshark
+        image: nicolaka/netshoot
+        securityContext:
+          privileged: true
+          capabilities:
+            add: [ "NET_ADMIN", "NET_RAW" ]
+        command: [ "/bin/sh", "-c" ]
+        args:
+        - |
+          mkdir -p /captures
+          chmod 777 /captures
+          echo 'Starting packet capture...'
+          # Capture all traffic in the cluster
+          tshark -i any -w /captures/open5gs_all.pcap -P &
+          # Specific protocol captures
+          tshark -i any -f 'port 7777 or port 8777' -w /captures/sepp_sbi.pcap -P &
+          tshark -i any -f 'port 7778 or port 7779 or port 8778 or port 8779' -w /captures/n32_interfaces.pcap -P &
+          tshark -i any -f 'sctp' -w /captures/n1_n2_interfaces.pcap -P &
+          tshark -i any -f 'udp port 2152' -w /captures/n3_interface.pcap -P &
+          echo 'Packet capture started successfully'
+          tail -f /dev/null
+        volumeMounts:
+        - name: captures
+          mountPath: /captures
+      volumes:
+      - name: captures
+        hostPath:
+          path: /tmp/captures
+          type: DirectoryOrCreate

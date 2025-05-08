@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: packetrusher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: packetrusher
+  template:
+    metadata:
+      labels:
+        app: packetrusher
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: packetrusher
+        image: ghcr.io/borjis131/packetrusher:20250225
+        command: [ "--config", "/PacketRusher/config/packetrusher.yaml", "ue" ]
+        securityContext:
+          privileged: true
+          capabilities:
+            add: [ "ALL" ]
+        volumeMounts:
+        - name: packetrusher-config
+          mountPath: /PacketRusher/config/packetrusher.yaml
+          subPath: packetrusher.yaml
+      volumes:
+      - name: packetrusher-config
+        configMap:
+          name: packetrusher-config

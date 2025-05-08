@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-subscriber
+spec:
+  template:
+    spec:
+      containers:
+      - name: subscriber-init
+        image: mongo:4.4
+        command: [ "/bin/sh", "-c" ]
+        args:
+        - |
+          mongo mongodb://mongodb/open5gs --eval '
+          db.subscribers.insertOne({
+            "imsi": "001010000000001",
+            "msisdn": [],
+            "imeisv": "4370816125816151",
+            "mme_host": [],
+            "mme_realm": [],
+            "purge_flag": [],
+            "security": {
+              "k": "7F176C500D47CF2090CB6D91F4A73479",
+              "op": null,
+              "opc": "3D45770E83C7BBB6900F3653FDA6330F",
+              "amf": "8000",
+              "sqn": "00000000"
+            },
+            "ambr": {
+              "downlink": { "value": 1, "unit": 3 },
+              "uplink": { "value": 1, "unit": 3 }
+            },
+            "slice": [
+              {
+                "sst": 1,
+                "sd": "000001",
+                "default_indicator": true,
+                "session": [
+                  {
+                    "name": "internet",
+                    "type": 1,
+                    "qos": {
+                      "index": 9,
+                      "arp": {
+                        "priority_level": 8,
+                        "pre_emption_capability": 1,
+                        "pre_emption_vulnerability": 1
+                      }
+                    },
+                    "ambr": {
+                      "downlink": { "value": 1, "unit": 3 },
+                      "uplink": { "value": 1, "unit": 3 }
+                    }
+                  }
+                ]
+              }
+            ],
+            "access_restriction_data": 32,
+            "subscriber_status": 0,
+            "network_access_mode": 0,
+            "subscribed_rau_tau_timer": 12
+          })'
+      restartPolicy: Never
+  backoffLimit: 1

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-pcf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-pcf
+  template:
+    metadata:
+      labels:
+        app: v-pcf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-pcf
+        image: ghcr.io/borjis131/pcf:v2.7.5
+        command: [ "open5gs-pcfd" ]
+        args: [ "-c", "/etc/open5gs/pcf.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: v-pcf-config
+          mountPath: /etc/open5gs/pcf.yaml
+          subPath: pcf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-pcf-config
+        configMap:
+          name: v-pcf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-pcf
+spec:
+  selector:
+    app: v-pcf
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-udm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-udm
+  template:
+    metadata:
+      labels:
+        app: h-udm
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: h-udm
+        image: ghcr.io/borjis131/udm:v2.7.5
+        command: [ "open5gs-udmd" ]
+        args: [ "-c", "/etc/open5gs/udm.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: h-udm-config
+          mountPath: /etc/open5gs/udm.yaml
+          subPath: udm.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+        - name: hnet
+          mountPath: /hnet
+      volumes:
+      - name: h-udm-config
+        configMap:
+          name: h-udm-config
+      - name: logs
+        emptyDir: {}
+      - name: hnet
+        configMap:
+          name: hnet-keys
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: h-udm
+spec:
+  selector:
+    app: h-udm
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hnet-keys
+data:
+  curve25519-1.key: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VuBCIEIBDJxn6GGlYloduPaEEjiW2bNQYZnT3xlo4HtshEi7FH
+    -----END PRIVATE KEY-----
+  curve25519-3.key: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VuBCIEIFAK2WjCQjB8TU7COXwdIKVhKGjPa+SJuyOVObjfW9hM
+    -----END PRIVATE KEY-----
+  curve25519-5.key: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VuBCIEIHh8rsYF8otbnyb8bcrhD1AAV5C9iBtjTlYJY3k5k0dt
+    -----END PRIVATE KEY-----
+  secp256r1-2.key: |
+    -----BEGIN EC PARAMETERS-----
+    BggqhkjOPQMBBw==
+    -----END EC PARAMETERS-----
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIHSp+RhHH1bzvv2lxR1zij+U9aUtS8nbl5n1Il+8zd5BoAoGCCqGSM49
+    AwEHoUQDQgAEre/NExfRzoVi7CW5G0gAEg4SNtbiZh6kI1qE48hdokS8QqWUz1YS
+    9J6PvihX2OSZ+RMixzf8zxu9tuTUJKgKlQ==
+    -----END EC PRIVATE KEY-----
+  secp256r1-4.key: |
+    -----BEGIN EC PARAMETERS-----
+    BggqhkjOPQMBBw==
+    -----END EC PARAMETERS-----
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIAGZvsOAU0YMHhBK33hRkGMPkA3Xefq5b5hPQD6qnf5goAoGCCqGSM49
+    AwEHoUQDQgAEdXfTAGY+0ibQoO9bfmk7+M/l//BiMzO6lNIUEMSj1k3k9SQPygGY
+    jAuUHpVM4Uo6cWxuyurEn8pWn1vF3tVhbg==
+    -----END EC PRIVATE KEY-----
+  secp256r1-6.key: |
+    -----BEGIN EC PARAMETERS-----
+    BggqhkjOPQMBBw==
+    -----END EC PARAMETERS-----
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIG3VKSXh/3WK0HzCkN1DgeUjF7TSLgAUyMn/WGHsxrZ3oAoGCCqGSM49
+    AwEHoUQDQgAENU1ibHe7oWu4m6M8P0XoA78ZNKtdIsJgVU0nCk/c5sC3V+/4GuxU
+    owtbASEXQZg4SGvts+1Yqz0p4WwCAAcwpQ==
+    -----END EC PRIVATE KEY-----

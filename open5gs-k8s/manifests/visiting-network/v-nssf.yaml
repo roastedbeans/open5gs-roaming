@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-nssf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-nssf
+  template:
+    metadata:
+      labels:
+        app: v-nssf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-nssf
+        image: ghcr.io/borjis131/nssf:v2.7.5
+        command: [ "open5gs-nssfd" ]
+        args: [ "-c", "/etc/open5gs/nssf.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: v-nssf-config
+          mountPath: /etc/open5gs/nssf.yaml
+          subPath: nssf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-nssf-config
+        configMap:
+          name: v-nssf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-nssf
+spec:
+  selector:
+    app: v-nssf
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

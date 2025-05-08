@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-sepp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-sepp
+  template:
+    metadata:
+      labels:
+        app: h-sepp
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: h-sepp
+        image: ghcr.io/borjis131/sepp:v2.7.5
+        env:
+        - name: SEPP_TYPE
+          value: "sepp1"
+        - name: REGENERATE_CERTS
+          value: "true"
+        - name: TLS_DIR
+          value: "/etc/open5gs/tls"
+        - name: SEPP_FQDN
+          value: "sepp1.localdomain"
+        - name: SEPP_PLMN_FQDN
+          value: "sepp.5gc.mnc001.mcc001.3gppnetwork.org"
+        command: [ "/entrypoint.sh" ]
+        args: [ "-c", "/etc/open5gs/sepp.yaml" ]
+        ports:
+        - containerPort: 80
+          name: sbi
+        - containerPort: 7777
+          name: sbi-ext
+        - containerPort: 7778
+          name: n32c
+        - containerPort: 7779
+          name: n32f
+        volumeMounts:
+        - name: h-sepp-config
+          mountPath: /etc/open5gs/sepp.yaml
+          subPath: sepp.yaml
+        - name: h-sepp-certs
+          mountPath: /etc/open5gs/tls
+        - name: h-sepp-ca
+          mountPath: /etc/open5gs/ca
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: h-sepp-config
+        configMap:
+          name: h-sepp-config
+      - name: h-sepp-certs
+        emptyDir: {}
+      - name: h-sepp-ca
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: h-sepp
+spec:
+  selector:
+    app: h-sepp
+  ports:
+  - name: sbi
+    port: 80
+    targetPort: 80
+  - name: sbi-ext
+    port: 7777
+    targetPort: 7777
+  - name: n32c
+    port: 7778
+    targetPort: 7778
+  - name: n32f
+    port: 7779
+    targetPort: 7779
+  type: ClusterIP

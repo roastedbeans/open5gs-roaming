@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-bsf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-bsf
+  template:
+    metadata:
+      labels:
+        app: v-bsf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: v-bsf
+        image: ghcr.io/borjis131/bsf:v2.7.5
+        command: [ "open5gs-bsfd" ]
+        args: [ "-c", "/etc/open5gs/bsf.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: v-bsf-config
+          mountPath: /etc/open5gs/bsf.yaml
+          subPath: bsf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: v-bsf-config
+        configMap:
+          name: v-bsf-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-bsf
+spec:
+  selector:
+    app: v-bsf
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

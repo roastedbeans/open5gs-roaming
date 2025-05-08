@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  3gppnetwork.org.server: |
+    3gppnetwork.org {
+        hosts {
+            10.33.33.10 nrf.5gc.mnc001.mcc001.3gppnetwork.org
+            10.33.33.11 ausf.5gc.mnc001.mcc001.3gppnetwork.org
+            10.33.33.12 udm.5gc.mnc001.mcc001.3gppnetwork.org
+            10.33.33.13 udr.5gc.mnc001.mcc001.3gppnetwork.org
+            10.33.33.20 sepp.5gc.mnc001.mcc001.3gppnetwork.org
+            10.33.33.30 nrf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.31 ausf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.32 nssf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.33 bsf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.34 pcf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.35 amf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.36 smf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.37 upf.5gc.mnc070.mcc999.3gppnetwork.org
+            10.33.33.21 sepp.5gc.mnc070.mcc999.3gppnetwork.org
+        }
+    }
+    localdomain {
+        hosts {
+            10.33.33.20 sepp1.localdomain
+            10.33.33.21 sepp2.localdomain
+        }
+    }

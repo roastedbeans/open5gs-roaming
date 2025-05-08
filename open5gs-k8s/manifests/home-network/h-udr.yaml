@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-udr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-udr
+  template:
+    metadata:
+      labels:
+        app: h-udr
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net
+    spec:
+      containers:
+      - name: h-udr
+        image: ghcr.io/borjis131/udr:v2.7.5
+        command: [ "open5gs-udrd" ]
+        args: [ "-c", "/etc/open5gs/udr.yaml" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: h-udr-config
+          mountPath: /etc/open5gs/udr.yaml
+          subPath: udr.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+      volumes:
+      - name: h-udr-config
+        configMap:
+          name: h-udr-config
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: h-udr
+spec:
+  selector:
+    app: h-udr
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

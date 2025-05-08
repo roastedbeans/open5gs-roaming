@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v-upf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v-upf
+  template:
+    metadata:
+      labels:
+        app: v-upf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: open5gs-cp-net,open5gs-up-net
+    spec:
+      containers:
+      - name: v-upf
+        image: ghcr.io/borjis131/upf:v2.7.5
+        securityContext:
+          privileged: true
+          capabilities:
+            add: [ "NET_ADMIN" ]
+        command: [ "entrypoint.sh" ]
+        args: [ "-c", "/etc/open5gs/upf.yaml" ]
+        ports:
+        - containerPort: 8805
+          name: pfcp
+          protocol: UDP
+        - containerPort: 2152
+          name: gtpu
+          protocol: UDP
+        volumeMounts:
+        - name: v-upf-config
+          mountPath: /etc/open5gs/upf.yaml
+          subPath: upf.yaml
+        - name: logs
+          mountPath: /var/log/open5gs
+        - name: dev-net-tun
+          mountPath: /dev/net/tun
+      volumes:
+      - name: v-upf-config
+        configMap:
+          name: v-upf-config
+      - name: logs
+        emptyDir: {}
+      - name: dev-net-tun
+        hostPath:
+          path: /dev/net/tun
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: v-upf
+spec:
+  selector:
+    app: v-upf
+  ports:
+  - name: pfcp
+    port: 8805
+    targetPort: 8805
+    protocol: UDP
+  - name: gtpu
+    port: 2152
+    targetPort: 2152
+    protocol: UDP
+  type: ClusterIP
