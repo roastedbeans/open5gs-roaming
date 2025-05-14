@@ -17,7 +17,7 @@ RUN apt-get upgrade -y
 
 # install dependencies
 RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
-    libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev -y
+    libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev libmongoc-dev -y
 
 # copy executable, default config and libs
 COPY --from=builder /open5gs/install/bin/open5gs-scpd /usr/local/bin/open5gs-scpd

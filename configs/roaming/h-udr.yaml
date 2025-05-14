@@ -9,8 +9,8 @@ global:
 udr:
   sbi:
     server:
-      - address: udr.5gc.mnc001.mcc001.3gppnetwork.org
-        port: 80
+    - address: udr.5gc.mnc001.mcc001.3gppnetwork.org
+      port: 80
     client:
-      nrf:
-        - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org:80
+      scp:
+      - uri: http://scp.5gc.mnc001.mcc001.3gppnetwork.org:80

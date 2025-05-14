@@ -7,8 +7,8 @@ global:
 ausf:
   sbi:
     server:
-      - address: ausf.5gc.mnc070.mcc999.3gppnetwork.org
-        port: 80
+    - address: ausf.5gc.mnc070.mcc999.3gppnetwork.org
+      port: 80
     client:
-      nrf:
-        - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:80
+      scp:
+      - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80
