@@ -469,6 +469,8 @@ configs:
     file: ../../configs/roaming/h-udm.yaml
   h-udr_config:
     file: ../../configs/roaming/h-udr.yaml
+  h-scp_config:
+    file: ../../configs/roaming/h-scp.yaml
   h-sepp_config:
     file: ../../configs/roaming/h-sepp.yaml
   v-nrf_config:
@@ -487,6 +489,8 @@ configs:
     file: ../../configs/roaming/v-smf.yaml
   v-upf_config:
     file: ../../configs/roaming/v-upf.yaml
+  v-scp_config:
+    file: ../../configs/roaming/v-scp.yaml
   v-sepp_config:
     file: ../../configs/roaming/v-sepp.yaml
   packetrusher_config:
