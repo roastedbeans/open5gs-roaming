@@ -140,9 +140,7 @@ services:
     configs:
       - source: h-scp_config
         target: /etc/open5gs/custom/scp.yaml
-    depends_on:
-      - h-nrf
-      - h-scp
+
   h-sepp:
     container_name: h-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -363,9 +361,7 @@ services:
     configs:
       - source: v-scp_config
         target: /etc/open5gs/custom/scp.yaml
-    depends_on:
-      - v-nrf
-      - h-scp
+
   v-sepp:
     container_name: v-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
