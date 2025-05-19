@@ -23,7 +23,7 @@ ue:
   opc: '3D45770E83C7BBB6900F3653FDA6330F'
   dnn: 'internet'
   snssai:
-    sst: 01
+    sst: 1
     sd: '000001'
   amf: '8000'
   sqn: '00000000'
@@ -40,7 +40,7 @@ ue:
     nea3: false
 
 amfif:
-  - ip: 'amf.5gc.mnc070.mcc999.3gppnetwork.org'
-    port: 38412
+- ip: 'amf.5gc.mnc070.mcc999.3gppnetwork.org'
+  port: 38412
 logs:
   level: 4

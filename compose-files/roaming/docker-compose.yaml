@@ -140,6 +140,8 @@ services:
     configs:
       - source: h-scp_config
         target: /etc/open5gs/custom/scp.yaml
+    cap_add:
+      - NET_ADMIN
 
   h-sepp:
     container_name: h-sepp
@@ -361,6 +363,8 @@ services:
     configs:
       - source: v-scp_config
         target: /etc/open5gs/custom/scp.yaml
+    cap_add:
+      - NET_ADMIN
 
   v-sepp:
     container_name: v-sepp
