@@ -78,6 +78,7 @@ services:
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
       - h-nrf
+      - h-scp
 
   h-udm:
     container_name: h-udm
@@ -98,6 +99,7 @@ services:
         target: /etc/open5gs/custom/udm.yaml
     depends_on:
       - h-nrf
+      - h-scp
 
   h-udr:
     container_name: h-udr
@@ -120,6 +122,7 @@ services:
     depends_on:
       - db
       - h-nrf
+      - h-scp
   h-scp:
     container_name: h-scp
     image: 'scp:${OPEN5GS_VERSION}'
@@ -139,6 +142,7 @@ services:
         target: /etc/open5gs/custom/scp.yaml
     depends_on:
       - h-nrf
+      - h-scp
   h-sepp:
     container_name: h-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -173,6 +177,7 @@ services:
       - '0.0.0.0:7779:7779/tcp' # N32f Server
     depends_on:
       - h-nrf
+      - h-scp
 
   v-nrf:
     container_name: v-nrf
@@ -211,6 +216,7 @@ services:
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
       - v-nrf
+      - h-scp
 
   v-nssf:
     container_name: v-nssf
@@ -231,6 +237,7 @@ services:
         target: /etc/open5gs/custom/nssf.yaml
     depends_on:
       - v-nrf
+      - h-scp
 
   v-bsf:
     container_name: v-bsf
@@ -251,6 +258,7 @@ services:
         target: /etc/open5gs/custom/bsf.yaml
     depends_on:
       - v-nrf
+      - h-scp
 
   v-pcf:
     container_name: v-pcf
@@ -272,6 +280,7 @@ services:
         target: /etc/open5gs/custom/pcf.yaml
     depends_on:
       - v-nrf
+      - h-scp
 
   v-amf:
     container_name: v-amf
@@ -292,6 +301,7 @@ services:
         target: /etc/open5gs/custom/amf.yaml
     depends_on:
       - v-nrf
+      - h-scp
 
   v-smf:
     container_name: v-smf
@@ -313,6 +323,7 @@ services:
     depends_on:
       - v-nrf
       - v-upf
+      - h-scp
 
   v-upf:
     container_name: v-upf
@@ -354,7 +365,7 @@ services:
         target: /etc/open5gs/custom/scp.yaml
     depends_on:
       - v-nrf
-
+      - h-scp
   v-sepp:
     container_name: v-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -389,6 +400,7 @@ services:
       - '0.0.0.0:8779:7779/tcp' # N32f Server
     depends_on:
       - v-nrf
+      - h-scp
 
   packetrusher:
     container_name: packetrusher
@@ -410,6 +422,7 @@ services:
       - v-smf
       - v-pcf
       - h-udr
+      - h-scp
 
   webui:
     container_name: webui
