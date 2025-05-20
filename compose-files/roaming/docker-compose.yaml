@@ -58,6 +58,24 @@ services:
     depends_on:
       - tshark
 
+  h-scp:
+    container_name: h-scp
+    image: 'scp:${OPEN5GS_VERSION}'
+    build:
+      context: ../../images/scp
+      args:
+        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+    command: '-c /etc/open5gs/custom/scp.yaml'
+    restart: unless-stopped
+    networks:
+      open5gs:
+        aliases:
+          - scp.5gc.mnc001.mcc001.3gppnetwork.org
+    configs:
+      - source: h-scp_config
+        target: /etc/open5gs/custom/scp.yaml
+
   h-ausf:
     container_name: h-ausf
     image: 'ausf:${OPEN5GS_VERSION}'
@@ -120,24 +138,6 @@ services:
       - h-nrf
       - h-scp
 
-  h-scp:
-    container_name: h-scp
-    image: 'scp:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/scp
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/custom/scp.yaml'
-    restart: unless-stopped
-    networks:
-      open5gs:
-        aliases:
-          - scp.5gc.mnc001.mcc001.3gppnetwork.org
-    configs:
-      - source: h-scp_config
-        target: /etc/open5gs/custom/scp.yaml
-
   h-sepp:
     container_name: h-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -177,6 +177,24 @@ services:
         target: /etc/open5gs/custom/nrf.yaml
     depends_on:
       - tshark
+
+  v-scp:
+    container_name: v-scp
+    image: 'scp:${OPEN5GS_VERSION}'
+    build:
+      context: ../../images/scp
+      args:
+        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+    command: '-c /etc/open5gs/custom/scp.yaml'
+    restart: unless-stopped
+    networks:
+      open5gs:
+        aliases:
+          - scp.5gc.mnc070.mcc999.3gppnetwork.org
+    configs:
+      - source: v-scp_config
+        target: /etc/open5gs/custom/scp.yaml
 
   v-ausf:
     container_name: v-ausf
@@ -320,24 +338,6 @@ services:
     cap_add:
       - NET_ADMIN
 
-  v-scp:
-    container_name: v-scp
-    image: 'scp:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/scp
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/custom/scp.yaml'
-    restart: unless-stopped
-    networks:
-      open5gs:
-        aliases:
-          - scp.5gc.mnc070.mcc999.3gppnetwork.org
-    configs:
-      - source: v-scp_config
-        target: /etc/open5gs/custom/scp.yaml
-
   v-sepp:
     container_name: v-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -432,6 +432,8 @@ volumes:
 configs:
   h-nrf_config:
     file: ../../configs/roaming/h-nrf.yaml
+  h-scp_config:
+    file: ../../configs/roaming/h-scp.yaml
   h-ausf_config:
     file: ../../configs/roaming/h-ausf.yaml
   h-udm_config:
@@ -440,6 +442,8 @@ configs:
     file: ../../configs/roaming/h-udr.yaml
   h-sepp_config:
     file: ../../configs/roaming/h-sepp.yaml
+  v-scp_config:
+    file: ../../configs/roaming/v-scp.yaml
   v-nrf_config:
     file: ../../configs/roaming/v-nrf.yaml
   v-ausf_config:
@@ -456,6 +460,7 @@ configs:
     file: ../../configs/roaming/v-smf.yaml
   v-upf_config:
     file: ../../configs/roaming/v-upf.yaml
+
   v-sepp_config:
     file: ../../configs/roaming/v-sepp.yaml
   packetrusher_config:
