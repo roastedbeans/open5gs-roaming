@@ -460,7 +460,6 @@ configs:
     file: ../../configs/roaming/v-smf.yaml
   v-upf_config:
     file: ../../configs/roaming/v-upf.yaml
-
   v-sepp_config:
     file: ../../configs/roaming/v-sepp.yaml
   packetrusher_config:
