@@ -16,7 +16,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get upgrade -y
 
 # install dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --fix-missing -y \
     libgnutls28-dev libgcrypt-dev libtalloc-dev \
     libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev libsctp-dev ethtool
 

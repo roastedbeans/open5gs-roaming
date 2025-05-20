@@ -14,7 +14,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get upgrade -y
 
 # install dependencies
-RUN apt-get update && apt-get install git -y
+RUN apt-get update && apt-get install --fix-missing git -y
 
 # clone the specific open5gs version
 RUN git clone --depth 1 --branch=${OPEN5GS_VERSION} https://github.com/open5gs/open5gs

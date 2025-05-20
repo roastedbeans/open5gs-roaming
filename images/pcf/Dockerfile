@@ -16,7 +16,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get upgrade -y
 
 # install dependencies
-RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-dev \
+RUN apt-get update && apt-get install --fix-missing libgnutls28-dev libgcrypt-dev libtalloc-dev \
     libnghttp2-dev libmicrohttpd-dev libcurl4-gnutls-dev libyaml-dev libmongoc-dev -y
 
 # copy executable, default config and libs
