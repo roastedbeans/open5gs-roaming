@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smf
+  namespace: vplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smf
+  template:
+    metadata:
+      labels:
+        app: smf
+    spec:
+      containers:
+        - name: smf
+          image: docker.io/library/smf-local:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: [ "open5gs-smfd", "-c", "/etc/open5gs/smf.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/smf.yaml
+              subPath: smf.yaml
+          ports:
+            - containerPort: 80
+              name: sbi
+              protocol: TCP
+            - containerPort: 8805
+              name: pfcp
+              protocol: UDP
+      volumes:
+        - name: config
+          configMap:
+            name: smf-config 

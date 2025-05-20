@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scp-config
+  namespace: hplmn
+data:
+  scp.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/scp.log
+
+    global:
+
+    scp:
+      sbi:
+        server:
+          - dev: eth0
+            advertise: scp.5gc.mnc001.mcc001.3gppnetwork.org
+        client:
+          nrf:
+            - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org

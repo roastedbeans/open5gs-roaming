@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scp
+  namespace: hplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scp
+  template:
+    metadata:
+      labels:
+        app: scp
+    spec:
+      containers:
+        - name: scp
+          image: docker.io/library/scp-local:v2.7.5
+          imagePullPolicy: Never
+          command: [ "open5gs-scpd", "-c", "/etc/open5gs/scp.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/scp.yaml
+              subPath: scp.yaml
+          ports:
+            - containerPort: 80
+              name: http
+      volumes:
+        - name: config
+          configMap:
+            name: scp-config

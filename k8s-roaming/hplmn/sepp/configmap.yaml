@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sepp-config
+  namespace: hplmn
+data:
+  sepp.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/sepp.log
+      level: trace  # fatal|error|warn|info(default)|debug|trace
+
+    global:
+
+    sepp:
+      sbi:
+        server:
+          - dev: eth0
+            advertise: sepp.5gc.mnc001.mcc001.3gppnetwork.org
+            port: 80
+        client:
+          scp:
+            - uri: http://scp.5gc.mnc001.mcc001.3gppnetwork.org
+      n32:
+        server:
+          - sender: sepp1.5gc.mnc001.mcc001.3gppnetwork.org
+            scheme: https
+            port: 7778
+            dev: eth0
+            private_key: /etc/open5gs/tls/n32c/tls.key
+            cert: /etc/open5gs/tls/n32c/tls.crt
+            verify_client: true
+            verify_client_cacert: /etc/open5gs/tls/ca/ca.crt
+            n32f:
+              scheme: https
+              port: 7779
+              dev: eth0
+              uri: https://sepp2.5gc.mnc001.mcc001.3gppnetwork.org:7779
+              private_key: /etc/open5gs/tls/n32f/tls.key
+              cert: /etc/open5gs/tls/n32f/tls.crt
+              verify_client: true
+              verify_client_cacert: /etc/open5gs/tls/ca/ca.crt
+        client:
+          sepp:
+            - receiver: sepp1.5gc.mnc070.mcc999.3gppnetwork.org
+              uri: https://sepp1.5gc.mnc070.mcc999.3gppnetwork.org:7778
+              cacert: /etc/open5gs/tls/ca/ca.crt
+              client_private_key: /etc/open5gs/tls/n32c/tls.key
+              client_cert: /etc/open5gs/tls/n32c/tls.crt
+              n32f:
+                uri: https://sepp2.5gc.mnc070.mcc999.3gppnetwork.org:7779
+                cacert: /etc/open5gs/tls/ca/ca.crt
+                client_private_key: /etc/open5gs/tls/n32f/tls.key
+                client_cert: /etc/open5gs/tls/n32f/tls.crt

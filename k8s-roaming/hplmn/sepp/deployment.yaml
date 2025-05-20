@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sepp
+  namespace: hplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sepp
+  template:
+    metadata:
+      labels:
+        app: sepp
+    spec:
+      containers:
+        - name: sepp
+          image: docker.io/library/sepp-new-v2:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: [ "open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/sepp.yaml
+              subPath: sepp.yaml
+            - name: tls-n32c
+              mountPath: /etc/open5gs/tls/n32c
+              readOnly: true
+            - name: tls-n32f
+              mountPath: /etc/open5gs/tls/n32f
+              readOnly: true
+            - name: tls-ca
+              mountPath: /etc/open5gs/tls/ca
+              readOnly: true
+          ports:
+            - containerPort: 80
+              name: sbi
+            - containerPort: 7778
+              name: n32c
+              protocol: TCP
+            - containerPort: 7779
+              name: n32f
+              protocol: TCP
+      volumes:
+        - name: config
+          configMap:
+            name: sepp-config 
+        - name: tls-n32c
+          secret:
+            secretName: sepp-n32c
+        - name: tls-n32f
+          secret:
+            secretName: sepp-n32f
+        - name: tls-ca
+          secret:
+            secretName: sepp-ca
