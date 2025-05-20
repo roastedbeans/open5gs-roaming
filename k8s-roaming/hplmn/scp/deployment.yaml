@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: scp
-          image: docker.io/library/scp-local:v2.7.5
+          image: docker.io/library/scp:v2.7.5
           imagePullPolicy: Never
           command: [ "open5gs-scpd", "-c", "/etc/open5gs/scp.yaml" ]
           volumeMounts:
