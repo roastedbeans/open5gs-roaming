@@ -79,9 +79,24 @@ configure_microk8s() {
   # Create an alias for kubectl
   echo "alias kubectl='microk8s kubectl'" >> ~/.bashrc
   
-  # Create namespaces
-  microk8s kubectl create namespace hplmn
-  microk8s kubectl create namespace vplmn
+  # Create namespaces (with check if they already exist)
+  echo -e "${BLUE}Setting up namespaces...${NC}"
+  
+  # Create HPLMN namespace if it doesn't exist
+  if ! microk8s kubectl get namespace hplmn &>/dev/null; then
+    echo -e "${BLUE}Creating hplmn namespace...${NC}"
+    microk8s kubectl create namespace hplmn
+  else
+    echo -e "${YELLOW}hplmn namespace already exists, skipping creation${NC}"
+  fi
+  
+  # Create VPLMN namespace if it doesn't exist
+  if ! microk8s kubectl get namespace vplmn &>/dev/null; then
+    echo -e "${BLUE}Creating vplmn namespace...${NC}"
+    microk8s kubectl create namespace vplmn
+  else
+    echo -e "${YELLOW}vplmn namespace already exists, skipping creation${NC}"
+  fi
   
   echo -e "${GREEN}MicroK8s configured successfully${NC}"
 }
@@ -138,6 +153,7 @@ generate_certificates() {
   
   # Create the certificate generation script if it doesn't exist
   if [ ! -f "generate-sepp-certs.sh" ]; then
+    echo -e "${BLUE}Creating certificate generation script...${NC}"
     cat > generate-sepp-certs.sh << 'EOF'
 #!/bin/bash
 
@@ -175,13 +191,30 @@ generate_cert "sepp-vplmn-n32f" "sepp2.5gc.mnc070.mcc999.3gppnetwork.org"
 echo "✅ All certificates generated in: $TLS_DIR"
 ls -l $TLS_DIR
 EOF
-    chmod +x generate-sepp-certs.sh
   fi
   
-  # Run the script
-  ./generate-sepp-certs.sh
+  # Try to set execute permissions
+  echo -e "${BLUE}Setting execute permissions on certificate script...${NC}"
+  chmod +x generate-sepp-certs.sh || true
   
-  echo -e "${GREEN}TLS certificates generated successfully in ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
+  # Check if script is executable
+  if [ -x "generate-sepp-certs.sh" ]; then
+    echo -e "${GREEN}Execute permission set successfully${NC}"
+    # Run the script directly
+    ./generate-sepp-certs.sh
+  else
+    echo -e "${YELLOW}Warning: Could not set execute permission on script. Trying with bash...${NC}"
+    # Run with bash explicitly
+    bash generate-sepp-certs.sh
+  fi
+  
+  # Verify certificates were generated
+  if [ -f "./open5gs_tls/ca.crt" ]; then
+    echo -e "${GREEN}TLS certificates generated successfully in ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
+  else
+    echo -e "${RED}Error: Certificate generation failed. TLS files not found.${NC}"
+    return 1
+  fi
 }
 
 # Step 6: Create Kubernetes secrets for TLS
@@ -199,15 +232,36 @@ create_k8s_secrets() {
   
   echo -e "${BLUE}Using TLS certificates from ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
   
+  # Function to create or replace a secret
+  create_or_replace_secret() {
+    local namespace=$1
+    local secret_name=$2
+    local args="${@:3}"
+    
+    # Check if secret exists
+    if microk8s kubectl -n "$namespace" get secret "$secret_name" &>/dev/null; then
+      echo -e "${YELLOW}Secret $secret_name already exists in namespace $namespace, replacing...${NC}"
+      # Delete existing secret
+      microk8s kubectl -n "$namespace" delete secret "$secret_name"
+    else
+      echo -e "${BLUE}Creating secret $secret_name in namespace $namespace...${NC}"
+    fi
+    
+    # Create the secret
+    microk8s kubectl -n "$namespace" create secret generic "$secret_name" $args
+  }
+  
   # Create secrets for VPLMN
-  microk8s kubectl -n vplmn create secret generic sepp-ca --from-file=ca.crt=./open5gs_tls/ca.crt
-  microk8s kubectl -n vplmn create secret generic sepp-n32c --from-file=key=./open5gs_tls/sepp-vplmn-n32c.key --from-file=cert=./open5gs_tls/sepp-vplmn-n32c.crt
-  microk8s kubectl -n vplmn create secret generic sepp-n32f --from-file=key=./open5gs_tls/sepp-vplmn-n32f.key --from-file=cert=./open5gs_tls/sepp-vplmn-n32f.crt
+  echo -e "${BLUE}Setting up VPLMN secrets...${NC}"
+  create_or_replace_secret "vplmn" "sepp-ca" "--from-file=ca.crt=./open5gs_tls/ca.crt"
+  create_or_replace_secret "vplmn" "sepp-n32c" "--from-file=key=./open5gs_tls/sepp-vplmn-n32c.key --from-file=cert=./open5gs_tls/sepp-vplmn-n32c.crt"
+  create_or_replace_secret "vplmn" "sepp-n32f" "--from-file=key=./open5gs_tls/sepp-vplmn-n32f.key --from-file=cert=./open5gs_tls/sepp-vplmn-n32f.crt"
   
   # Create secrets for HPLMN
-  microk8s kubectl -n hplmn create secret generic sepp-ca --from-file=ca.crt=./open5gs_tls/ca.crt
-  microk8s kubectl -n hplmn create secret generic sepp-n32c --from-file=key=./open5gs_tls/sepp-hplmn-n32c.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32c.crt
-  microk8s kubectl -n hplmn create secret generic sepp-n32f --from-file=key=./open5gs_tls/sepp-hplmn-n32f.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32f.crt
+  echo -e "${BLUE}Setting up HPLMN secrets...${NC}"
+  create_or_replace_secret "hplmn" "sepp-ca" "--from-file=ca.crt=./open5gs_tls/ca.crt"
+  create_or_replace_secret "hplmn" "sepp-n32c" "--from-file=key=./open5gs_tls/sepp-hplmn-n32c.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32c.crt"
+  create_or_replace_secret "hplmn" "sepp-n32f" "--from-file=key=./open5gs_tls/sepp-hplmn-n32f.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32f.crt"
   
   # Return to the base directory
   cd "$BASE_DIR"
