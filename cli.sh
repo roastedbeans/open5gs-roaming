@@ -25,6 +25,7 @@ UPDATE_SCRIPT="$SCRIPTS_DIR/update.sh"
 IMPORT_SCRIPT="$SCRIPTS_DIR/import.sh"
 INSTALL_DEP="$SCRIPTS_DIR/install-dep.sh"
 CERT_DEPLOY="$SCRIPTS_DIR/cert-deploy.sh"
+APPLY_HPLMN_MONGODB="$SCRIPTS_DIR/apply-hplmn-mongodb.sh"
 
 # Check if scripts directory exists
 if [ ! -d "$SCRIPTS_DIR" ]; then
@@ -48,6 +49,7 @@ show_usage() {
     echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming scenario"
     echo "  pull-images         Pull all Open5GS Docker images from docker.io/vinch05"
     echo "  cert-deploy         Deploy TLS certificates as Kubernetes secrets"
+    echo "  apply-hplmn-mongodb Apply MongoDB StatefulSet for HPLMN"
     echo "  docker-clean        Clean Docker resources"
     echo "  microk8s-clean      Clean MicroK8s resources"
     echo "  update              Update configurations or images"
@@ -312,6 +314,13 @@ cert_deploy() {
     bash "$CERT_DEPLOY" "$@"
 }
 
+# Apply HPLMN MongoDB function
+apply_hplmn_mongodb() {
+    echo -e "${BLUE}Applying MongoDB StatefulSet for HPLMN...${NC}"
+    chmod +x "$APPLY_HPLMN_MONGODB"
+    bash "$APPLY_HPLMN_MONGODB" "$@"
+}
+
 # Main command parser
 if [ $# -eq 0 ]; then
     show_usage
@@ -349,6 +358,10 @@ case $command in
         
     cert-deploy)
         cert_deploy "$@"
+        ;;
+        
+    apply-hplmn-mongodb)
+        apply_hplmn_mongodb "$@"
         ;;
         
     docker-clean)
