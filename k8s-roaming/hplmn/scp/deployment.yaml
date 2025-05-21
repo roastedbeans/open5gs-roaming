@@ -15,15 +15,9 @@ spec:
     spec:
       containers:
         - name: scp
-          image: $(REGISTRY_URL)/scp:v2.7.5
+          image: docker.io/vinch05/scp:v2.7.5
           imagePullPolicy: Never
           command: [ "open5gs-scpd", "-c", "/etc/open5gs/scp.yaml" ]
-          env:
-            - name: REGISTRY_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: registry-config
-                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/scp.yaml

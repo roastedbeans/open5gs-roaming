@@ -18,34 +18,10 @@ NAMESPACE="hplmn"
 # Base directory for k8s manifests
 BASE_DIR="k8s-roaming"
 
-# Get Registry URL from ConfigMap
-get_registry_url() {
-    if [ -f "$BASE_DIR/env-config.yaml" ]; then
-        # Extract registry URL from the env-config.yaml file
-        REGISTRY_URL=$(grep "REGISTRY_URL:" "$BASE_DIR/env-config.yaml" | awk '{print $2}' | tr -d ' ')
-        echo "$REGISTRY_URL"
-    else
-        echo "docker.io/vinch05"  # Default if config not found
-    fi
-}
-
-# Apply global registry config first
-apply_registry_config() {
-    echo -e "${BLUE}Applying global registry configuration...${NC}"
-    if [ -f "$BASE_DIR/env-config.yaml" ]; then
-        microk8s kubectl apply -f "$BASE_DIR/env-config.yaml" -n $NAMESPACE
-        echo -e "${GREEN}Applied registry configuration successfully${NC}"
-    else
-        echo -e "${RED}Error: env-config.yaml not found in $BASE_DIR${NC}"
-        exit 1
-    fi
-}
-
 # Function to deploy components from a directory
 deploy_components() {
     local dir="$BASE_DIR/$NAMESPACE/$1"
     local component_name=$1
-    local registry_url=$(get_registry_url)
     
     echo -e "${BLUE}Deploying $component_name...${NC}"
     
@@ -64,22 +40,10 @@ deploy_components() {
         microk8s kubectl apply -f configmap.yaml -n $NAMESPACE
     fi
     
-    # Create a temporary deployment file with proper image references
+    # Apply deployment
     if [ -f "deployment.yaml" ]; then
-        echo -e "Preparing deployment for $component_name..."
-        # Create a temporary file
-        temp_deployment=$(mktemp)
-        
-        # Replace the variable reference with the actual registry URL
-        # Handle both formats: $(REGISTRY_URL)/image and "$(REGISTRY_URL)image"
-        cat deployment.yaml | sed -e "s|\$(REGISTRY_URL)/|${registry_url}/|g" -e "s|\"\$(REGISTRY_URL)|\"${registry_url}|g" > "$temp_deployment"
-        
-        # Apply the modified deployment
         echo -e "Applying deployment for $component_name..."
-        microk8s kubectl apply -f "$temp_deployment" -n $NAMESPACE
-        
-        # Clean up
-        rm "$temp_deployment"
+        microk8s kubectl apply -f deployment.yaml -n $NAMESPACE
     else
         echo -e "${RED}Warning: No deployment.yaml found for $component_name${NC}"
     fi
@@ -102,9 +66,6 @@ deploy_components() {
 # Create namespace if it doesn't exist
 echo -e "${BLUE}Creating namespace $NAMESPACE if it doesn't exist...${NC}"
 microk8s kubectl create namespace $NAMESPACE --dry-run=client -o yaml | microk8s kubectl apply -f -
-
-# Apply registry config first
-apply_registry_config
 
 # Deploy HPLMN components
 echo -e "${YELLOW}Deploying HPLMN components...${NC}"

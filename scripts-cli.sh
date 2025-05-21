@@ -55,33 +55,17 @@ show_usage() {
     echo "Options:"
     echo "  --namespace, -n   Specify Kubernetes namespace (default: hplmn)"
     echo "  --username, -u    Docker Hub username for deployment"
-    echo "  --registry, -r    Docker registry URL (default: docker.io/vinch05)"
     echo "  --force, -f       Skip confirmation prompts"
     echo "  --tag, -t         Specify image tag (default: v2.7.5)"
     echo "  --delete-pv       Delete persistent volumes (with microk8s-clean)"
     echo ""
     echo "Examples:"
     echo "  $0 docker-deploy -u myusername"
-    echo "  $0 deploy-hplmn -r docker.io/myusername"
-    echo "  $0 deploy-vplmn -r docker.io/myusername"
-    echo "  $0 deploy-roaming -r registry.example.com"
+    echo "  $0 deploy-hplmn"
+    echo "  $0 deploy-vplmn"
+    echo "  $0 deploy-roaming"
     echo "  $0 docker-clean -f"
     echo "  $0 microk8s-clean -n open5gs --delete-pv"
-}
-
-# Update registry configuration in env-config.yaml
-update_registry_config() {
-    local registry="$1"
-    local config_file="k8s-roaming/env-config.yaml"
-    
-    if [ -f "$config_file" ]; then
-        echo -e "${BLUE}Updating registry URL to: ${YELLOW}$registry${NC}"
-        sed -i "s|REGISTRY_URL:.*|REGISTRY_URL: $registry|" "$config_file"
-        echo -e "${GREEN}Registry URL updated in $config_file${NC}"
-    else
-        echo -e "${RED}Error: $config_file not found${NC}"
-        exit 1
-    fi
 }
 
 # Docker deployment with custom username
@@ -133,7 +117,6 @@ docker_deploy() {
 # Legacy Kubernetes/MicroK8s deployment
 kubectl_deploy() {
     local namespace="hplmn"
-    local registry="docker.io/library"
     local tag="v2.7.5"
     local deploy_roaming=false
     
@@ -142,10 +125,6 @@ kubectl_deploy() {
         case $1 in
             --namespace|-n)
                 namespace="$2"
-                shift 2
-                ;;
-            --registry|-r)
-                registry="$2"
                 shift 2
                 ;;
             --tag|-t)
@@ -163,12 +142,8 @@ kubectl_deploy() {
         esac
     done
     
-    # Update registry in config file
-    update_registry_config "$registry"
-    
     if [ "$deploy_roaming" = true ]; then
         echo -e "${BLUE}Deploying Open5GS roaming setup (both HPLMN and VPLMN)${NC}"
-        echo -e "${BLUE}Using registry: ${YELLOW}$registry${NC}"
         
         # Deploy HPLMN first
         echo -e "${YELLOW}Deploying HPLMN components...${NC}"
@@ -185,7 +160,6 @@ kubectl_deploy() {
         echo -e "${GREEN}Completed deployment of both HPLMN and VPLMN for roaming scenario${NC}"
     else
         echo -e "${BLUE}Deploying Open5GS to MicroK8s namespace: ${YELLOW}$namespace${NC}"
-        echo -e "${BLUE}Using registry: ${YELLOW}$registry${NC}"
         
         # Set environment variables for the deployment script
         export NAMESPACE="$namespace"
@@ -198,16 +172,11 @@ kubectl_deploy() {
 
 # HPLMN-only deployment
 deploy_hplmn() {
-    local registry="docker.io/library"
     local tag="v2.7.5"
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --registry|-r)
-                registry="$2"
-                shift 2
-                ;;
             --tag|-t)
                 tag="$2"
                 shift 2
@@ -219,11 +188,7 @@ deploy_hplmn() {
         esac
     done
     
-    # Update registry in config file
-    update_registry_config "$registry"
-    
     echo -e "${BLUE}Deploying HPLMN components to MicroK8s${NC}"
-    echo -e "${BLUE}Using registry: ${YELLOW}$registry${NC}"
     
     # Make sure the script is executable
     chmod +x "$KUBECTL_DEPLOY_HPLMN"
@@ -234,16 +199,11 @@ deploy_hplmn() {
 
 # VPLMN-only deployment
 deploy_vplmn() {
-    local registry="docker.io/library"
     local tag="v2.7.5"
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --registry|-r)
-                registry="$2"
-                shift 2
-                ;;
             --tag|-t)
                 tag="$2"
                 shift 2
@@ -255,11 +215,7 @@ deploy_vplmn() {
         esac
     done
     
-    # Update registry in config file
-    update_registry_config "$registry"
-    
     echo -e "${BLUE}Deploying VPLMN components to MicroK8s${NC}"
-    echo -e "${BLUE}Using registry: ${YELLOW}$registry${NC}"
     
     # Make sure the script is executable
     chmod +x "$KUBECTL_DEPLOY_VPLMN"
@@ -270,16 +226,11 @@ deploy_vplmn() {
 
 # Deploy both HPLMN and VPLMN for roaming
 deploy_roaming() {
-    local registry="docker.io/library"
     local tag="v2.7.5"
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --registry|-r)
-                registry="$2"
-                shift 2
-                ;;
             --tag|-t)
                 tag="$2"
                 shift 2
@@ -291,11 +242,7 @@ deploy_roaming() {
         esac
     done
     
-    # Update registry in config file
-    update_registry_config "$registry"
-    
     echo -e "${BLUE}Deploying full roaming setup (HPLMN + VPLMN) to MicroK8s${NC}"
-    echo -e "${BLUE}Using registry: ${YELLOW}$registry${NC}"
     
     # Make sure the scripts are executable
     chmod +x "$KUBECTL_DEPLOY_HPLMN"
