@@ -55,7 +55,7 @@ show_usage() {
     echo "Options:"
     echo "  --namespace, -n   Specify Kubernetes namespace (default: hplmn)"
     echo "  --username, -u    Docker Hub username for deployment"
-    echo "  --registry, -r    Docker registry URL (default: docker.io/library)"
+    echo "  --registry, -r    Docker registry URL (default: docker.io/vinch05)"
     echo "  --force, -f       Skip confirmation prompts"
     echo "  --tag, -t         Specify image tag (default: v2.7.5)"
     echo "  --delete-pv       Delete persistent volumes (with microk8s-clean)"

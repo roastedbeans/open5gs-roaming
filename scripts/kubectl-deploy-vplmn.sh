@@ -25,7 +25,7 @@ get_registry_url() {
         REGISTRY_URL=$(grep "REGISTRY_URL:" "$BASE_DIR/env-config.yaml" | awk '{print $2}' | tr -d ' ')
         echo "$REGISTRY_URL"
     else
-        echo "docker.io/library"  # Default if config not found
+        echo "docker.io/vinch05"  # Default if config not found
     fi
 }
 
