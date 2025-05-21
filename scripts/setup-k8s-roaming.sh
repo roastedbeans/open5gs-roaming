@@ -20,7 +20,14 @@ NC='\033[0m' # No Color
 # Set default Open5GS version
 OPEN5GS_VERSION="${1:-v2.7.5}"
 
+# Get the base directory (parent of scripts directory)
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+K8S_ROAMING_DIR="$BASE_DIR/k8s-roaming"
+CERT_DIR="$K8S_ROAMING_DIR/cert"
+
 echo -e "${BLUE}Starting Open5GS k8s-roaming setup with version ${YELLOW}${OPEN5GS_VERSION}${NC}"
+echo -e "${BLUE}Base directory: ${YELLOW}${BASE_DIR}${NC}"
+echo -e "${BLUE}K8s-roaming directory: ${YELLOW}${K8S_ROAMING_DIR}${NC}"
 
 # Step 1: Install Docker
 install_docker() {
@@ -125,8 +132,9 @@ pull_images() {
 generate_certificates() {
   echo -e "${BLUE}Generating TLS certificates for SEPP...${NC}"
   
-  # Ensure we're in the cert directory
-  cd ../k8s-roaming/cert || mkdir -p ../k8s-roaming/cert && cd ../k8s-roaming/cert
+  # Ensure cert directory exists
+  mkdir -p "$CERT_DIR"
+  cd "$CERT_DIR"
   
   # Create the certificate generation script if it doesn't exist
   if [ ! -f "generate-sepp-certs.sh" ]; then
@@ -173,7 +181,7 @@ EOF
   # Run the script
   ./generate-sepp-certs.sh
   
-  echo -e "${GREEN}TLS certificates generated successfully${NC}"
+  echo -e "${GREEN}TLS certificates generated successfully in ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
 }
 
 # Step 6: Create Kubernetes secrets for TLS
@@ -181,7 +189,15 @@ create_k8s_secrets() {
   echo -e "${BLUE}Creating Kubernetes secrets for TLS certificates...${NC}"
   
   # Make sure we're in the cert directory with the generated certificates
-  cd ../k8s-roaming/cert || cd ../k8s-roaming/cert
+  cd "$CERT_DIR"
+  
+  if [ ! -d "./open5gs_tls" ]; then
+    echo -e "${RED}Error: TLS directory not found at ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
+    echo -e "${RED}Please run generate_certificates() first${NC}"
+    return 1
+  fi
+  
+  echo -e "${BLUE}Using TLS certificates from ${YELLOW}${CERT_DIR}/open5gs_tls${NC}"
   
   # Create secrets for VPLMN
   microk8s kubectl -n vplmn create secret generic sepp-ca --from-file=ca.crt=./open5gs_tls/ca.crt
@@ -193,8 +209,8 @@ create_k8s_secrets() {
   microk8s kubectl -n hplmn create secret generic sepp-n32c --from-file=key=./open5gs_tls/sepp-hplmn-n32c.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32c.crt
   microk8s kubectl -n hplmn create secret generic sepp-n32f --from-file=key=./open5gs_tls/sepp-hplmn-n32f.key --from-file=cert=./open5gs_tls/sepp-hplmn-n32f.crt
   
-  # Return to the main directory
-  cd ../..
+  # Return to the base directory
+  cd "$BASE_DIR"
   
   echo -e "${GREEN}Kubernetes secrets created successfully${NC}"
 }
@@ -222,7 +238,7 @@ main() {
   
   echo -e "${BLUE}===============================================${NC}"
   echo -e "${GREEN}Setup completed! To deploy the components, run:${NC}"
-  echo -e "${YELLOW}cd k8s-roaming${NC}"
+  echo -e "${YELLOW}cd ${K8S_ROAMING_DIR}${NC}"
   echo -e "${YELLOW}# Deploy HPLMN first${NC}"
   echo -e "${YELLOW}microk8s kubectl apply -f hplmn/nrf/${NC}"
   echo -e "${YELLOW}microk8s kubectl apply -f hplmn/scp/${NC}"
