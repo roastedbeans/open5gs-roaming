@@ -24,6 +24,7 @@ MICROK8S_CLEAN="$SCRIPTS_DIR/microk8s-clean.sh"
 UPDATE_SCRIPT="$SCRIPTS_DIR/update.sh"
 IMPORT_SCRIPT="$SCRIPTS_DIR/import.sh"
 INSTALL_DEP="$SCRIPTS_DIR/install-dep.sh"
+CERT_DEPLOY="$SCRIPTS_DIR/cert-deploy.sh"
 
 # Check if scripts directory exists
 if [ ! -d "$SCRIPTS_DIR" ]; then
@@ -46,6 +47,7 @@ show_usage() {
     echo "  deploy-vplmn        Deploy only VPLMN components"
     echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming scenario"
     echo "  pull-images         Pull all Open5GS Docker images from docker.io/vinch05"
+    echo "  cert-deploy         Deploy TLS certificates as Kubernetes secrets"
     echo "  docker-clean        Clean Docker resources"
     echo "  microk8s-clean      Clean MicroK8s resources"
     echo "  update              Update configurations or images"
@@ -303,6 +305,13 @@ pull_images() {
     bash "$SCRIPTS_DIR/pull-docker-images.sh" "$tag"
 }
 
+# Cert deploy function
+cert_deploy() {
+    echo -e "${BLUE}Deploying TLS certificates as Kubernetes secrets...${NC}"
+    chmod +x "$CERT_DEPLOY"
+    bash "$CERT_DEPLOY" "$@"
+}
+
 # Main command parser
 if [ $# -eq 0 ]; then
     show_usage
@@ -336,6 +345,10 @@ case $command in
         
     pull-images)
         pull_images "$@"
+        ;;
+        
+    cert-deploy)
+        cert_deploy "$@"
         ;;
         
     docker-clean)
