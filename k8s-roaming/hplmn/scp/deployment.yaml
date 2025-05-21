@@ -16,7 +16,7 @@ spec:
       containers:
         - name: scp
           image: docker.io/vinch05/scp:v2.7.5
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: [ "open5gs-scpd", "-c", "/etc/open5gs/scp.yaml" ]
           volumeMounts:
             - name: config
