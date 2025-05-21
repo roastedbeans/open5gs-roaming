@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ordered 5G Core Network Deployment Script for HPLMN only
+# Ordered 5G Core Network Deployment Script for HPLMN and VPLMN
 # This script deploys the components of a 5G core network in the proper hierarchical order
 # Exit on error
 set -e
@@ -13,10 +13,22 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Default namespace
-NAMESPACE="hplmn"
+NAMESPACE=${NAMESPACE:-"hplmn"}
 
 # Base directory for k8s manifests
 BASE_DIR="k8s-roaming"
+
+# Apply global registry config first
+apply_registry_config() {
+    echo -e "${BLUE}Applying global registry configuration...${NC}"
+    if [ -f "$BASE_DIR/env-config.yaml" ]; then
+        microk8s kubectl apply -f "$BASE_DIR/env-config.yaml" -n $NAMESPACE
+        echo -e "${GREEN}Applied registry configuration successfully${NC}"
+    else
+        echo -e "${RED}Error: env-config.yaml not found in $BASE_DIR${NC}"
+        exit 1
+    fi
+}
 
 # Function to deploy components from a directory
 deploy_components() {
@@ -67,33 +79,92 @@ deploy_components() {
 echo -e "${BLUE}Creating namespace $NAMESPACE if it doesn't exist...${NC}"
 microk8s kubectl create namespace $NAMESPACE --dry-run=client -o yaml | microk8s kubectl apply -f -
 
-# Step 3: Deploy Network Functions in logical order
+# Apply registry config first
+apply_registry_config
 
-# Deploy NRF first (Network Repository Function - the service registry)
-echo -e "${YELLOW}[1/4] Deploying NRF components (Service Registry)...${NC}"
-deploy_components "nrf"
-echo -e "${GREEN}NRF components deployed successfully${NC}"
+# Deploy based on namespace
+if [ "$NAMESPACE" == "hplmn" ]; then
+    # Deploy HPLMN components
+    echo -e "${YELLOW}Deploying HPLMN components...${NC}"
+    
+    # Step 1: Deploy NRF first (Network Repository Function - the service registry)
+    echo -e "${YELLOW}[1/4] Deploying NRF components (Service Registry)...${NC}"
+    deploy_components "nrf"
+    echo -e "${GREEN}NRF components deployed successfully${NC}"
+    
+    # Step 2: Deploy UDR/UDM/AUSF (User data management and authentication)
+    echo -e "${YELLOW}[2/4] Deploying Subscriber Data Management components...${NC}"
+    deploy_components "udr"
+    deploy_components "udm"
+    deploy_components "ausf"
+    echo -e "${GREEN}Subscriber Data Management components deployed successfully${NC}"
+    
+    # Step 3: Deploy Core Network Functions
+    echo -e "${YELLOW}[3/4] Deploying Core Network Functions...${NC}"
+    deploy_components "scp"
+    deploy_components "sepp"
+    echo -e "${GREEN}Core Network Functions deployed successfully${NC}"
+    
+    # Step 4: Deploy MongoDb if needed
+    echo -e "${YELLOW}[4/4] Deploying MongoDB...${NC}"
+    if [ -d "$BASE_DIR/$NAMESPACE/mongodb" ]; then
+        deploy_components "mongodb"
+        echo -e "${GREEN}MongoDB deployed successfully${NC}"
+    else
+        echo -e "${YELLOW}No MongoDB directory found, skipping...${NC}"
+    fi
 
-# Deploy UDR/UDM/AUSF (User data management and authentication)
-echo -e "${YELLOW}[2/4] Deploying Subscriber Data Management components...${NC}"
-deploy_components "udr"
-deploy_components "udm"
-deploy_components "ausf"
-echo -e "${GREEN}Subscriber Data Management components deployed successfully${NC}"
-
-# Deploy Core Network Functions
-echo -e "${YELLOW}[3/4] Deploying Core Network Functions...${NC}"
-deploy_components "scp"
-deploy_components "sepp"
-echo -e "${GREEN}Core Network Functions deployed successfully${NC}"
-
-# Deploy MongoDb if needed
-echo -e "${YELLOW}[4/4] Deploying MongoDB...${NC}"
-if [ -d "$BASE_DIR/$NAMESPACE/mongodb" ]; then
-    deploy_components "mongodb"
-    echo -e "${GREEN}MongoDB deployed successfully${NC}"
+elif [ "$NAMESPACE" == "vplmn" ]; then
+    # Deploy VPLMN components
+    echo -e "${YELLOW}Deploying VPLMN components...${NC}"
+    
+    # Step 1: Deploy NRF first
+    echo -e "${YELLOW}[1/6] Deploying NRF components...${NC}"
+    deploy_components "nrf"
+    echo -e "${GREEN}NRF components deployed successfully${NC}"
+    
+    # Step 2: Deploy UDR/UDM/AUSF
+    echo -e "${YELLOW}[2/6] Deploying Subscriber Data Management components...${NC}"
+    deploy_components "udr"
+    deploy_components "udm"
+    deploy_components "ausf"
+    echo -e "${GREEN}Subscriber Data Management components deployed successfully${NC}"
+    
+    # Step 3: Deploy Policy Functions
+    echo -e "${YELLOW}[3/6] Deploying Policy components...${NC}"
+    deploy_components "pcf"
+    deploy_components "bsf"
+    deploy_components "nssf"
+    echo -e "${GREEN}Policy components deployed successfully${NC}"
+    
+    # Step 4: Deploy Core Network Functions
+    echo -e "${YELLOW}[4/6] Deploying Core Network Functions...${NC}"
+    deploy_components "scp"
+    deploy_components "sepp"
+    deploy_components "smf"
+    echo -e "${GREEN}Core Network Functions deployed successfully${NC}"
+    
+    # Step 5: Deploy UPF
+    echo -e "${YELLOW}[5/6] Deploying User Plane Function (UPF)...${NC}"
+    deploy_components "upf"
+    echo -e "${GREEN}UPF deployed successfully${NC}"
+    
+    # Step 6: Deploy AMF (last)
+    echo -e "${YELLOW}[6/6] Deploying Access and Mobility Management Function (AMF)...${NC}"
+    deploy_components "amf"
+    echo -e "${GREEN}AMF deployed successfully${NC}"
+    
+    # Step 7: Deploy MongoDb if needed
+    echo -e "${YELLOW}[Optional] Deploying MongoDB...${NC}"
+    if [ -d "$BASE_DIR/$NAMESPACE/mongodb" ]; then
+        deploy_components "mongodb"
+        echo -e "${GREEN}MongoDB deployed successfully${NC}"
+    else
+        echo -e "${YELLOW}No MongoDB directory found, skipping...${NC}"
+    fi
 else
-    echo -e "${YELLOW}No MongoDB directory found, skipping...${NC}"
+    echo -e "${RED}Unknown namespace: $NAMESPACE. Only 'hplmn' and 'vplmn' are supported.${NC}"
+    exit 1
 fi
 
 # Deploy packet capture if available
@@ -122,14 +193,5 @@ echo "Deployments:"
 microk8s kubectl get deployments -n $NAMESPACE
 echo "----------------------------------------"
 
-# Test connectivity between components
-echo -e "${BLUE}Testing network connectivity between components...${NC}"
-NRF_POD=$(microk8s kubectl get pods -n $NAMESPACE -l app=h-nrf -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-if [ -n "$NRF_POD" ]; then
-    microk8s kubectl exec -n $NAMESPACE $NRF_POD -- ping -c 2 h-udr.hplmn.svc.cluster.local || echo "Connectivity issues detected"
-else
-    echo "NRF pod not found, skipping connectivity test"
-fi
-
-echo -e "${GREEN}HPLMN Deployment complete${NC}"
+echo -e "${GREEN}$NAMESPACE Deployment complete${NC}"
 echo -e "${BLUE}To check logs, use: microk8s kubectl logs -n $NAMESPACE <pod-name>${NC}"
