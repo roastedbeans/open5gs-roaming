@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: udr
-          image: docker.io/library/udr:v2.7.5
+          image: $(REGISTRY_URL)/udr:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-udrd", "-c", "/etc/open5gs/udr.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/udr.yaml

@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: nssf
-          image: docker.io/library/nssf:v2.7.5
+          image: $(REGISTRY_URL)/nssf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-nssfd", "-c", "/etc/open5gs/nssf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/nssf.yaml

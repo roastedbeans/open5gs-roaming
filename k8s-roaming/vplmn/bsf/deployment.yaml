@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: bsf
-          image: docker.io/library/bsf:v2.7.5
+          image: $(REGISTRY_URL)/bsf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-bsfd", "-c", "/etc/open5gs/bsf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/bsf.yaml

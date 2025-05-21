@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: amf
-          image: docker.io/library/amf:v2.7.5
+          image: $(REGISTRY_URL)/amf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-amfd", "-c", "/etc/open5gs/amf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/amf.yaml

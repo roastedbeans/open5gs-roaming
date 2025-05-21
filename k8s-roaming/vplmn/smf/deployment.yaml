@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: smf
-          image: docker.io/library/smf:v2.7.5
+          image: $(REGISTRY_URL)/smf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-smfd", "-c", "/etc/open5gs/smf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/smf.yaml

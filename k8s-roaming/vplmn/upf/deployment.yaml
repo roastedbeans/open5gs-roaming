@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: upf
-          image: docker.io/library/upf:v2.7.5
+          image: $(REGISTRY_URL)/upf:v2.7.5
           imagePullPolicy: IfNotPresent 
           command: [ "open5gs-upfd", "-c", "/etc/open5gs/upf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           securityContext:
             privileged: true
             capabilities:

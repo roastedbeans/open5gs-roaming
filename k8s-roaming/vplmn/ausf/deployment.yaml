@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: ausf
-          image: docker.io/library/ausf:v2.7.5
+          image: $(REGISTRY_URL)/ausf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ["open5gs-ausfd", "-c", "/etc/open5gs/ausf.yaml"]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
           - name: config
             mountPath: /etc/open5gs/ausf.yaml

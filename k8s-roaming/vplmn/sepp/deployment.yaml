@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: sepp
-          image: docker.io/library/sepp:v2.7.5
+          image: $(REGISTRY_URL)/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml

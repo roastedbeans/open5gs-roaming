@@ -15,9 +15,15 @@ spec:
     spec:
       containers:
         - name: pcf
-          image: docker.io/library/pcf:v2.7.5
+          image: $(REGISTRY_URL)/pcf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-pcfd", "-c", "/etc/open5gs/pcf.yaml" ]
+          env:
+            - name: REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: registry-config
+                  key: REGISTRY_URL
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/pcf.yaml
