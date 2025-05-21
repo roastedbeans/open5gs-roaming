@@ -25,7 +25,9 @@ UPDATE_SCRIPT="$SCRIPTS_DIR/update.sh"
 IMPORT_SCRIPT="$SCRIPTS_DIR/import.sh"
 INSTALL_DEP="$SCRIPTS_DIR/install-dep.sh"
 CERT_DEPLOY="$SCRIPTS_DIR/cert-deploy.sh"
-APPLY_HPLMN_MONGODB="$SCRIPTS_DIR/apply-hplmn-mongodb.sh"
+MONGODB_HPLMN="$SCRIPTS_DIR/mongodb-hplmn.sh"
+PULL_IMAGES="$SCRIPTS_DIR/pull-docker-images.sh"
+SETUP_ROAMING="$SCRIPTS_DIR/setup-k8s-roaming.sh"
 
 # Check if scripts directory exists
 if [ ! -d "$SCRIPTS_DIR" ]; then
@@ -49,7 +51,7 @@ show_usage() {
     echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming scenario"
     echo "  pull-images         Pull all Open5GS Docker images from docker.io/vinch05"
     echo "  cert-deploy         Deploy TLS certificates as Kubernetes secrets"
-    echo "  apply-hplmn-mongodb Apply MongoDB StatefulSet for HPLMN"
+    echo "  mongodb-hplmn       Configure MongoDB for HPLMN"
     echo "  docker-clean        Clean Docker resources"
     echo "  microk8s-clean      Clean MicroK8s resources"
     echo "  update              Update configurations or images"
@@ -258,9 +260,9 @@ deploy_roaming() {
     if [ "$use_full_setup" = true ]; then
         echo -e "${BLUE}Running full setup script for Open5GS k8s-roaming...${NC}"
         # Make sure the script is executable
-        chmod +x "$SCRIPTS_DIR/setup-k8s-roaming.sh"
+        chmod +x "$SETUP_ROAMING"
         # Execute the full setup script with the tag
-        bash "$SCRIPTS_DIR/setup-k8s-roaming.sh" "$tag"
+        bash "$SETUP_ROAMING" "$tag"
     else
         echo -e "${BLUE}Deploying full roaming setup (HPLMN + VPLMN) to MicroK8s${NC}"
         
@@ -301,10 +303,10 @@ pull_images() {
     echo -e "${BLUE}Running pull-docker-images.sh script to pull Docker images...${NC}"
     
     # Make sure the script is executable
-    chmod +x "$SCRIPTS_DIR/pull-docker-images.sh"
+    chmod +x "$PULL_IMAGES"
     
     # Execute the image pull script with the tag
-    bash "$SCRIPTS_DIR/pull-docker-images.sh" "$tag"
+    bash "$PULL_IMAGES" "$tag"
 }
 
 # Cert deploy function
@@ -314,11 +316,11 @@ cert_deploy() {
     bash "$CERT_DEPLOY" "$@"
 }
 
-# Apply HPLMN MongoDB function
-apply_hplmn_mongodb() {
-    echo -e "${BLUE}Applying MongoDB StatefulSet for HPLMN...${NC}"
-    chmod +x "$APPLY_HPLMN_MONGODB"
-    bash "$APPLY_HPLMN_MONGODB" "$@"
+# MongoDB HPLMN function
+mongodb_hplmn() {
+    echo -e "${BLUE}Configuring MongoDB for HPLMN...${NC}"
+    chmod +x "$MONGODB_HPLMN"
+    bash "$MONGODB_HPLMN" "$@"
 }
 
 # Main command parser
@@ -360,8 +362,8 @@ case $command in
         cert_deploy "$@"
         ;;
         
-    apply-hplmn-mongodb)
-        apply_hplmn_mongodb "$@"
+    mongodb-hplmn)
+        mongodb_hplmn "$@"
         ;;
         
     docker-clean)
