@@ -10,8 +10,8 @@ sepp:
       - address: sepp.5gc.mnc070.mcc999.3gppnetwork.org
         port: 80
     client:
-      scp:
-        - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80
+      nrf:
+        - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:80
   n32:
     server:
       - sender: sepp.5gc.mnc070.mcc999.3gppnetwork.org

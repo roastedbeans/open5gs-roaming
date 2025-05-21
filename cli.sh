@@ -45,6 +45,7 @@ show_usage() {
     echo "  deploy-hplmn        Deploy only HPLMN components"
     echo "  deploy-vplmn        Deploy only VPLMN components"
     echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming scenario"
+    echo "  pull-images         Pull all Open5GS Docker images from docker.io/vinch05"
     echo "  docker-clean        Clean Docker resources"
     echo "  microk8s-clean      Clean MicroK8s resources"
     echo "  update              Update configurations or images"
@@ -58,12 +59,15 @@ show_usage() {
     echo "  --force, -f       Skip confirmation prompts"
     echo "  --tag, -t         Specify image tag (default: v2.7.5)"
     echo "  --delete-pv       Delete persistent volumes (with microk8s-clean)"
+    echo "  --full-setup      Use the full setup script for roaming deployment"
     echo ""
     echo "Examples:"
     echo "  $0 docker-deploy -u myusername"
     echo "  $0 deploy-hplmn"
     echo "  $0 deploy-vplmn"
     echo "  $0 deploy-roaming"
+    echo "  $0 deploy-roaming --full-setup"
+    echo "  $0 pull-images -t v2.7.5"
     echo "  $0 docker-clean -f"
     echo "  $0 microk8s-clean -n open5gs --delete-pv"
 }
@@ -227,6 +231,54 @@ deploy_vplmn() {
 # Deploy both HPLMN and VPLMN for roaming
 deploy_roaming() {
     local tag="v2.7.5"
+    local use_full_setup=false
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --tag|-t)
+                tag="$2"
+                shift 2
+                ;;
+            --full-setup)
+                use_full_setup=true
+                shift
+                ;;
+            *)
+                echo -e "${RED}Unknown option: $1${NC}"
+                return 1
+                ;;
+        esac
+    done
+    
+    if [ "$use_full_setup" = true ]; then
+        echo -e "${BLUE}Running full setup script for Open5GS k8s-roaming...${NC}"
+        # Make sure the script is executable
+        chmod +x "$SCRIPTS_DIR/setup-k8s-roaming.sh"
+        # Execute the full setup script with the tag
+        bash "$SCRIPTS_DIR/setup-k8s-roaming.sh" "$tag"
+    else
+        echo -e "${BLUE}Deploying full roaming setup (HPLMN + VPLMN) to MicroK8s${NC}"
+        
+        # Make sure the scripts are executable
+        chmod +x "$KUBECTL_DEPLOY_HPLMN"
+        chmod +x "$KUBECTL_DEPLOY_VPLMN"
+        
+        # Deploy HPLMN first
+        echo -e "${YELLOW}Step 1: Deploying HPLMN components...${NC}"
+        bash "$KUBECTL_DEPLOY_HPLMN"
+        
+        # Then deploy VPLMN
+        echo -e "${YELLOW}Step 2: Deploying VPLMN components...${NC}"
+        bash "$KUBECTL_DEPLOY_VPLMN"
+        
+        echo -e "${GREEN}Completed deployment of both HPLMN and VPLMN for roaming scenario${NC}"
+    fi
+}
+
+# Pull Docker images from docker.io/vinch05
+pull_images() {
+    local tag="v2.7.5"
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -242,21 +294,13 @@ deploy_roaming() {
         esac
     done
     
-    echo -e "${BLUE}Deploying full roaming setup (HPLMN + VPLMN) to MicroK8s${NC}"
+    echo -e "${BLUE}Running pull-docker-images.sh script to pull Docker images...${NC}"
     
-    # Make sure the scripts are executable
-    chmod +x "$KUBECTL_DEPLOY_HPLMN"
-    chmod +x "$KUBECTL_DEPLOY_VPLMN"
+    # Make sure the script is executable
+    chmod +x "$SCRIPTS_DIR/pull-docker-images.sh"
     
-    # Deploy HPLMN first
-    echo -e "${YELLOW}Step 1: Deploying HPLMN components...${NC}"
-    bash "$KUBECTL_DEPLOY_HPLMN"
-    
-    # Then deploy VPLMN
-    echo -e "${YELLOW}Step 2: Deploying VPLMN components...${NC}"
-    bash "$KUBECTL_DEPLOY_VPLMN"
-    
-    echo -e "${GREEN}Completed deployment of both HPLMN and VPLMN for roaming scenario${NC}"
+    # Execute the image pull script with the tag
+    bash "$SCRIPTS_DIR/pull-docker-images.sh" "$tag"
 }
 
 # Main command parser
@@ -288,6 +332,10 @@ case $command in
         
     deploy-roaming)
         deploy_roaming "$@"
+        ;;
+        
+    pull-images)
+        pull_images "$@"
         ;;
         
     docker-clean)

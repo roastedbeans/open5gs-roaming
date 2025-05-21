@@ -359,49 +359,49 @@ services:
       - v-nrf
       - v-scp
 
-  packetrusher:
-    container_name: packetrusher
-    image: 'ghcr.io/borjis131/packetrusher:20250225'
-    command: '--config /PacketRusher/config/packetrusher.yaml ue'
-    networks:
-      open5gs:
-        aliases:
-          - gnb.packetrusher.org
-    configs:
-      - source: packetrusher_config
-        target: /PacketRusher/config/packetrusher.yaml
-    privileged: true
-    cap_add:
-      - ALL
-      - NET_ADMIN
-    depends_on:
-      - v-amf
-      - v-smf
-      - v-pcf
-      - h-udr
+  # packetrusher:
+  #   container_name: packetrusher
+  #   image: 'ghcr.io/borjis131/packetrusher:20250225'
+  #   command: '--config /PacketRusher/config/packetrusher.yaml ue'
+  #   networks:
+  #     open5gs:
+  #       aliases:
+  #         - gnb.packetrusher.org
+  #   configs:
+  #     - source: packetrusher_config
+  #       target: /PacketRusher/config/packetrusher.yaml
+  #   privileged: true
+  #   cap_add:
+  #     - ALL
+  #     - NET_ADMIN
+  #   depends_on:
+  #     - v-amf
+  #     - v-smf
+  #     - v-pcf
+  #     - h-udr
 
-  webui:
-    container_name: webui
-    image: 'webui:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/webui
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - NODE_VERSION=${NODE_VERSION}
-    environment:
-      - DB_URI=mongodb://db.open5gs.org/open5gs
-      - PORT=9999
-      - HOSTNAME=0.0.0.0
-      - NODE_ENV=dev
-    command: 'run dev'
-    networks:
-      open5gs:
-        aliases:
-          - webui.open5gs.org
-    depends_on:
-      - db
-    ports:
-      - '0.0.0.0:9999:9999/tcp'
+  # webui:
+  #   container_name: webui
+  #   image: 'webui:${OPEN5GS_VERSION}'
+  #   build:
+  #     context: ../../images/webui
+  #     args:
+  #       - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+  #       - NODE_VERSION=${NODE_VERSION}
+  #   environment:
+  #     - DB_URI=mongodb://db.open5gs.org/open5gs
+  #     - PORT=9999
+  #     - HOSTNAME=0.0.0.0
+  #     - NODE_ENV=dev
+  #   command: 'run dev'
+  #   networks:
+  #     open5gs:
+  #       aliases:
+  #         - webui.open5gs.org
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - '0.0.0.0:9999:9999/tcp'
 
 networks:
   open5gs:
@@ -422,10 +422,6 @@ volumes:
     name: open5gs_db_config
     labels:
       org.open5gs.mongodb_version: ${MONGODB_VERSION}
-  # sepp_certs:
-  #   name: open5gs_sepp_certs
-  # sepp_ca:
-  #   name: open5gs_sepp_ca
   captures:
     name: open5gs_captures
 
@@ -462,5 +458,5 @@ configs:
     file: ../../configs/roaming/v-upf.yaml
   v-sepp_config:
     file: ../../configs/roaming/v-sepp.yaml
-  packetrusher_config:
-    file: ../../configs/roaming/packetrusher.yaml
+  # packetrusher_config:
+  #   file: ../../configs/roaming/packetrusher.yaml
