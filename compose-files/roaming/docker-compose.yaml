@@ -337,7 +337,6 @@ services:
     privileged: true
     cap_add:
       - NET_ADMIN
-
   v-sepp:
     container_name: v-sepp
     image: 'sepp:${OPEN5GS_VERSION}'

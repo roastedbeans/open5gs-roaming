@@ -7,8 +7,8 @@ global:
 bsf:
   sbi:
     server:
-      - address: bsf.5gc.mnc070.mcc999.3gppnetwork.org
-        port: 80
+    - address: bsf.5gc.mnc070.mcc999.3gppnetwork.org
+      port: 80
     client:
       scp:
         - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80

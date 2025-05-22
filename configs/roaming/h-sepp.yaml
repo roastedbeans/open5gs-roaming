@@ -7,11 +7,11 @@ global:
 sepp:
   sbi:
     server:
-      - address: sepp.5gc.mnc001.mcc001.3gppnetwork.org
-        port: 80
+    - address: sepp.5gc.mnc001.mcc001.3gppnetwork.org
+      port: 80
     client:
-      nrf:
-        - uri: http://nrf.5gc.mnc001.mcc001.3gppnetwork.org:80
+      scp:
+      - uri: http://scp.5gc.mnc001.mcc001.3gppnetwork.org:80
   n32:
     server:
       - sender: sepp.5gc.mnc001.mcc001.3gppnetwork.org
