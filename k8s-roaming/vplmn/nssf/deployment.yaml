@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nssf
+  namespace: vplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nssf
+  template:
+    metadata:
+      labels:
+        app: nssf
+    spec:
+      containers:
+        - name: nssf
+          image: docker.io/vinch05/nssf:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: [ "open5gs-nssfd", "-c", "/etc/open5gs/nssf.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/nssf.yaml
+              subPath: nssf.yaml
+          ports:
+            - containerPort: 80
+              name: sbi
+      volumes:
+        - name: config
+          configMap:
+            name: nssf-config 

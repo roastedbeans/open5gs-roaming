@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ausf-config
+  namespace: vplmn
+data:
+  ausf.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/ausf.log
+      level: debug
+
+    global:
+
+    ausf:
+      sbi:
+        server:
+          - dev: eth0
+            advertise: ausf.5gc.mnc070.mcc999.3gppnetwork.org
+        client:
+          scp:
+            - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org

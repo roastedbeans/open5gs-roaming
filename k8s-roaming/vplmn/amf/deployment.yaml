@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amf
+  namespace: vplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amf
+  template:
+    metadata:
+      labels:
+        app: amf
+    spec:
+      containers:
+        - name: amf
+          image: docker.io/vinch05/amf:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: [ "open5gs-amfd", "-c", "/etc/open5gs/amf.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/amf.yaml
+              subPath: amf.yaml
+          ports:
+            - containerPort: 80
+              name: sbi
+            - containerPort: 38412
+              name: ngap
+      volumes:
+        - name: config
+          configMap:
+            name: amf-config

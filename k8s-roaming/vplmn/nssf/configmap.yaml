@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nssf-config
+  namespace: vplmn
+data:
+  nssf.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/nssf.log
+
+    global:
+
+    nssf:
+      sbi:
+        server:
+          - dev: eth0
+            advertise: nssf.5gc.mnc070.mcc999.3gppnetwork.org
+        client:
+          scp:
+            - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org
+          nsi:
+            - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org
+              s_nssai:
+                sst: 1

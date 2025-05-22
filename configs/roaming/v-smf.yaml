@@ -11,7 +11,7 @@ smf:
       port: 80
     client:
       scp:
-      - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80
+        - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80
   pfcp:
     server:
     - address: smf.5gc.mnc070.mcc999.3gppnetwork.org

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bsf
+  namespace: vplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bsf
+  template:
+    metadata:
+      labels:
+        app: bsf
+    spec:
+      containers:
+        - name: bsf
+          image: docker.io/vinch05/bsf:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: [ "open5gs-bsfd", "-c", "/etc/open5gs/bsf.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/open5gs/bsf.yaml
+              subPath: bsf.yaml
+          ports:
+            - containerPort: 80
+              name: sbi
+      volumes:
+        - name: config
+          configMap:
+            name: bsf-config 

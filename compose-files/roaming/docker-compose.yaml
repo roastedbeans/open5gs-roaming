@@ -50,7 +50,6 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.10
         aliases:
           - nrf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -58,6 +57,24 @@ services:
         target: /etc/open5gs/custom/nrf.yaml
     depends_on:
       - tshark
+
+  h-scp:
+    container_name: h-scp
+    image: 'scp:${OPEN5GS_VERSION}'
+    build:
+      context: ../../images/scp
+      args:
+        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+    command: '-c /etc/open5gs/custom/scp.yaml'
+    restart: unless-stopped
+    networks:
+      open5gs:
+        aliases:
+          - scp.5gc.mnc001.mcc001.3gppnetwork.org
+    configs:
+      - source: h-scp_config
+        target: /etc/open5gs/custom/scp.yaml
 
   h-ausf:
     container_name: h-ausf
@@ -70,7 +87,6 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.11
         aliases:
           - ausf.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -78,6 +94,7 @@ services:
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
       - h-nrf
+      - h-scp
 
   h-udm:
     container_name: h-udm
@@ -90,7 +107,6 @@ services:
     command: '-c /etc/open5gs/custom/udm.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.12
         aliases:
           - udm.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -98,6 +114,7 @@ services:
         target: /etc/open5gs/custom/udm.yaml
     depends_on:
       - h-nrf
+      - h-scp
 
   h-udr:
     container_name: h-udr
@@ -111,7 +128,6 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
-        ipv4_address: 10.33.33.13
         aliases:
           - udr.5gc.mnc001.mcc001.3gppnetwork.org
     configs:
@@ -120,25 +136,8 @@ services:
     depends_on:
       - db
       - h-nrf
-  h-scp:
-    container_name: h-scp
-    image: 'scp:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/scp
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/custom/scp.yaml'
-    networks:
-      open5gs:
-        ipv4_address: 10.33.33.14
-        aliases:
-          - scp.5gc.mnc001.mcc001.3gppnetwork.org
-    configs:
-      - source: h-scp_config
-        target: /etc/open5gs/custom/scp.yaml
-    depends_on:
-      - h-nrf
+      - h-scp
+
   h-sepp:
     container_name: h-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -147,32 +146,18 @@ services:
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/default/sepp.yaml'
+    command: '-c /etc/open5gs/custom/sepp.yaml'
     restart: unless-stopped
     networks:
       open5gs:
-        ipv4_address: 10.33.33.20
         aliases:
           - sepp.5gc.mnc001.mcc001.3gppnetwork.org
-          - sepp1.localdomain
-    environment:
-      - SEPP_TYPE=sepp1
-      - REGENERATE_CERTS=true
-      - TLS_DIR=/etc/open5gs/default/tls
-      - SEPP_FQDN=sepp1.localdomain
-      - SEPP_PLMN_FQDN=sepp.5gc.mnc001.mcc001.3gppnetwork.org
-    volumes:
-      - sepp_certs:/etc/open5gs/default/tls
-      - sepp_ca:/etc/open5gs/default/ca
     configs:
       - source: h-sepp_config
-        target: /etc/open5gs/default/sepp.yaml
-    ports:
-      - '0.0.0.0:7777:7777/tcp' # SBI Server
-      - '0.0.0.0:7778:7778/tcp' # N32c Server
-      - '0.0.0.0:7779:7779/tcp' # N32f Server
+        target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - h-nrf
+      - h-scp
 
   v-nrf:
     container_name: v-nrf
@@ -185,12 +170,31 @@ services:
     command: '-c /etc/open5gs/custom/nrf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.30
         aliases:
           - nrf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
       - source: v-nrf_config
         target: /etc/open5gs/custom/nrf.yaml
+    depends_on:
+      - tshark
+
+  v-scp:
+    container_name: v-scp
+    image: 'scp:${OPEN5GS_VERSION}'
+    build:
+      context: ../../images/scp
+      args:
+        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+    command: '-c /etc/open5gs/custom/scp.yaml'
+    restart: unless-stopped
+    networks:
+      open5gs:
+        aliases:
+          - scp.5gc.mnc070.mcc999.3gppnetwork.org
+    configs:
+      - source: v-scp_config
+        target: /etc/open5gs/custom/scp.yaml
 
   v-ausf:
     container_name: v-ausf
@@ -203,7 +207,6 @@ services:
     command: '-c /etc/open5gs/custom/ausf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.31
         aliases:
           - ausf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -211,6 +214,7 @@ services:
         target: /etc/open5gs/custom/ausf.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
   v-nssf:
     container_name: v-nssf
@@ -223,7 +227,6 @@ services:
     command: '-c /etc/open5gs/custom/nssf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.32
         aliases:
           - nssf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -231,6 +234,7 @@ services:
         target: /etc/open5gs/custom/nssf.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
   v-bsf:
     container_name: v-bsf
@@ -243,7 +247,6 @@ services:
     command: '-c /etc/open5gs/custom/bsf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.33
         aliases:
           - bsf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -251,6 +254,7 @@ services:
         target: /etc/open5gs/custom/bsf.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
   v-pcf:
     container_name: v-pcf
@@ -264,7 +268,6 @@ services:
     restart: unless-stopped
     networks:
       open5gs:
-        ipv4_address: 10.33.33.34
         aliases:
           - pcf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -272,6 +275,7 @@ services:
         target: /etc/open5gs/custom/pcf.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
   v-amf:
     container_name: v-amf
@@ -284,7 +288,6 @@ services:
     command: '-c /etc/open5gs/custom/amf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.35
         aliases:
           - amf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -292,6 +295,7 @@ services:
         target: /etc/open5gs/custom/amf.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
   v-smf:
     container_name: v-smf
@@ -304,7 +308,6 @@ services:
     command: '-c /etc/open5gs/custom/smf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.36
         aliases:
           - smf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -312,6 +315,7 @@ services:
         target: /etc/open5gs/custom/smf.yaml
     depends_on:
       - v-nrf
+      - v-scp
       - v-upf
 
   v-upf:
@@ -325,7 +329,6 @@ services:
     command: '-c /etc/open5gs/custom/upf.yaml'
     networks:
       open5gs:
-        ipv4_address: 10.33.33.37
         aliases:
           - upf.5gc.mnc070.mcc999.3gppnetwork.org
     configs:
@@ -334,27 +337,6 @@ services:
     privileged: true
     cap_add:
       - NET_ADMIN
-
-  v-scp:
-    container_name: v-scp
-    image: 'scp:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/scp
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/custom/scp.yaml'
-    networks:
-      open5gs:
-        ipv4_address: 10.33.33.38
-        aliases:
-          - scp.5gc.mnc070.mcc999.3gppnetwork.org
-    configs:
-      - source: v-scp_config
-        target: /etc/open5gs/custom/scp.yaml
-    depends_on:
-      - v-nrf
-
   v-sepp:
     container_name: v-sepp
     image: 'sepp:${OPEN5GS_VERSION}'
@@ -363,76 +345,62 @@ services:
       args:
         - OPEN5GS_VERSION=${OPEN5GS_VERSION}
         - UBUNTU_VERSION=${UBUNTU_VERSION}
-    command: '-c /etc/open5gs/default/sepp.yaml'
+    command: '-c /etc/open5gs/custom/sepp.yaml'
     restart: unless-stopped
     networks:
       open5gs:
-        ipv4_address: 10.33.33.21
         aliases:
           - sepp.5gc.mnc070.mcc999.3gppnetwork.org
-          - sepp2.localdomain
-    environment:
-      - SEPP_TYPE=sepp2
-      - REGENERATE_CERTS=true
-      - TLS_DIR=/etc/open5gs/default/tls
-      - SEPP_FQDN=sepp2.localdomain
-      - SEPP_PLMN_FQDN=sepp.5gc.mnc070.mcc999.3gppnetwork.org
-    volumes:
-      - sepp_certs:/etc/open5gs/default/tls
-      - sepp_ca:/etc/open5gs/default/ca
     configs:
       - source: v-sepp_config
-        target: /etc/open5gs/default/sepp.yaml
-    ports:
-      - '0.0.0.0:8777:7777/tcp' # SBI Server
-      - '0.0.0.0:8778:7778/tcp' # N32c Server
-      - '0.0.0.0:8779:7779/tcp' # N32f Server
+        target: /etc/open5gs/custom/sepp.yaml
     depends_on:
       - v-nrf
+      - v-scp
 
-  packetrusher:
-    container_name: packetrusher
-    image: 'ghcr.io/borjis131/packetrusher:20250225'
-    command: '--config /PacketRusher/config/packetrusher.yaml ue'
-    networks:
-      open5gs:
-        aliases:
-          - gnb.packetrusher.org
-    configs:
-      - source: packetrusher_config
-        target: /PacketRusher/config/packetrusher.yaml
-    privileged: true
-    cap_add:
-      - ALL
-      - NET_ADMIN
-    depends_on:
-      - v-amf
-      - v-smf
-      - v-pcf
-      - h-udr
+  # packetrusher:
+  #   container_name: packetrusher
+  #   image: 'ghcr.io/borjis131/packetrusher:20250225'
+  #   command: '--config /PacketRusher/config/packetrusher.yaml ue'
+  #   networks:
+  #     open5gs:
+  #       aliases:
+  #         - gnb.packetrusher.org
+  #   configs:
+  #     - source: packetrusher_config
+  #       target: /PacketRusher/config/packetrusher.yaml
+  #   privileged: true
+  #   cap_add:
+  #     - ALL
+  #     - NET_ADMIN
+  #   depends_on:
+  #     - v-amf
+  #     - v-smf
+  #     - v-pcf
+  #     - h-udr
 
-  webui:
-    container_name: webui
-    image: 'webui:${OPEN5GS_VERSION}'
-    build:
-      context: ../../images/webui
-      args:
-        - OPEN5GS_VERSION=${OPEN5GS_VERSION}
-        - NODE_VERSION=${NODE_VERSION}
-    environment:
-      - DB_URI=mongodb://db.open5gs.org/open5gs
-      - PORT=9999
-      - HOSTNAME=0.0.0.0
-      - NODE_ENV=dev
-    command: 'run dev'
-    networks:
-      open5gs:
-        aliases:
-          - webui.open5gs.org
-    depends_on:
-      - db
-    ports:
-      - '0.0.0.0:9999:9999/tcp'
+  # webui:
+  #   container_name: webui
+  #   image: 'webui:${OPEN5GS_VERSION}'
+  #   build:
+  #     context: ../../images/webui
+  #     args:
+  #       - OPEN5GS_VERSION=${OPEN5GS_VERSION}
+  #       - NODE_VERSION=${NODE_VERSION}
+  #   environment:
+  #     - DB_URI=mongodb://db.open5gs.org/open5gs
+  #     - PORT=9999
+  #     - HOSTNAME=0.0.0.0
+  #     - NODE_ENV=dev
+  #   command: 'run dev'
+  #   networks:
+  #     open5gs:
+  #       aliases:
+  #         - webui.open5gs.org
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - '0.0.0.0:9999:9999/tcp'
 
 networks:
   open5gs:
@@ -453,26 +421,24 @@ volumes:
     name: open5gs_db_config
     labels:
       org.open5gs.mongodb_version: ${MONGODB_VERSION}
-  sepp_certs:
-    name: open5gs_sepp_certs
-  sepp_ca:
-    name: open5gs_sepp_ca
   captures:
     name: open5gs_captures
 
 configs:
   h-nrf_config:
     file: ../../configs/roaming/h-nrf.yaml
+  h-scp_config:
+    file: ../../configs/roaming/h-scp.yaml
   h-ausf_config:
     file: ../../configs/roaming/h-ausf.yaml
   h-udm_config:
     file: ../../configs/roaming/h-udm.yaml
   h-udr_config:
     file: ../../configs/roaming/h-udr.yaml
-  h-scp_config:
-    file: ../../configs/roaming/h-scp.yaml
   h-sepp_config:
     file: ../../configs/roaming/h-sepp.yaml
+  v-scp_config:
+    file: ../../configs/roaming/v-scp.yaml
   v-nrf_config:
     file: ../../configs/roaming/v-nrf.yaml
   v-ausf_config:
@@ -489,9 +455,7 @@ configs:
     file: ../../configs/roaming/v-smf.yaml
   v-upf_config:
     file: ../../configs/roaming/v-upf.yaml
-  v-scp_config:
-    file: ../../configs/roaming/v-scp.yaml
   v-sepp_config:
     file: ../../configs/roaming/v-sepp.yaml
-  packetrusher_config:
-    file: ../../configs/roaming/packetrusher.yaml
+  # packetrusher_config:
+  #   file: ../../configs/roaming/packetrusher.yaml

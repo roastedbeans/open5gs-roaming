@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sepp-config
+  namespace: vplmn
+data:
+  sepp.yaml: |
+    logger:
+      file:
+        path: /var/log/open5gs/sepp.log
+      level: trace  # fatal|error|warn|info(default)|debug|trace
+
+    global:
+
+    sepp:
+      sbi:
+        server:
+          - dev: eth0
+            advertise: sepp.5gc.mnc070.mcc999.3gppnetwork.org
+            port: 80
+        client:
+          scp:
+            - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org
+      n32:
+        server:
+          - sender: sepp1.5gc.mnc070.mcc999.3gppnetwork.org
+            port: 80
+            n32f:
+              uri: http://sepp2.5gc.mnc070.mcc999.3gppnetwork.org
+        client:
+          sepp:
+            - receiver: sepp1.5gc.mnc001.mcc001.3gppnetwork.org
+              uri: http://sepp1.5gc.mnc001.mcc001.3gppnetwork.org
+              n32f:
+                uri: http://sepp2.5gc.mnc001.mcc001.3gppnetwork.org
