@@ -14,7 +14,7 @@ NC='\033[0m'
 
 NAMESPACE="hplmn"
 NODE_PORT="30017"
-SERVICE_NAME="mongodb-external"
+SERVICE_NAME="mongodb"
 
 # Function to show usage
 show_usage() {
