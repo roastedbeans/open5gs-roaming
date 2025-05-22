@@ -42,9 +42,8 @@ MONGODB44_SETUP="$SCRIPTS_DIR/database/mongodb44-setup.sh"
 MICROK8S_CLEAN="$SCRIPTS_DIR/cleanup/microk8s-clean.sh"
 DOCKER_CLEAN="$SCRIPTS_DIR/cleanup/docker-clean.sh"
 
-# Legacy script paths (for backward compatibility during migration)
-LEGACY_KUBECTL_DEPLOY="$SCRIPTS_DIR/kubectl-deploy.sh"
-LEGACY_CLEAN="$SCRIPTS_DIR/clean.sh"
+# Subscribers script
+SUBSCRIBERS="$SCRIPTS_DIR/subscribers.sh"
 
 # Check if scripts directory exists
 if [ ! -d "$SCRIPTS_DIR" ]; then
@@ -57,17 +56,17 @@ find $SCRIPTS_DIR -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 
 # Display usage information
 show_usage() {
-    echo -e "${BLUE}Open5GS Scripts CLI - Organized Version${NC}"
+    echo -e "${BLUE}Open5GS Scripts CLI - Comprehensive Version${NC}"
     echo "Usage: $0 [command] [options]"
     echo ""
     echo -e "${YELLOW}📦 Installation & Setup:${NC}"
-    echo "  install-dep         Install dependencies (Docker, Git, GTP5G)"
-    echo "  setup-roaming       Complete automated setup for k8s-roaming"
+    echo "  install-dep         Install dependencies (Docker, Git, GTP5G kernel module)"
+    echo "  setup-roaming       Complete automated setup for k8s-roaming environment"
     echo ""
     echo -e "${YELLOW}🚀 Deployment Commands:${NC}"
-    echo "  deploy-hplmn        Deploy only HPLMN components"
-    echo "  deploy-vplmn        Deploy only VPLMN components" 
-    echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming"
+    echo "  deploy-hplmn        Deploy only HPLMN components to Kubernetes"
+    echo "  deploy-vplmn        Deploy only VPLMN components to Kubernetes" 
+    echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming scenario"
     echo "  docker-deploy       Deploy Open5GS images to Docker Hub"
     echo ""
     echo -e "${YELLOW}📦 Image Management:${NC}"
@@ -80,12 +79,13 @@ show_usage() {
     echo "  deploy-certs        Deploy TLS certificates as Kubernetes secrets"
     echo ""
     echo -e "${YELLOW}🗄️ Database Management:${NC}"
-    echo "  mongodb-hplmn       Configure MongoDB for HPLMN"
+    echo "  mongodb-hplmn       Deploy and configure MongoDB for HPLMN"
     echo "  mongodb-install     Install MongoDB 4.4 on host system"
+    echo "  subscribers         Manage subscribers in MongoDB database"
     echo ""
     echo -e "${YELLOW}🧹 Cleanup Commands:${NC}"
-    echo "  clean-k8s           Clean MicroK8s resources"
-    echo "  clean-docker        Clean Docker resources"
+    echo "  clean-k8s           Clean MicroK8s resources (pods, services, etc.)"
+    echo "  clean-docker        Clean Docker resources (containers, images, volumes)"
     echo ""
     echo -e "${YELLOW}ℹ️ Information:${NC}"
     echo "  help                Show this help message"
@@ -95,21 +95,147 @@ show_usage() {
     echo "  kubectl-deploy      → Use deploy-hplmn, deploy-vplmn, or deploy-roaming"
     echo "  clean               → Use clean-k8s or clean-docker"
     echo ""
-    echo "Options:"
-    echo "  --namespace, -n     Specify Kubernetes namespace (default: hplmn)"
+    echo -e "${YELLOW}Detailed Command Descriptions:${NC}"
+    echo ""
+    
+    # Installation & Setup
+    echo -e "${BLUE}install-dep${NC}"
+    echo "  Installs required dependencies for Open5GS deployment, including:"
+    echo "  - Docker and Docker Compose"
+    echo "  - Git"
+    echo "  - GTP5G kernel module"
+    echo "  - MicroK8s (optional)"
+    echo "  Usage: $0 install-dep [--with-k8s] [--no-confirm]"
+    echo ""
+    
+    echo -e "${BLUE}setup-roaming${NC}"
+    echo "  Performs complete setup for 5G roaming environment with:"
+    echo "  - MicroK8s configuration"
+    echo "  - MongoDB setup"
+    echo "  - Certificate generation"
+    echo "  - DNS and network configuration"
+    echo "  Usage: $0 setup-roaming [--tag VERSION] [--full-setup]"
+    echo ""
+    
+    # Deployment Commands
+    echo -e "${BLUE}deploy-hplmn${NC}"
+    echo "  Deploys Home PLMN (HPLMN) components to Kubernetes, including:"
+    echo "  - Core Network Functions (AMF, SMF, UPF, etc.)"
+    echo "  - MongoDB database"
+    echo "  - SEPP for roaming"
+    echo "  Usage: $0 deploy-hplmn [--namespace NAMESPACE] [--tag VERSION]"
+    echo ""
+    
+    echo -e "${BLUE}deploy-vplmn${NC}"
+    echo "  Deploys Visited PLMN (VPLMN) components to Kubernetes, including:"
+    echo "  - Core Network Functions for visited network"
+    echo "  - SEPP for roaming"
+    echo "  Usage: $0 deploy-vplmn [--namespace NAMESPACE] [--tag VERSION]"
+    echo ""
+    
+    echo -e "${BLUE}deploy-roaming${NC}"
+    echo "  Deploys both HPLMN and VPLMN components for complete roaming scenario"
+    echo "  Usage: $0 deploy-roaming [--tag VERSION]"
+    echo ""
+    
+    echo -e "${BLUE}docker-deploy${NC}"
+    echo "  Publishes Open5GS container images to Docker Hub"
+    echo "  Usage: $0 docker-deploy --username DOCKERHUB_USERNAME [--tag VERSION]"
+    echo ""
+    
+    # Image Management
+    echo -e "${BLUE}pull-images${NC}"
+    echo "  Pulls all Open5GS component images from docker.io/vinch05"
+    echo "  Components: amf, ausf, bsf, nrf, nssf, pcf, scp, sepp, smf, udm, udr, upf, webui"
+    echo "  Usage: $0 pull-images [--tag VERSION]"
+    echo ""
+    
+    echo -e "${BLUE}import-images${NC}"
+    echo "  Imports pulled Docker images into MicroK8s registry"
+    echo "  Usage: $0 import-images [--tag VERSION]"
+    echo ""
+    
+    echo -e "${BLUE}update-configs${NC}"
+    echo "  Updates Kubernetes deployment YAML files to use MicroK8s registry"
+    echo "  Usage: $0 update-configs [--tag VERSION]"
+    echo ""
+    
+    # Certificate Management
+    echo -e "${BLUE}generate-certs${NC}"
+    echo "  Generates TLS certificates for SEPP N32 interface"
+    echo "  Usage: $0 generate-certs"
+    echo ""
+    
+    echo -e "${BLUE}deploy-certs${NC}"
+    echo "  Deploys generated certificates as Kubernetes secrets"
+    echo "  Usage: $0 deploy-certs [--namespace NAMESPACE]"
+    echo ""
+    
+    # Database Management
+    echo -e "${BLUE}mongodb-hplmn${NC}"
+    echo "  Deploys and configures MongoDB for HPLMN"
+    echo "  Usage: $0 mongodb-hplmn [--namespace NAMESPACE]"
+    echo ""
+    
+    echo -e "${BLUE}mongodb-install${NC}"
+    echo "  Installs MongoDB 4.4 on host system (for direct DB access)"
+    echo "  Usage: $0 mongodb-install"
+    echo ""
+    
+    echo -e "${BLUE}subscribers${NC}"
+    echo "  Manages subscriber information in the MongoDB database"
+    echo "  Operations:"
+    echo "    - Add single subscriber"
+    echo "    - Add range of subscribers"
+    echo "    - List all subscribers"
+    echo "    - Count subscribers"
+    echo "    - Delete all subscribers"
+    echo "  Usage: $0 subscribers [OPERATION] [OPTIONS]"
+    echo "  Examples:"
+    echo "    $0 subscribers --add-single --imsi 001011234567891"
+    echo "    $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
+    echo "    $0 subscribers --list-subscribers"
+    echo "    $0 subscribers --count-subscribers"
+    echo "    $0 subscribers --delete-all"
+    echo ""
+    
+    # Cleanup Commands
+    echo -e "${BLUE}clean-k8s${NC}"
+    echo "  Cleans Kubernetes resources created by deployment scripts"
+    echo "  Usage: $0 clean-k8s [--namespace NAMESPACE] [--delete-pv]"
+    echo ""
+    
+    echo -e "${BLUE}clean-docker${NC}"
+    echo "  Cleans Docker resources including containers, networks, and volumes"
+    echo "  Usage: $0 clean-docker [--force]"
+    echo ""
+    
+    echo -e "${YELLOW}Common Options:${NC}"
+    echo "  --namespace, -n     Specify Kubernetes namespace (default: hplmn or vplmn)"
     echo "  --username, -u      Docker Hub username for deployment"
     echo "  --force, -f         Skip confirmation prompts"
     echo "  --tag, -t           Specify image tag (default: v2.7.5)"
     echo "  --delete-pv         Delete persistent volumes (with clean-k8s)"
     echo "  --full-setup        Use comprehensive setup (with setup-roaming)"
     echo ""
-    echo "Examples:"
-    echo "  $0 install-dep"
-    echo "  $0 setup-roaming --full-setup"
-    echo "  $0 deploy-roaming"
-    echo "  $0 pull-images -t v2.7.5"
-    echo "  $0 docker-deploy -u myusername"
-    echo "  $0 clean-k8s -n open5gs --delete-pv"
+    echo -e "${YELLOW}Example Workflows:${NC}"
+    echo "  1. First-time complete setup:"
+    echo "     $0 install-dep"
+    echo "     $0 setup-roaming --full-setup"
+    echo "     $0 deploy-roaming"
+    echo ""
+    echo "  2. Update existing deployment:"
+    echo "     $0 pull-images --tag v2.7.6"
+    echo "     $0 import-images --tag v2.7.6"
+    echo "     $0 clean-k8s"
+    echo "     $0 deploy-roaming --tag v2.7.6"
+    echo ""
+    echo "  3. Add subscribers to database:"
+    echo "     $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
+    echo ""
+    echo "  4. Clean up resources:"
+    echo "     $0 clean-k8s --delete-pv"
+    echo "     $0 clean-docker --force"
 }
 
 # Check if script exists and is executable
@@ -327,6 +453,12 @@ mongodb_install() {
     check_script "$MONGODB44_SETUP" "mongodb44-setup" && bash "$MONGODB44_SETUP" "$@"
 }
 
+# Subscriber management function
+manage_subscribers() {
+    echo -e "${BLUE}Managing subscribers in HPLMN...${NC}"
+    check_script "$SUBSCRIBERS" "subscribers" && bash "$SUBSCRIBERS" "$@"
+}
+
 # Cleanup functions
 clean_k8s() {
     echo -e "${BLUE}Cleaning MicroK8s resources...${NC}"
@@ -460,6 +592,9 @@ case $command in
         ;;
     mongodb-install)
         mongodb_install "$@"
+        ;;
+    subscribers)
+        manage_subscribers "$@"
         ;;
         
     # Cleanup Commands
