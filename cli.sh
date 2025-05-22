@@ -21,26 +21,27 @@ INSTALL_DEP="$SCRIPTS_DIR/install-dep.sh"
 SETUP_ROAMING="$SCRIPTS_DIR/setup-k8s-roaming.sh"
 
 # Deployment scripts
-KUBECTL_DEPLOY_HPLMN="$SCRIPTS_DIR/deployment/kubectl-deploy-hplmn.sh"
-KUBECTL_DEPLOY_VPLMN="$SCRIPTS_DIR/deployment/kubectl-deploy-vplmn.sh"
-DOCKER_DEPLOY="$SCRIPTS_DIR/deployment/docker-deploy.sh"
+KUBECTL_DEPLOY_HPLMN="$SCRIPTS_DIR/kubectl-deploy-hplmn.sh"
+KUBECTL_DEPLOY_VPLMN="$SCRIPTS_DIR/kubectl-deploy-vplmn.sh"
+DOCKER_DEPLOY="$SCRIPTS_DIR/docker-deploy.sh"
 
 # Image management
-PULL_IMAGES="$SCRIPTS_DIR/images/pull-docker-images.sh"
-IMPORT_SCRIPT="$SCRIPTS_DIR/images/import.sh"
-UPDATE_SCRIPT="$SCRIPTS_DIR/images/update.sh"
+PULL_IMAGES="$SCRIPTS_DIR/pull-docker-images.sh"
+IMPORT_SCRIPT="$SCRIPTS_DIR/import.sh"
+UPDATE_SCRIPT="$SCRIPTS_DIR/update.sh"
 
 # Certificate management
-CERT_DEPLOY="$SCRIPTS_DIR/certificates/cert-deploy.sh"
-CERT_GENERATE="$SCRIPTS_DIR/certificates/generate-sepp-certs.sh"
+CERT_DEPLOY="$SCRIPTS_DIR/cert-deploy.sh"
+CERT_GENERATE="$SCRIPTS_DIR/cert/generate-sepp-certs.sh"
 
 # Database management
-MONGODB_HPLMN="$SCRIPTS_DIR/database/mongodb-hplmn.sh"
-MONGODB44_SETUP="$SCRIPTS_DIR/database/mongodb44-setup.sh"
+MONGODB_HPLMN="$SCRIPTS_DIR/mongodb-hplmn.sh"
+MONGODB44_SETUP="$SCRIPTS_DIR/mongodb44-setup.sh"
+MONGODB_ACCESS="$SCRIPTS_DIR/mongodb-access.sh"
 
 # Cleanup scripts
-MICROK8S_CLEAN="$SCRIPTS_DIR/cleanup/microk8s-clean.sh"
-DOCKER_CLEAN="$SCRIPTS_DIR/cleanup/docker-clean.sh"
+MICROK8S_CLEAN="$SCRIPTS_DIR/microk8s-clean.sh"
+DOCKER_CLEAN="$SCRIPTS_DIR/docker-clean.sh"
 
 # Subscribers script
 SUBSCRIBERS="$SCRIPTS_DIR/subscribers.sh"
@@ -81,6 +82,7 @@ show_usage() {
     echo -e "${YELLOW}🗄️ Database Management:${NC}"
     echo "  mongodb-hplmn       Deploy and configure MongoDB for HPLMN"
     echo "  mongodb-install     Install MongoDB 4.4 on host system"
+    echo "  mongodb-access      Set up MongoDB external access"
     echo "  subscribers         Manage subscribers in MongoDB database"
     echo ""
     echo -e "${YELLOW}🧹 Cleanup Commands:${NC}"
@@ -123,7 +125,9 @@ show_usage() {
     echo "  - Core Network Functions (AMF, SMF, UPF, etc.)"
     echo "  - MongoDB database"
     echo "  - SEPP for roaming"
-    echo "  Usage: $0 deploy-hplmn [--namespace NAMESPACE] [--tag VERSION]"
+    echo "  Usage: $0 deploy-hplmn [--namespace NAMESPACE] [--tag VERSION] [--no-mongodb]"
+    echo "  Options:"
+    echo "    --no-mongodb      Skip MongoDB deployment"
     echo ""
     
     echo -e "${BLUE}deploy-vplmn${NC}"
@@ -135,7 +139,9 @@ show_usage() {
     
     echo -e "${BLUE}deploy-roaming${NC}"
     echo "  Deploys both HPLMN and VPLMN components for complete roaming scenario"
-    echo "  Usage: $0 deploy-roaming [--tag VERSION]"
+    echo "  Usage: $0 deploy-roaming [--tag VERSION] [--no-mongodb]"
+    echo "  Options:"
+    echo "    --no-mongodb      Skip MongoDB deployment in HPLMN"
     echo ""
     
     echo -e "${BLUE}docker-deploy${NC}"
@@ -180,6 +186,24 @@ show_usage() {
     echo -e "${BLUE}mongodb-install${NC}"
     echo "  Installs MongoDB 4.4 on host system (for direct DB access)"
     echo "  Usage: $0 mongodb-install"
+    echo ""
+    
+    echo -e "${BLUE}mongodb-access${NC}"
+    echo "  Sets up external access to MongoDB running in Kubernetes"
+    echo "  Operations:"
+    echo "    --setup          Create NodePort service for external access"
+    echo "    --remove         Remove NodePort service"
+    echo "    --status         Show connection status and details"
+    echo "    --port-forward   Start kubectl port forwarding (temporary)"
+    echo "    --test           Test connectivity to MongoDB"
+    echo "  Options:"
+    echo "    --node-port PORT Custom NodePort (default: 30017)"
+    echo "  Usage examples:"
+    echo "    $0 mongodb-access --setup"
+    echo "    $0 mongodb-access --status"
+    echo "    $0 mongodb-access --remove"
+    echo "    $0 mongodb-access --port-forward"
+    echo "    $0 mongodb-access --setup --node-port 31017"
     echo ""
     
     echo -e "${BLUE}subscribers${NC}"
@@ -230,10 +254,19 @@ show_usage() {
     echo "     $0 clean-k8s"
     echo "     $0 deploy-roaming --tag v2.7.6"
     echo ""
-    echo "  3. Add subscribers to database:"
+    echo "  3. Deploy with separate MongoDB setup:"
+    echo "     $0 mongodb-hplmn --namespace hplmn"
+    echo "     $0 deploy-hplmn --namespace hplmn --no-mongodb"
+    echo ""
+    echo "  4. Setup MongoDB external access:"
+    echo "     $0 mongodb-access --setup         # Create NodePort service"
+    echo "     $0 mongodb-access --status        # Get connection information"
+    echo "     # Connect using MongoDB Compass with the connection string"
+    echo ""
+    echo "  5. Add subscribers to database:"
     echo "     $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
     echo ""
-    echo "  4. Clean up resources:"
+    echo "  6. Clean up resources:"
     echo "     $0 clean-k8s --delete-pv"
     echo "     $0 clean-docker --force"
 }
@@ -293,7 +326,52 @@ setup_roaming() {
 
 # Deployment functions
 deploy_hplmn() {
-    echo -e "${BLUE}Deploying HPLMN components...${NC}"
+    local namespace="hplmn"
+    local with_mongodb=true
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --namespace|-n)
+                namespace="$2"
+                shift 2
+                ;;
+            --no-mongodb)
+                with_mongodb=false
+                shift
+                ;;
+            --tag|-t)
+                # Handle tag option but we don't use it directly in this function
+                # Just passing it to underlying scripts
+                shift 2
+                ;;
+            *)
+                # Pass other arguments through
+                break
+                ;;
+        esac
+    done
+    
+    echo -e "${BLUE}Deploying HPLMN components in namespace: $namespace...${NC}"
+    
+    # First deploy MongoDB if requested
+    if [ "$with_mongodb" = true ]; then
+        echo -e "${YELLOW}Step 1: Deploying MongoDB for HPLMN...${NC}"
+        if check_script "$MONGODB_HPLMN" "mongodb-hplmn"; then
+            bash "$MONGODB_HPLMN" --namespace "$namespace"
+            
+            # Wait for MongoDB to be ready
+            echo -e "${BLUE}Waiting for MongoDB to be ready...${NC}"
+            microk8s kubectl wait --for=condition=ready pods -l app=mongodb --namespace="$namespace" --timeout=120s || {
+                echo -e "${YELLOW}Warning: MongoDB pods not ready within timeout, but continuing...${NC}"
+            }
+        else
+            echo -e "${RED}Error: MongoDB setup script not found, continuing without MongoDB${NC}"
+        fi
+    fi
+    
+    # Then deploy other HPLMN components
+    echo -e "${YELLOW}Step 2: Deploying core network components...${NC}"
     check_script "$KUBECTL_DEPLOY_HPLMN" "kubectl-deploy-hplmn" && bash "$KUBECTL_DEPLOY_HPLMN" "$@"
 }
 
@@ -304,6 +382,7 @@ deploy_vplmn() {
 
 deploy_roaming() {
     local tag="v2.7.5"
+    local with_mongodb=true
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -311,6 +390,10 @@ deploy_roaming() {
             --tag|-t)
                 tag="$2"
                 shift 2
+                ;;
+            --no-mongodb)
+                with_mongodb=false
+                shift
                 ;;
             *)
                 echo -e "${RED}Unknown option: $1${NC}"
@@ -321,9 +404,13 @@ deploy_roaming() {
     
     echo -e "${BLUE}Deploying complete roaming setup (HPLMN + VPLMN)...${NC}"
     
-    # Deploy HPLMN first
+    # Deploy HPLMN first with MongoDB if requested
     echo -e "${YELLOW}Step 1: Deploying HPLMN components...${NC}"
-    deploy_hplmn
+    if [ "$with_mongodb" = true ]; then
+        deploy_hplmn --tag "$tag"
+    else
+        deploy_hplmn --tag "$tag" --no-mongodb
+    fi
     
     # Wait a moment for HPLMN to stabilize
     echo -e "${BLUE}Waiting for HPLMN to stabilize...${NC}"
@@ -331,7 +418,7 @@ deploy_roaming() {
     
     # Then deploy VPLMN
     echo -e "${YELLOW}Step 2: Deploying VPLMN components...${NC}"
-    deploy_vplmn
+    deploy_vplmn --tag "$tag"
     
     echo -e "${GREEN}Completed deployment of both HPLMN and VPLMN for roaming scenario${NC}"
 }
@@ -451,6 +538,11 @@ mongodb_hplmn() {
 mongodb_install() {
     echo -e "${BLUE}Installing MongoDB 4.4 on host system...${NC}"
     check_script "$MONGODB44_SETUP" "mongodb44-setup" && bash "$MONGODB44_SETUP" "$@"
+}
+
+mongodb_access() {
+    echo -e "${BLUE}Setting up external access to MongoDB running in Kubernetes...${NC}"
+    check_script "$MONGODB_ACCESS" "mongodb-access" && bash "$MONGODB_ACCESS" "$@"
 }
 
 # Subscriber management function
@@ -592,6 +684,9 @@ case $command in
         ;;
     mongodb-install)
         mongodb_install "$@"
+        ;;
+    mongodb-access)
+        mongodb_access "$@"
         ;;
     subscribers)
         manage_subscribers "$@"
