@@ -80,7 +80,7 @@ show_usage() {
     echo "  deploy-certs        Deploy TLS certificates as Kubernetes secrets"
     echo ""
     echo -e "${YELLOW}🗄️ Database Management:${NC}"
-    echo "  mongodb-hplmn       Deploy and configure MongoDB for HPLMN"
+    echo "  mongodb-hplmn       Deploy MongoDB StatefulSet and Service for HPLMN"
     echo "  mongodb-install     Install MongoDB 4.4 on host system"
     echo "  mongodb-access      Set up MongoDB external access"
     echo "  subscribers         Manage subscribers in MongoDB database"
@@ -179,8 +179,12 @@ show_usage() {
     
     # Database Management
     echo -e "${BLUE}mongodb-hplmn${NC}"
-    echo "  Deploys and configures MongoDB for HPLMN"
-    echo "  Usage: $0 mongodb-hplmn [--namespace NAMESPACE]"
+    echo "  Deploys MongoDB StatefulSet and Service for HPLMN namespace"
+    echo "  Usage: $0 mongodb-hplmn [--namespace NAMESPACE] [--with-nodeport] [--storage-size SIZE]"
+    echo "  Options:"
+    echo "    --with-nodeport       Create NodePort service for external access"
+    echo "    --storage-size SIZE   Data storage size (default: 1Gi)"
+    echo "    --node-port PORT      Custom NodePort (default: 30017)"
     echo ""
     
     echo -e "${BLUE}mongodb-install${NC}"
@@ -255,7 +259,7 @@ show_usage() {
     echo "     $0 deploy-roaming --tag v2.7.6"
     echo ""
     echo "  3. Deploy with separate MongoDB setup:"
-    echo "     $0 mongodb-hplmn --namespace hplmn"
+    echo "     $0 mongodb-hplmn --namespace hplmn --with-nodeport"
     echo "     $0 deploy-hplmn --namespace hplmn --no-mongodb"
     echo ""
     echo "  4. Setup MongoDB external access:"
@@ -358,7 +362,7 @@ deploy_hplmn() {
     if [ "$with_mongodb" = true ]; then
         echo -e "${YELLOW}Step 1: Deploying MongoDB for HPLMN...${NC}"
         if check_script "$MONGODB_HPLMN" "mongodb-hplmn"; then
-            bash "$MONGODB_HPLMN" --namespace "$namespace"
+            bash "$MONGODB_HPLMN" --namespace "$namespace" --force
             
             # Wait for MongoDB to be ready
             echo -e "${BLUE}Waiting for MongoDB to be ready...${NC}"
@@ -531,7 +535,7 @@ deploy_certs() {
 
 # Database management functions
 mongodb_hplmn() {
-    echo -e "${BLUE}Configuring MongoDB for HPLMN...${NC}"
+    echo -e "${BLUE}Deploying MongoDB StatefulSet and Service for HPLMN...${NC}"
     check_script "$MONGODB_HPLMN" "mongodb-hplmn" && bash "$MONGODB_HPLMN" "$@"
 }
 

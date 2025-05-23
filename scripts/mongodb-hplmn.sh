@@ -1,511 +1,344 @@
 #!/bin/bash
 
-# Open5GS Scripts CLI - Organized Version
-# A unified interface for Open5GS deployment and management scripts
+# MongoDB Deployment Script for HPLMN
+# This script deploys MongoDB StatefulSet and Service for the HPLMN namespace
 
-# Exit on error
 set -e
 
-# Define colors for better readability
+# Color codes for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Organized script paths
-SCRIPTS_DIR="./scripts"
+# Default configuration
+NAMESPACE="hplmn"
+MONGODB_VERSION="4.4"
+STORAGE_SIZE="1Gi"
+CONFIG_STORAGE="500Mi"
+STORAGE_CLASS="microk8s-hostpath"
+CREATE_NODEPORT=false
+NODE_PORT="30017"
+FORCE=false
 
-# Installation & Setup
-INSTALL_DEP="$SCRIPTS_DIR/install-dep.sh"
-SETUP_ROAMING="$SCRIPTS_DIR/setup-k8s-roaming.sh"
-
-# Deployment scripts
-KUBECTL_DEPLOY_HPLMN="$SCRIPTS_DIR/deployment/kubectl-deploy-hplmn.sh"
-KUBECTL_DEPLOY_VPLMN="$SCRIPTS_DIR/deployment/kubectl-deploy-vplmn.sh"
-DOCKER_DEPLOY="$SCRIPTS_DIR/deployment/docker-deploy.sh"
-
-# Image management
-PULL_IMAGES="$SCRIPTS_DIR/images/pull-docker-images.sh"
-IMPORT_SCRIPT="$SCRIPTS_DIR/images/import.sh"
-UPDATE_SCRIPT="$SCRIPTS_DIR/images/update.sh"
-
-# Certificate management
-CERT_DEPLOY="$SCRIPTS_DIR/certificates/cert-deploy.sh"
-CERT_GENERATE="$SCRIPTS_DIR/certificates/generate-sepp-certs.sh"
-
-# Database management
-MONGODB_HPLMN="$SCRIPTS_DIR/database/mongodb-hplmn.sh"
-MONGODB44_SETUP="$SCRIPTS_DIR/database/mongodb44-setup.sh"
-
-# Cleanup scripts
-MICROK8S_CLEAN="$SCRIPTS_DIR/cleanup/microk8s-clean.sh"
-DOCKER_CLEAN="$SCRIPTS_DIR/cleanup/docker-clean.sh"
-
-# Legacy script paths (for backward compatibility during migration)
-LEGACY_KUBECTL_DEPLOY="$SCRIPTS_DIR/kubectl-deploy.sh"
-LEGACY_CLEAN="$SCRIPTS_DIR/clean.sh"
-
-# Check if scripts directory exists
-if [ ! -d "$SCRIPTS_DIR" ]; then
-    echo -e "${RED}Error: Scripts directory not found.${NC}"
-    exit 1
-fi
-
-# Ensure all scripts are executable
-find $SCRIPTS_DIR -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
-
-# Display usage information
+# Function to show usage
 show_usage() {
-    echo -e "${BLUE}Open5GS Scripts CLI - Organized Version${NC}"
-    echo "Usage: $0 [command] [options]"
-    echo ""
-    echo -e "${YELLOW}📦 Installation & Setup:${NC}"
-    echo "  install-dep         Install dependencies (Docker, Git, GTP5G)"
-    echo "  setup-roaming       Complete automated setup for k8s-roaming"
-    echo ""
-    echo -e "${YELLOW}🚀 Deployment Commands:${NC}"
-    echo "  deploy-hplmn        Deploy only HPLMN components"
-    echo "  deploy-vplmn        Deploy only VPLMN components" 
-    echo "  deploy-roaming      Deploy both HPLMN and VPLMN for roaming"
-    echo "  docker-deploy       Deploy Open5GS images to Docker Hub"
-    echo ""
-    echo -e "${YELLOW}📦 Image Management:${NC}"
-    echo "  pull-images         Pull all Open5GS images from docker.io/vinch05"
-    echo "  import-images       Import images to MicroK8s registry"
-    echo "  update-configs      Update deployment configs for MicroK8s registry"
-    echo ""
-    echo -e "${YELLOW}🔐 Certificate Management:${NC}"
-    echo "  generate-certs      Generate TLS certificates for SEPP"
-    echo "  deploy-certs        Deploy TLS certificates as Kubernetes secrets"
-    echo ""
-    echo -e "${YELLOW}🗄️ Database Management:${NC}"
-    echo "  mongodb-hplmn       Deploy MongoDB (StatefulSet + Service) for HPLMN"
-    echo "  mongodb-install     Install MongoDB 4.4 on host system"
-    echo ""
-    echo -e "${YELLOW}🧹 Cleanup Commands:${NC}"
-    echo "  clean-k8s           Clean MicroK8s resources"
-    echo "  clean-docker        Clean Docker resources"
-    echo ""
-    echo -e "${YELLOW}ℹ️ Information:${NC}"
-    echo "  help                Show this help message"
-    echo "  version             Show version information"
-    echo ""
-    echo -e "${RED}⚠️ Deprecated Commands (use alternatives):${NC}"
-    echo "  kubectl-deploy      → Use deploy-hplmn, deploy-vplmn, or deploy-roaming"
-    echo "  clean               → Use clean-k8s or clean-docker"
+    echo "MongoDB Deployment Script for HPLMN"
+    echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --namespace, -n     Specify Kubernetes namespace (default: hplmn)"
-    echo "  --username, -u      Docker Hub username for deployment"
-    echo "  --force, -f         Skip confirmation prompts"
-    echo "  --tag, -t           Specify image tag (default: v2.7.5)"
-    echo "  --delete-pv         Delete persistent volumes (with clean-k8s)"
-    echo "  --full-setup        Use comprehensive setup (with setup-roaming)"
+    echo "  --namespace, -n NAMESPACE    Target namespace (default: hplmn)"
+    echo "  --storage-size SIZE          Data storage size (default: 1Gi)"
+    echo "  --config-storage SIZE        Config storage size (default: 500Mi)"
+    echo "  --storage-class CLASS        Storage class (default: microk8s-hostpath)"
+    echo "  --with-nodeport             Create NodePort service for external access"
+    echo "  --node-port PORT            NodePort port (default: 30017)"
+    echo "  --force, -f                 Skip confirmation prompts"
+    echo "  --help, -h                  Show this help"
     echo ""
     echo "Examples:"
-    echo "  $0 install-dep"
-    echo "  $0 setup-roaming --full-setup"
-    echo "  $0 deploy-roaming"
-    echo "  $0 pull-images -t v2.7.5"
-    echo "  $0 docker-deploy -u myusername"
-    echo "  $0 clean-k8s -n open5gs --delete-pv"
+    echo "  $0                                    # Deploy with defaults"
+    echo "  $0 --namespace hplmn --with-nodeport  # Deploy with external access"
+    echo "  $0 --storage-size 2Gi --force         # Deploy with larger storage"
 }
 
-# Check if script exists and is executable
-check_script() {
-    local script_path=$1
-    local script_name=$2
-    
-    if [ ! -f "$script_path" ]; then
-        echo -e "${RED}Error: $script_name script not found at $script_path${NC}"
-        echo -e "${YELLOW}Please ensure the script exists in the correct location.${NC}"
-        return 1
-    fi
-    
-    if [ ! -x "$script_path" ]; then
-        echo -e "${YELLOW}Warning: Making $script_name executable...${NC}"
-        chmod +x "$script_path" || {
-            echo -e "${RED}Error: Cannot make $script_name executable${NC}"
-            return 1
-        }
-    fi
-    return 0
+# Function to create namespace if it doesn't exist
+create_namespace() {
+    echo -e "${BLUE}Ensuring namespace $NAMESPACE exists...${NC}"
+    microk8s kubectl create namespace $NAMESPACE --dry-run=client -o yaml | microk8s kubectl apply -f -
+    echo -e "${GREEN}Namespace $NAMESPACE ready${NC}"
 }
 
-# Installation & Setup functions
-install_dependencies() {
-    echo -e "${BLUE}Installing dependencies...${NC}"
-    check_script "$INSTALL_DEP" "install-dep" && bash "$INSTALL_DEP" "$@"
+# Function to create MongoDB StatefulSet
+create_statefulset() {
+    echo -e "${BLUE}Creating MongoDB StatefulSet...${NC}"
+    
+    cat > /tmp/mongodb-statefulset.yaml << EOF
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: $NAMESPACE
+  labels:
+    app: mongodb
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:$MONGODB_VERSION
+          command: ["mongod", "--bind_ip", "0.0.0.0", "--port", "27017"]
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: ""
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: ""
+          volumeMounts:
+            - name: db-data
+              mountPath: /data/db
+            - name: db-config
+              mountPath: /data/configdb
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: db-data
+        labels:
+          app: mongodb
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: $STORAGE_CLASS
+        resources:
+          requests:
+            storage: $STORAGE_SIZE
+    - metadata:
+        name: db-config
+        labels:
+          app: mongodb
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: $STORAGE_CLASS
+        resources:
+          requests:
+            storage: $CONFIG_STORAGE
+EOF
+
+    # Apply StatefulSet
+    microk8s kubectl apply -f /tmp/mongodb-statefulset.yaml
+    rm -f /tmp/mongodb-statefulset.yaml
+    
+    echo -e "${GREEN}MongoDB StatefulSet created successfully${NC}"
 }
 
-setup_roaming() {
-    local tag="v2.7.5"
-    local use_full_setup=false
+# Function to create MongoDB ClusterIP Service
+create_service() {
+    echo -e "${BLUE}Creating MongoDB ClusterIP Service...${NC}"
     
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --tag|-t)
-                tag="$2"
-                shift 2
-                ;;
-            --full-setup)
-                use_full_setup=true
-                shift
-                ;;
-            *)
-                echo -e "${RED}Unknown option: $1${NC}"
-                return 1
-                ;;
-        esac
-    done
+    cat > /tmp/mongodb-service.yaml << EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: $NAMESPACE
+  labels:
+    app: mongodb
+spec:
+  type: ClusterIP
+  selector:
+    app: mongodb
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017
+      protocol: TCP
+EOF
+
+    # Apply Service
+    microk8s kubectl apply -f /tmp/mongodb-service.yaml
+    rm -f /tmp/mongodb-service.yaml
     
-    echo -e "${BLUE}Setting up complete Open5GS k8s-roaming environment...${NC}"
-    check_script "$SETUP_ROAMING" "setup-roaming" && bash "$SETUP_ROAMING" "$tag"
+    echo -e "${GREEN}MongoDB ClusterIP Service created successfully${NC}"
 }
 
-# Deployment functions
-deploy_hplmn() {
-    echo -e "${BLUE}Deploying HPLMN components...${NC}"
-    check_script "$KUBECTL_DEPLOY_HPLMN" "kubectl-deploy-hplmn" && bash "$KUBECTL_DEPLOY_HPLMN" "$@"
-}
-
-deploy_vplmn() {
-    echo -e "${BLUE}Deploying VPLMN components...${NC}"
-    check_script "$KUBECTL_DEPLOY_VPLMN" "kubectl-deploy-vplmn" && bash "$KUBECTL_DEPLOY_VPLMN" "$@"
-}
-
-deploy_roaming() {
-    local tag="v2.7.5"
-    
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --tag|-t)
-                tag="$2"
-                shift 2
-                ;;
-            *)
-                echo -e "${RED}Unknown option: $1${NC}"
-                return 1
-                ;;
-        esac
-    done
-    
-    echo -e "${BLUE}Deploying complete roaming setup (HPLMN + VPLMN)...${NC}"
-    
-    # Deploy HPLMN first
-    echo -e "${YELLOW}Step 1: Deploying HPLMN components...${NC}"
-    deploy_hplmn
-    
-    # Wait a moment for HPLMN to stabilize
-    echo -e "${BLUE}Waiting for HPLMN to stabilize...${NC}"
-    sleep 10
-    
-    # Then deploy VPLMN
-    echo -e "${YELLOW}Step 2: Deploying VPLMN components...${NC}"
-    deploy_vplmn
-    
-    echo -e "${GREEN}Completed deployment of both HPLMN and VPLMN for roaming scenario${NC}"
-}
-
-docker_deploy() {
-    local username=""
-    local tag="v2.7.5"
-    
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --username|-u)
-                username="$2"
-                shift 2
-                ;;
-            --tag|-t)
-                tag="$2"
-                shift 2
-                ;;
-            *)
-                echo -e "${RED}Unknown option: $1${NC}"
-                return 1
-                ;;
-        esac
-    done
-    
-    # Check for required username
-    if [ -z "$username" ]; then
-        echo -e "${YELLOW}Docker Hub username is required.${NC}"
-        read -p "Enter your Docker Hub username: " username
+# Function to create NodePort Service for external access
+create_nodeport_service() {
+    if [ "$CREATE_NODEPORT" = true ]; then
+        echo -e "${BLUE}Creating MongoDB NodePort Service for external access...${NC}"
         
-        if [ -z "$username" ]; then
-            echo -e "${RED}No username provided. Exiting.${NC}"
-            return 1
-        fi
-    fi
+        cat > /tmp/mongodb-nodeport.yaml << EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-external
+  namespace: $NAMESPACE
+  labels:
+    app: mongodb
+spec:
+  type: NodePort
+  selector:
+    app: mongodb
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017
+      nodePort: $NODE_PORT
+      protocol: TCP
+EOF
 
-    echo -e "${BLUE}Deploying images to Docker Hub as user: ${YELLOW}$username${NC}"
-    
-    check_script "$DOCKER_DEPLOY" "docker-deploy" || return 1
-    
-    # Create temporary file with new username
-    temp_file=$(mktemp)
-    cp "$DOCKER_DEPLOY" "$temp_file"
-    sed -i "s/DOCKERHUB_USERNAME=\"your_username\"/DOCKERHUB_USERNAME=\"$username\"/" "$temp_file"
-    
-    # Execute modified script
-    bash "$temp_file"
-    rm "$temp_file"
-}
-
-# Image management functions
-pull_images() {
-    local tag="v2.7.5"
-    
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --tag|-t)
-                tag="$2"
-                shift 2
-                ;;
-            *)
-                echo -e "${RED}Unknown option: $1${NC}"
-                return 1
-                ;;
-        esac
-    done
-    
-    echo -e "${BLUE}Pulling Docker images (tag: $tag)...${NC}"
-    check_script "$PULL_IMAGES" "pull-docker-images" && bash "$PULL_IMAGES" "$tag"
-}
-
-import_images() {
-    echo -e "${BLUE}Importing images to MicroK8s registry...${NC}"
-    check_script "$IMPORT_SCRIPT" "import" && bash "$IMPORT_SCRIPT" "$@"
-}
-
-update_configs() {
-    echo -e "${BLUE}Updating deployment configurations for MicroK8s registry...${NC}"
-    check_script "$UPDATE_SCRIPT" "update" && bash "$UPDATE_SCRIPT" "$@"
-}
-
-# Certificate management functions
-generate_certs() {
-    echo -e "${BLUE}Generating TLS certificates for SEPP...${NC}"
-    
-    # Check if we're in the right directory or need to navigate
-    if [ -f "$CERT_GENERATE" ]; then
-        check_script "$CERT_GENERATE" "generate-sepp-certs" && bash "$CERT_GENERATE" "$@"
-    else
-        # Try relative path from certificates directory
-        local cert_script="./scripts/cert/generate-sepp-certs.sh"
-        if [ -f "$cert_script" ]; then
-            echo -e "${YELLOW}Using certificate script at: $cert_script${NC}"
-            chmod +x "$cert_script"
-            bash "$cert_script" "$@"
-        else
-            echo -e "${RED}Error: Certificate generation script not found${NC}"
-            echo -e "${YELLOW}Please ensure generate-sepp-certs.sh exists in scripts/certificates/ or scripts/cert/${NC}"
-            return 1
-        fi
+        # Apply NodePort Service
+        microk8s kubectl apply -f /tmp/mongodb-nodeport.yaml
+        rm -f /tmp/mongodb-nodeport.yaml
+        
+        echo -e "${GREEN}MongoDB NodePort Service created successfully${NC}"
+        echo -e "${YELLOW}External access available on port $NODE_PORT${NC}"
     fi
 }
 
-deploy_certs() {
-    echo -e "${BLUE}Deploying TLS certificates as Kubernetes secrets...${NC}"
-    check_script "$CERT_DEPLOY" "cert-deploy" && bash "$CERT_DEPLOY" "$@"
-}
-
-# Database management functions
-mongodb_hplmn() {
-    echo -e "${BLUE}Deploying MongoDB for HPLMN (StatefulSet + Service)...${NC}"
-    check_script "$MONGODB_HPLMN" "mongodb-hplmn" && bash "$MONGODB_HPLMN" "$@"
-}
-
-mongodb_install() {
-    echo -e "${BLUE}Installing MongoDB 4.4 on host system...${NC}"
-    check_script "$MONGODB44_SETUP" "mongodb44-setup" && bash "$MONGODB44_SETUP" "$@"
-}
-
-# Cleanup functions
-clean_k8s() {
-    echo -e "${BLUE}Cleaning MicroK8s resources...${NC}"
-    check_script "$MICROK8S_CLEAN" "microk8s-clean" && bash "$MICROK8S_CLEAN" "$@"
-}
-
-clean_docker() {
-    echo -e "${BLUE}Cleaning Docker resources...${NC}"
-    check_script "$DOCKER_CLEAN" "docker-clean" && bash "$DOCKER_CLEAN" "$@"
-}
-
-# Deprecated command handlers
-handle_deprecated_kubectl_deploy() {
-    echo -e "${RED}⚠️ WARNING: 'kubectl-deploy' command is deprecated.${NC}"
-    echo -e "${YELLOW}Please use one of the following alternatives:${NC}"
-    echo -e "${YELLOW}  • ./cli.sh deploy-hplmn     - Deploy HPLMN only${NC}"
-    echo -e "${YELLOW}  • ./cli.sh deploy-vplmn     - Deploy VPLMN only${NC}"
-    echo -e "${YELLOW}  • ./cli.sh deploy-roaming   - Deploy both networks${NC}"
-    echo ""
-    read -p "Continue with legacy deployment? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        if [ -f "$LEGACY_KUBECTL_DEPLOY" ]; then
-            echo -e "${YELLOW}Running legacy kubectl-deploy...${NC}"
-            bash "$LEGACY_KUBECTL_DEPLOY" "$@"
+# Function to wait for MongoDB to be ready
+wait_for_mongodb() {
+    echo -e "${BLUE}Waiting for MongoDB to be ready...${NC}"
+    
+    # Wait for StatefulSet to be ready
+    if microk8s kubectl wait --for=condition=ready pods -l app=mongodb --namespace=$NAMESPACE --timeout=180s; then
+        echo -e "${GREEN}MongoDB is ready!${NC}"
+        
+        # Test MongoDB connectivity
+        echo -e "${BLUE}Testing MongoDB connectivity...${NC}"
+        local mongodb_pod=$(microk8s kubectl get pods -n $NAMESPACE -l app=mongodb -o jsonpath='{.items[0].metadata.name}')
+        
+        if microk8s kubectl exec -n $NAMESPACE $mongodb_pod -- mongo --eval "db.adminCommand('ping')" &>/dev/null; then
+            echo -e "${GREEN}MongoDB connectivity test passed${NC}"
         else
-            echo -e "${RED}Error: Legacy script not found. Please use the new commands.${NC}"
-            return 1
+            echo -e "${YELLOW}Warning: MongoDB connectivity test failed, but pod is ready${NC}"
         fi
     else
-        echo -e "${BLUE}Operation cancelled. Use the new deployment commands.${NC}"
-        return 0
-    fi
-}
-
-handle_deprecated_clean() {
-    echo -e "${RED}⚠️ WARNING: 'clean' command is deprecated.${NC}"
-    echo -e "${YELLOW}Please use one of the following alternatives:${NC}"
-    echo -e "${YELLOW}  • ./cli.sh clean-k8s       - Clean MicroK8s resources${NC}"
-    echo -e "${YELLOW}  • ./cli.sh clean-docker    - Clean Docker resources${NC}"
-    echo ""
-    
-    if [ $# -eq 0 ]; then
-        echo -e "${RED}Error: Missing target for clean command${NC}"
-        echo -e "${YELLOW}Legacy usage was: $0 clean [docker|k8s] [options]${NC}"
+        echo -e "${RED}Error: MongoDB failed to become ready within timeout${NC}"
+        echo -e "${YELLOW}Check pod status with: microk8s kubectl get pods -n $NAMESPACE -l app=mongodb${NC}"
         return 1
     fi
+}
+
+# Function to show deployment status
+show_status() {
+    echo -e "${BLUE}MongoDB Deployment Status:${NC}"
+    echo "========================================"
     
-    target=$1
-    shift
+    echo -e "${BLUE}Pods:${NC}"
+    microk8s kubectl get pods -n $NAMESPACE -l app=mongodb
     
-    case $target in
-        docker)
-            echo -e "${YELLOW}Redirecting to clean-docker...${NC}"
-            clean_docker "$@"
+    echo -e "${BLUE}Services:${NC}"
+    microk8s kubectl get services -n $NAMESPACE -l app=mongodb
+    
+    echo -e "${BLUE}StatefulSet:${NC}"
+    microk8s kubectl get statefulset -n $NAMESPACE mongodb
+    
+    echo -e "${BLUE}Persistent Volume Claims:${NC}"
+    microk8s kubectl get pvc -n $NAMESPACE
+    
+    if [ "$CREATE_NODEPORT" = true ]; then
+        local vm_ip=$(ip route get 8.8.8.8 | grep -oP 'src \K\S+' 2>/dev/null || hostname -I | awk '{print $1}')
+        echo ""
+        echo -e "${YELLOW}External Access Information:${NC}"
+        echo "Connection String: mongodb://$vm_ip:$NODE_PORT"
+        echo "MongoDB Compass: mongodb://$vm_ip:$NODE_PORT"
+        echo "MongoDB Shell: mongo --host $vm_ip --port $NODE_PORT"
+    fi
+    
+    echo "========================================"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --namespace|-n)
+            NAMESPACE="$2"
+            shift 2
             ;;
-        k8s|kubernetes|microk8s)
-            echo -e "${YELLOW}Redirecting to clean-k8s...${NC}"
-            clean_k8s "$@"
+        --storage-size)
+            STORAGE_SIZE="$2"
+            shift 2
+            ;;
+        --config-storage)
+            CONFIG_STORAGE="$2"
+            shift 2
+            ;;
+        --storage-class)
+            STORAGE_CLASS="$2"
+            shift 2
+            ;;
+        --with-nodeport)
+            CREATE_NODEPORT=true
+            shift
+            ;;
+        --node-port)
+            NODE_PORT="$2"
+            CREATE_NODEPORT=true
+            shift 2
+            ;;
+        --force|-f)
+            FORCE=true
+            shift
+            ;;
+        --help|-h)
+            show_usage
+            exit 0
             ;;
         *)
-            echo -e "${RED}Unknown target: $target${NC}"
-            echo -e "${YELLOW}Use: ./cli.sh clean-k8s or ./cli.sh clean-docker${NC}"
-            return 1
+            echo -e "${RED}Unknown argument: $1${NC}"
+            show_usage
+            exit 1
             ;;
     esac
-}
+done
 
-# Version information
-show_version() {
-    echo -e "${BLUE}Open5GS Scripts CLI - Organized Version${NC}"
-    echo -e "${GREEN}Version: 2.0.0${NC}"
-    echo -e "${YELLOW}Default Open5GS Version: v2.7.5${NC}"
-    echo -e "${BLUE}Reorganized script structure with improved maintainability${NC}"
-}
-
-# Main command parser
-if [ $# -eq 0 ]; then
-    show_usage
-    exit 0
+# Confirmation prompt unless force mode
+if [ "$FORCE" != true ]; then
+    echo -e "${YELLOW}MongoDB Deployment Configuration:${NC}"
+    echo "Namespace: $NAMESPACE"
+    echo "MongoDB Version: $MONGODB_VERSION"
+    echo "Data Storage: $STORAGE_SIZE"
+    echo "Config Storage: $CONFIG_STORAGE"
+    echo "Storage Class: $STORAGE_CLASS"
+    echo "External Access: $([ "$CREATE_NODEPORT" = true ] && echo "Yes (Port: $NODE_PORT)" || echo "No")"
+    echo ""
+    read -p "Continue with deployment? (y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}Deployment cancelled${NC}"
+        exit 0
+    fi
 fi
 
-command=$1
-shift
+# Main deployment process
+echo -e "${BLUE}Starting MongoDB deployment for namespace: $NAMESPACE${NC}"
 
-case $command in
-    # Installation & Setup
-    install-dep)
-        install_dependencies "$@"
-        ;;
-    setup-roaming)
-        setup_roaming "$@"
-        ;;
-        
-    # Deployment Commands
-    deploy-hplmn)
-        deploy_hplmn "$@"
-        ;;
-    deploy-vplmn)
-        deploy_vplmn "$@"
-        ;;
-    deploy-roaming)
-        deploy_roaming "$@"
-        ;;
-    docker-deploy)
-        docker_deploy "$@"
-        ;;
-        
-    # Image Management
-    pull-images)
-        pull_images "$@"
-        ;;
-    import-images)
-        import_images "$@"
-        ;;
-    update-configs)
-        update_configs "$@"
-        ;;
-        
-    # Certificate Management
-    generate-certs)
-        generate_certs "$@"
-        ;;
-    deploy-certs)
-        deploy_certs "$@"
-        ;;
-        
-    # Database Management
-    mongodb-hplmn)
-        mongodb_hplmn "$@"
-        ;;
-    mongodb-install)
-        mongodb_install "$@"
-        ;;
-        
-    # Cleanup Commands
-    clean-k8s)
-        clean_k8s "$@"
-        ;;
-    clean-docker)
-        clean_docker "$@"
-        ;;
-        
-    # Information Commands
-    help)
-        show_usage
-        ;;
-    version)
-        show_version
-        ;;
-        
-    # Deprecated Commands (with warnings)
-    kubectl-deploy)
-        handle_deprecated_kubectl_deploy "$@"
-        ;;
-    clean)
-        handle_deprecated_clean "$@"
-        ;;
-        
-    # Legacy aliases for backward compatibility
-    cert-deploy)
-        echo -e "${YELLOW}Note: 'cert-deploy' is now 'deploy-certs'${NC}"
-        deploy_certs "$@"
-        ;;
-    microk8s-clean)
-        echo -e "${YELLOW}Note: 'microk8s-clean' is now 'clean-k8s'${NC}"
-        clean_k8s "$@"
-        ;;
-    docker-clean)
-        echo -e "${YELLOW}Note: 'docker-clean' is now 'clean-docker'${NC}"
-        clean_docker "$@"
-        ;;
-        
-    *)
-        echo -e "${RED}Unknown command: $command${NC}"
-        echo ""
-        show_usage
-        exit 1
-        ;;
-esac
+# Execute deployment steps
+create_namespace
+create_statefulset
+create_service
+create_nodeport_service
+wait_for_mongodb
+show_status
 
-exit 0
+echo -e "${GREEN}MongoDB deployment completed successfully!${NC}"
+echo -e "${BLUE}You can now connect other Open5GS components to: mongodb.${NAMESPACE}.svc.cluster.local:27017${NC}"
+
+if [ "$CREATE_NODEPORT" = true ]; then
+    echo -e "${YELLOW}External access is configured. Remember to configure firewall if needed:${NC}"
+    echo "sudo ufw allow $NODE_PORT"
+fi
