@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: sepp
-          image: docker.io/vinch05/sepp:v2.7.5
+          image: docker.io/library/sepp-new-v2:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml" ]
           volumeMounts:

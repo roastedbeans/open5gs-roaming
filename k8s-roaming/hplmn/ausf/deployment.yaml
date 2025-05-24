@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ausf
-          image: docker.io/vinch05/ausf:v2.7.5
+          image: docker.io/library/ausf-local:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ["open5gs-ausfd", "-c", "/etc/open5gs/ausf.yaml"]
           volumeMounts:

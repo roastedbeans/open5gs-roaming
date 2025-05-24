@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: upf
-          image: docker.io/vinch05/upf:v2.7.5
+          image: docker.io/library/upf-local:v2.7.5
           imagePullPolicy: IfNotPresent 
           command: [ "open5gs-upfd", "-c", "/etc/open5gs/upf.yaml" ]
           securityContext:

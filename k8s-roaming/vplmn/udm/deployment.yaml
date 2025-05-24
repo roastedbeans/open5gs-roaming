@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: udm
-          image: docker.io/vinch05/udm:v2.7.5
+          image: docker.io/library/udm-local:v2.7.5
           imagePullPolicy: IfNotPresent
           command: [ "open5gs-udmd", "-c", "/etc/open5gs/udm.yaml" ]
           volumeMounts:
