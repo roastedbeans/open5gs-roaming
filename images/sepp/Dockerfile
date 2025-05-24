@@ -24,14 +24,6 @@ COPY --from=builder /open5gs/install/lib/*/libogsproto.so.2 /open5gs/install/lib
     /open5gs/install/lib/*/libogssbi.so.2 /open5gs/install/lib/*/libogsapp.so.2 /open5gs/install/lib/*/libogssbi-openapi.so.2 \
     /open5gs/install/lib/*/libogscrypt.so.2 /usr/local/lib/
 
-# Copy certificates
-COPY certs/ca.crt /etc/open5gs/tls/ca/ca.crt
-COPY certs/ca.key /etc/open5gs/tls/ca/ca.key
-COPY certs/sepp-hplmn-n32c.crt /etc/open5gs/tls/n32c/tls.crt
-COPY certs/sepp-hplmn-n32c.key /etc/open5gs/tls/n32c/tls.key
-COPY certs/sepp-hplmn-n32f.crt /etc/open5gs/tls/n32f/tls.crt
-COPY certs/sepp-hplmn-n32f.key /etc/open5gs/tls/n32f/tls.key
-
 # configure dynamically linked libraries
 RUN ldconfig
 
