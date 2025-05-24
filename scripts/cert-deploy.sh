@@ -10,7 +10,18 @@ if [ ! -d "$CERT_DIR" ]; then
     exit 1
 fi
 
-echo "Creating TLS secrets for SEPP components..."
+echo "Creating namespaces and TLS secrets for SEPP components..."
+
+# Function to create namespace if it doesn't exist
+create_namespace() {
+    local NAMESPACE=$1
+    if ! microk8s kubectl get namespace $NAMESPACE &> /dev/null; then
+        echo "Creating namespace $NAMESPACE..."
+        microk8s kubectl create namespace $NAMESPACE
+    else
+        echo "Namespace $NAMESPACE already exists"
+    fi
+}
 
 # Function to create secrets for a namespace
 create_namespace_secrets() {
@@ -57,6 +68,10 @@ create_namespace_secrets() {
         echo "Warning: CA certificate not found"
     fi
 }
+
+# Create namespaces first
+create_namespace "vplmn"
+create_namespace "hplmn"
 
 # Create secrets for VPLMN
 create_namespace_secrets "vplmn" "sepp-vplmn"
