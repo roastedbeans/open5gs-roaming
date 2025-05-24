@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webui
+  namespace: hplmn
+spec:
+  selector:
+    app: webui
+  ports:
+    - protocol: TCP
+      port: 9999
+      targetPort: http
+      nodePort: 30999
+  type: NodePort

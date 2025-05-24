@@ -27,7 +27,7 @@ FROM node:${NODE_VERSION}-bookworm-slim
 # copy webui
 COPY --from=builder /open5gs/webui/ /usr/local/src/webui
 
-ENV DB_URI="mongodb://localhost/open5gs"
+ENV DB_URI="mongodb://192.168.219.111:30017/open5gs"
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=9999
 ENV NODE_ENV="dev"
