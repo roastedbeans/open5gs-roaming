@@ -47,6 +47,10 @@ declare -A SCRIPTS=(
     ["mongodb-access"]="mongodb-access.sh"
     ["subscribers"]="subscribers.sh"
     
+    # Management & Monitoring
+    ["restart-pods"]="restart-pods.sh"
+    ["get-status"]="get-status.sh"
+    
     # Cleanup
     ["microk8s-clean"]="microk8s-clean.sh"
     ["docker-clean"]="docker-clean.sh"
@@ -59,6 +63,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Image Management"]="pull-images import-images update-configs"
     ["Certificate Management"]="generate-certs deploy-certs"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
+    ["Management & Monitoring"]="restart-pods get-status"
     ["Cleanup"]="clean-k8s clean-docker"
 )
 
@@ -236,6 +241,10 @@ cmd_mongodb_install() { run_script "mongodb44-setup" "$@"; }
 cmd_mongodb_access() { run_script "mongodb-access" "$@"; }
 cmd_subscribers() { run_script "subscribers" "$@"; }
 
+# Management & Monitoring
+cmd_restart_pods() { run_script "restart-pods" "$@"; }
+cmd_get_status() { run_script "get-status" "$@"; }
+
 # Cleanup
 cmd_clean_k8s() { run_script "microk8s-clean" "$@"; }
 cmd_clean_docker() { run_script "docker-clean" "$@"; }
@@ -273,6 +282,10 @@ $(warning "🗄️ Database:")
   mongodb-install     Install MongoDB 4.4 locally
   mongodb-access      Manage MongoDB external access
   subscribers         Manage subscriber database
+
+$(warning "🔧 Management & Monitoring:")
+  restart-pods        Restart pods in Open5GS namespaces
+  get-status          Show status of Open5GS deployments
 
 $(warning "🧹 Cleanup:")
   clean-k8s           Clean Kubernetes resources
@@ -334,6 +347,38 @@ Examples:
   $0 subscribers --list-subscribers
 EOF
             ;;
+        restart-pods)
+            cat << EOF
+$(info "restart-pods - Restart Kubernetes Pods")
+
+Operations:
+  --all, -a            Restart pods in all Open5GS namespaces
+  --hplmn              Restart pods in HPLMN namespace only
+  --vplmn              Restart pods in VPLMN namespace only
+  --namespace, -n NS   Restart pods in specific namespace
+  --force, -f          Skip confirmation prompt
+  --timeout, -t SEC    Wait timeout for pods (default: 300s)
+
+Examples:
+  $0 restart-pods --all
+  $0 restart-pods --hplmn
+  $0 restart-pods --namespace custom-ns --force
+EOF
+            ;;
+        get-status)
+            cat << EOF
+$(info "get-status - Show Open5GS Status")
+
+Operations:
+  --namespace, -n NS   Show status for specific namespace
+  --details, -d        Show detailed information (services, deployments)
+
+Examples:
+  $0 get-status
+  $0 get-status --details
+  $0 get-status --namespace hplmn
+EOF
+            ;;
         *)
             warning "No detailed help available for: $cmd"
             ;;
@@ -390,6 +435,10 @@ case $command in
     mongodb-install) cmd_mongodb_install "$@" ;;
     mongodb-access) cmd_mongodb_access "$@" ;;
     subscribers) cmd_subscribers "$@" ;;
+    
+    # Management & Monitoring
+    restart-pods) cmd_restart_pods "$@" ;;
+    get-status) cmd_get_status "$@" ;;
     
     # Cleanup
     clean-k8s) cmd_clean_k8s "$@" ;;
