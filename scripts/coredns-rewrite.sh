@@ -5,28 +5,18 @@
 
 set -e
 
-# ===============================
-# Configuration & Constants
-# ===============================
-
 # Colors
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly BLUE='\033[0;34m'
 readonly YELLOW='\033[1;33m'
-readonly NC='\033[0m' # No Color
+readonly NC='\033[0m'
 
 # Helper functions
-print_color() {
-    local color=$1
-    shift
-    echo -e "${color}$@${NC}"
-}
-
-error() { print_color "$RED" "Error: $@"; }
-info() { print_color "$BLUE" "$@"; }
-success() { print_color "$GREEN" "$@"; }
-warning() { print_color "$YELLOW" "$@"; }
+error() { echo -e "${RED}Error: $@${NC}" >&2; }
+info() { echo -e "${BLUE}$@${NC}"; }
+success() { echo -e "${GREEN}$@${NC}"; }
+warning() { echo -e "${YELLOW}$@${NC}"; }
 
 # Default values
 HPLMN_MNC="001"
@@ -36,16 +26,9 @@ VPLMN_MCC="999"
 DRY_RUN=false
 FORCE=false
 
-# Global variables
-BACKUP_FILE=""
-
-# ===============================
-# Functions
-# ===============================
-
 show_usage() {
     cat << EOF
-$(info "CoreDNS Rewrite Configuration Script")
+CoreDNS Rewrite Configuration Script
 Usage: $0 [options]
 
 Options:
@@ -58,65 +41,50 @@ Options:
   --backup-only       Only create backup of current config
   --restore FILE      Restore CoreDNS config from backup file
   --status            Show current CoreDNS configuration
-  --test              Test DNS resolution after configuration
+  --test              Test DNS resolution
+  --remove            Remove existing rewrite rules
   --help, -h          Show this help message
 
 Examples:
   $0                                    # Add default rewrite rules
-  $0 --hplmn-mnc 001 --hplmn-mcc 001   # Custom HPLMN codes
+  $0 --hplmn-mnc 001 --hplmn-mcc 001   # Custom codes
   $0 --dry-run                         # Preview changes
-  $0 --backup-only                     # Just backup current config
-  $0 --restore /tmp/coredns-backup.yaml
-  $0 --status                          # Show current config
-  $0 --test                            # Test DNS resolution
-
-Note: This script requires microk8s kubectl access and cluster-admin permissions.
+  $0 --backup-only                     # Just backup
+  $0 --remove                          # Remove rules
+  $0 --test                            # Test DNS
 EOF
 }
 
 check_prerequisites() {
     info "Checking prerequisites..."
     
-    # Check microk8s
     if ! command -v microk8s >/dev/null 2>&1; then
-        error "microk8s is not installed or not in PATH"
+        error "microk8s is not installed"
         return 1
     fi
     
-    # Check kubectl access
     if ! microk8s kubectl get nodes >/dev/null 2>&1; then
         error "Cannot access Kubernetes cluster"
         return 1
     fi
     
-    # Check CoreDNS configmap exists
     if ! microk8s kubectl get configmap coredns -n kube-system >/dev/null 2>&1; then
-        error "CoreDNS configmap not found in kube-system namespace"
+        error "CoreDNS configmap not found"
         return 1
     fi
     
     success "Prerequisites check passed"
 }
 
-create_backup_file() {
-    if [[ -z "$BACKUP_FILE" ]]; then
-        BACKUP_FILE="/tmp/coredns-backup-$(date +%Y%m%d-%H%M%S).yaml"
-    fi
-}
-
-backup_coredns_config() {
-    create_backup_file
-    info "Creating backup of current CoreDNS configuration..."
+backup_coredns() {
+    local backup_file="/tmp/coredns-backup-$(date +%Y%m%d-%H%M%S).yaml"
+    info "Creating backup: $backup_file"
     
-    if ! microk8s kubectl get configmap coredns -n kube-system -o yaml > "$BACKUP_FILE"; then
-        error "Failed to create backup"
-        return 1
-    fi
-    
-    if [[ -f "$BACKUP_FILE" ]]; then
-        success "Backup created: $BACKUP_FILE"
+    if microk8s kubectl get configmap coredns -n kube-system -o yaml > "$backup_file"; then
+        success "Backup created: $backup_file"
+        echo "$backup_file"
     else
-        error "Failed to create backup file"
+        error "Failed to create backup"
         return 1
     fi
 }
@@ -124,10 +92,7 @@ backup_coredns_config() {
 show_current_config() {
     info "Current CoreDNS configuration:"
     echo "================================"
-    if ! microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}' | head -20; then
-        error "Failed to retrieve CoreDNS configuration"
-        return 1
-    fi
+    microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}'
     echo ""
     echo "================================"
 }
@@ -139,8 +104,9 @@ generate_rewrite_rules() {
     local vplmn_mcc=$4
     
     cat << EOF
-      
-      # HPLMN DNS Rewrite Rules (MNC: $hplmn_mnc, MCC: $hplmn_mcc)
+
+      # Open5GS 3GPP DNS Rewrite Rules
+      # HPLMN (MNC: $hplmn_mnc, MCC: $hplmn_mcc)
       rewrite name nrf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org nrf.hplmn.svc.cluster.local
       rewrite name scp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org scp.hplmn.svc.cluster.local
       rewrite name udr.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org udr.hplmn.svc.cluster.local
@@ -150,7 +116,7 @@ generate_rewrite_rules() {
       rewrite name sepp1.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32c.hplmn.svc.cluster.local
       rewrite name sepp2.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32f.hplmn.svc.cluster.local
       
-      # VPLMN DNS Rewrite Rules (MNC: $vplmn_mnc, MCC: $vplmn_mcc)
+      # VPLMN (MNC: $vplmn_mnc, MCC: $vplmn_mcc)
       rewrite name nrf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org nrf.vplmn.svc.cluster.local
       rewrite name scp.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org scp.vplmn.svc.cluster.local
       rewrite name udr.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org udr.vplmn.svc.cluster.local
@@ -178,33 +144,17 @@ update_coredns_config() {
     
     # Get current config
     local current_config
-    if ! current_config=$(microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}'); then
-        error "Failed to retrieve current CoreDNS configuration"
-        return 1
-    fi
+    current_config=$(microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}')
     
-    # Check if rewrite rules already exist
-    if echo "$current_config" | grep -q "rewrite name.*3gppnetwork.org"; then
-        warning "Rewrite rules already exist in CoreDNS configuration"
-        if [[ "$FORCE" == false ]]; then
-            read -p "Do you want to replace existing rules? (y/N): " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                info "Aborted by user"
-                return 0
-            fi
-        fi
-        
-        # Remove existing rewrite rules
-        current_config=$(echo "$current_config" | sed '/# HPLMN DNS Rewrite Rules/,/sepp-n32f\.vplmn\.svc\.cluster\.local/d')
-        current_config=$(echo "$current_config" | sed '/rewrite name.*3gppnetwork\.org/d')
-    fi
+    # Remove existing Open5GS rules if any
+    current_config=$(echo "$current_config" | sed '/# Open5GS 3GPP DNS Rewrite Rules/,/sepp-n32f\.vplmn\.svc\.cluster\.local/d')
+    current_config=$(echo "$current_config" | sed '/rewrite name.*3gppnetwork\.org/d')
     
     # Generate new rewrite rules
     local rewrite_rules
     rewrite_rules=$(generate_rewrite_rules "$hplmn_mnc" "$hplmn_mcc" "$vplmn_mnc" "$vplmn_mcc")
     
-    # Create updated config by inserting rewrite rules after the "ready" line
+    # Insert rules after the "ready" line
     local updated_config
     updated_config=$(echo "$current_config" | awk -v rules="$rewrite_rules" '
         /ready/ { print; print rules; next }
@@ -219,88 +169,89 @@ update_coredns_config() {
         return 0
     fi
     
-    # Create temporary file with updated config
+    # Create a properly formatted YAML patch
     local temp_file
-    if ! temp_file=$(mktemp); then
-        error "Failed to create temporary file"
-        return 1
-    fi
+    temp_file=$(mktemp)
+    
+    # Escape the config for JSON
+    local escaped_config
+    escaped_config=$(echo "$updated_config" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
     
     cat > "$temp_file" << EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: coredns
-  namespace: kube-system
-data:
-  Corefile: |
-$updated_config
+{
+  "data": {
+    "Corefile": "$escaped_config"
+  }
+}
 EOF
     
-    # Apply the updated configuration
-    if microk8s kubectl apply -f "$temp_file"; then
+    # Apply the patch
+    if microk8s kubectl patch configmap coredns -n kube-system --type merge --patch-file "$temp_file"; then
         rm -f "$temp_file"
-        success "CoreDNS configuration updated successfully"
+        success "CoreDNS configuration updated"
         
         # Restart CoreDNS
-        info "Restarting CoreDNS deployment..."
-        if ! microk8s kubectl rollout restart deployment/coredns -n kube-system; then
-            error "Failed to restart CoreDNS deployment"
-            return 1
-        fi
+        info "Restarting CoreDNS..."
+        microk8s kubectl rollout restart deployment/coredns -n kube-system
+        microk8s kubectl rollout status deployment/coredns -n kube-system --timeout=60s
         
-        # Wait for rollout to complete
-        info "Waiting for CoreDNS rollout to complete..."
-        if ! microk8s kubectl rollout status deployment/coredns -n kube-system --timeout=60s; then
-            warning "CoreDNS rollout may not have completed successfully"
-            return 1
-        fi
-        
-        success "CoreDNS has been restarted and updated"
+        success "CoreDNS restarted successfully"
     else
         rm -f "$temp_file"
-        error "Failed to apply CoreDNS configuration"
+        error "Failed to update CoreDNS configuration"
         return 1
     fi
 }
 
-restore_coredns_config() {
-    local backup_file=$1
+remove_rewrite_rules() {
+    info "Removing Open5GS rewrite rules..."
     
-    if [[ ! -f "$backup_file" ]]; then
-        error "Backup file not found: $backup_file"
-        return 1
+    local current_config
+    current_config=$(microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}')
+    
+    # Check if rules exist
+    if ! echo "$current_config" | grep -q "# Open5GS 3GPP DNS Rewrite Rules\|rewrite name.*3gppnetwork\.org"; then
+        warning "No Open5GS rewrite rules found"
+        return 0
     fi
     
-    info "Restoring CoreDNS configuration from: $backup_file"
+    # Remove rules
+    local updated_config
+    updated_config=$(echo "$current_config" | sed '/# Open5GS 3GPP DNS Rewrite Rules/,/sepp-n32f\.vplmn\.svc\.cluster\.local/d')
+    updated_config=$(echo "$updated_config" | sed '/rewrite name.*3gppnetwork\.org/d')
     
-    if [[ "$FORCE" == false ]]; then
-        read -p "Are you sure you want to restore CoreDNS configuration? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            info "Restore aborted by user"
-            return 0
-        fi
+    if [[ "$DRY_RUN" == true ]]; then
+        info "DRY RUN - Would remove rewrite rules"
+        return 0
     fi
     
-    if microk8s kubectl apply -f "$backup_file"; then
-        success "CoreDNS configuration restored successfully"
+    # Apply the change
+    local temp_file
+    temp_file=$(mktemp)
+    
+    local escaped_config
+    escaped_config=$(echo "$updated_config" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+    
+    cat > "$temp_file" << EOF
+{
+  "data": {
+    "Corefile": "$escaped_config"
+  }
+}
+EOF
+    
+    if microk8s kubectl patch configmap coredns -n kube-system --type merge --patch-file "$temp_file"; then
+        rm -f "$temp_file"
+        success "Rewrite rules removed"
         
-        # Restart CoreDNS
-        info "Restarting CoreDNS deployment..."
-        if ! microk8s kubectl rollout restart deployment/coredns -n kube-system; then
-            error "Failed to restart CoreDNS deployment"
-            return 1
-        fi
+        info "Restarting CoreDNS..."
+        microk8s kubectl rollout restart deployment/coredns -n kube-system
+        microk8s kubectl rollout status deployment/coredns -n kube-system --timeout=60s
         
-        if ! microk8s kubectl rollout status deployment/coredns -n kube-system --timeout=60s; then
-            warning "CoreDNS rollout may not have completed successfully"
-            return 1
-        fi
-        
-        success "CoreDNS has been restarted"
+        success "CoreDNS restarted"
     else
-        error "Failed to restore CoreDNS configuration"
+        rm -f "$temp_file"
+        error "Failed to remove rewrite rules"
         return 1
     fi
 }
@@ -313,176 +264,102 @@ test_dns_resolution() {
     
     info "Testing DNS resolution..."
     
-    # Test HPLMN services
-    local hplmn_services=(
+    local services=(
         "nrf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org"
-        "scp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org"
-        "udr.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org"
-    )
-    
-    # Test VPLMN services
-    local vplmn_services=(
         "nrf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org"
         "amf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org"
-        "smf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org"
     )
     
-    local test_failed=false
-    
-    info "Testing HPLMN services..."
-    for service in "${hplmn_services[@]}"; do
-        local test_pod="dns-test-$(date +%s)-$RANDOM"
-        if microk8s kubectl run "$test_pod" --image=nicolaka/netshoot --rm -it --restart=Never -- nslookup "$service" >/dev/null 2>&1; then
+    for service in "${services[@]}"; do
+        local pod_name="dns-test-$(date +%s)"
+        if timeout 10 microk8s kubectl run "$pod_name" --image=nicolaka/netshoot --rm --restart=Never -- nslookup "$service" >/dev/null 2>&1; then
             success "✓ $service"
         else
             warning "✗ $service"
-            test_failed=true
         fi
-        # Cleanup any remaining pods
-        microk8s kubectl delete pod "$test_pod" --ignore-not-found >/dev/null 2>&1 || true
+        microk8s kubectl delete pod "$pod_name" --ignore-not-found >/dev/null 2>&1 || true
     done
     
-    info "Testing VPLMN services..."
-    for service in "${vplmn_services[@]}"; do
-        local test_pod="dns-test-$(date +%s)-$RANDOM"
-        if microk8s kubectl run "$test_pod" --image=nicolaka/netshoot --rm -it --restart=Never -- nslookup "$service" >/dev/null 2>&1; then
-            success "✓ $service"
-        else
-            warning "✗ $service"
-            test_failed=true
-        fi
-        # Cleanup any remaining pods
-        microk8s kubectl delete pod "$test_pod" --ignore-not-found >/dev/null 2>&1 || true
+    success "DNS testing completed"
+}
+
+# Main execution
+main() {
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --hplmn-mnc) HPLMN_MNC="$2"; shift 2 ;;
+            --hplmn-mcc) HPLMN_MCC="$2"; shift 2 ;;
+            --vplmn-mnc) VPLMN_MNC="$2"; shift 2 ;;
+            --vplmn-mcc) VPLMN_MCC="$2"; shift 2 ;;
+            --dry-run) DRY_RUN=true; shift ;;
+            --force) FORCE=true; shift ;;
+            --backup-only)
+                check_prerequisites
+                backup_coredns
+                exit 0
+                ;;
+            --restore)
+                check_prerequisites
+                if [[ ! -f "$2" ]]; then
+                    error "Backup file not found: $2"
+                    exit 1
+                fi
+                microk8s kubectl apply -f "$2"
+                microk8s kubectl rollout restart deployment/coredns -n kube-system
+                success "CoreDNS restored and restarted"
+                exit 0
+                ;;
+            --status)
+                check_prerequisites
+                show_current_config
+                exit 0
+                ;;
+            --test)
+                check_prerequisites
+                test_dns_resolution "$HPLMN_MNC" "$HPLMN_MCC" "$VPLMN_MNC" "$VPLMN_MCC"
+                exit 0
+                ;;
+            --remove)
+                check_prerequisites
+                backup_coredns
+                remove_rewrite_rules
+                exit 0
+                ;;
+            --help|-h) show_usage; exit 0 ;;
+            *) error "Unknown option: $1"; show_usage; exit 1 ;;
+        esac
     done
     
-    if [[ "$test_failed" == false ]]; then
-        success "DNS resolution testing completed successfully"
-    else
-        warning "DNS resolution testing completed with some failures"
-        info "Note: Failures may be expected if services are not yet deployed"
+    # Main execution flow
+    info "CoreDNS Rewrite Configuration"
+    info "HPLMN: MNC=$HPLMN_MNC, MCC=$HPLMN_MCC"
+    info "VPLMN: MNC=$VPLMN_MNC, MCC=$VPLMN_MCC"
+    
+    check_prerequisites
+    
+    local backup_file
+    backup_file=$(backup_coredns)
+    
+    if [[ "$FORCE" == false && "$DRY_RUN" == false ]]; then
+        echo
+        read -p "Proceed with updating CoreDNS? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            info "Aborted"
+            exit 0
+        fi
+    fi
+    
+    update_coredns_config "$HPLMN_MNC" "$HPLMN_MCC" "$VPLMN_MNC" "$VPLMN_MCC"
+    
+    if [[ "$DRY_RUN" == false ]]; then
+        success "CoreDNS configured successfully!"
+        info "Backup: $backup_file"
+        info "Test with: $0 --test"
+        info "Remove with: $0 --remove"
     fi
 }
 
-# ===============================
-# Main
-# ===============================
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --hplmn-mnc)
-            if [[ -z "$2" ]]; then
-                error "Missing value for --hplmn-mnc"
-                exit 1
-            fi
-            HPLMN_MNC="$2"
-            shift 2
-            ;;
-        --hplmn-mcc)
-            if [[ -z "$2" ]]; then
-                error "Missing value for --hplmn-mcc"
-                exit 1
-            fi
-            HPLMN_MCC="$2"
-            shift 2
-            ;;
-        --vplmn-mnc)
-            if [[ -z "$2" ]]; then
-                error "Missing value for --vplmn-mnc"
-                exit 1
-            fi
-            VPLMN_MNC="$2"
-            shift 2
-            ;;
-        --vplmn-mcc)
-            if [[ -z "$2" ]]; then
-                error "Missing value for --vplmn-mcc"
-                exit 1
-            fi
-            VPLMN_MCC="$2"
-            shift 2
-            ;;
-        --dry-run)
-            DRY_RUN=true
-            shift
-            ;;
-        --force)
-            FORCE=true
-            shift
-            ;;
-        --backup-only)
-            check_prerequisites
-            backup_coredns_config
-            exit 0
-            ;;
-        --restore)
-            if [[ -z "$2" ]]; then
-                error "Missing backup file for --restore"
-                exit 1
-            fi
-            RESTORE_FILE="$2"
-            shift 2
-            check_prerequisites
-            restore_coredns_config "$RESTORE_FILE"
-            exit 0
-            ;;
-        --status)
-            check_prerequisites
-            show_current_config
-            exit 0
-            ;;
-        --test)
-            check_prerequisites
-            test_dns_resolution "$HPLMN_MNC" "$HPLMN_MCC" "$VPLMN_MNC" "$VPLMN_MCC"
-            exit 0
-            ;;
-        --help|-h)
-            show_usage
-            exit 0
-            ;;
-        *)
-            error "Unknown option: $1"
-            show_usage
-            exit 1
-            ;;
-    esac
-done
-
-# Main execution
-info "CoreDNS Rewrite Configuration Script"
-info "HPLMN: MNC=$HPLMN_MNC, MCC=$HPLMN_MCC"
-info "VPLMN: MNC=$VPLMN_MNC, MCC=$VPLMN_MCC"
-
-# Check prerequisites
-check_prerequisites
-
-# Create backup (even for dry run)
-backup_coredns_config
-
-# Show current configuration 
-show_current_config
-
-# Confirm action
-if [[ "$FORCE" == false && "$DRY_RUN" == false ]]; then
-    echo
-    read -p "Do you want to proceed with updating CoreDNS configuration? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        info "Aborted by user"
-        exit 0
-    fi
-fi
-
-# Update configuration
-update_coredns_config "$HPLMN_MNC" "$HPLMN_MCC" "$VPLMN_MNC" "$VPLMN_MCC"
-
-if [[ "$DRY_RUN" == false ]]; then
-    success "CoreDNS rewrite rules have been configured successfully!"
-    info "Backup saved to: $BACKUP_FILE"
-    echo
-    info "You can now test DNS resolution with:"
-    info "  $0 --test"
-    echo
-    info "If you need to restore the previous configuration:"
-    info "  $0 --restore $BACKUP_FILE"
-fi 
+# Run main function with all arguments
+main "$@" 
