@@ -146,9 +146,15 @@ update_coredns_config() {
     local current_config
     current_config=$(microk8s kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}')
     
-    # Remove existing Open5GS rules if any
-    current_config=$(echo "$current_config" | sed '/# Open5GS 3GPP DNS Rewrite Rules/,/sepp-n32f\.vplmn\.svc\.cluster\.local/d')
+    # Remove any existing Open5GS rules
+    # First remove the entire block if it exists
+    current_config=$(echo "$current_config" | sed '/# Open5GS 3GPP DNS Rewrite Rules/,/sepp-n32f\.[vh]plmn\.svc\.cluster\.local/d')
+    
+    # Then remove any individual rewrite rules that might have been added separately
     current_config=$(echo "$current_config" | sed '/rewrite name.*3gppnetwork\.org/d')
+    
+    # Remove any empty lines that might have been left behind
+    current_config=$(echo "$current_config" | sed '/^[[:space:]]*$/d')
     
     # Generate new rewrite rules
     local rewrite_rules
