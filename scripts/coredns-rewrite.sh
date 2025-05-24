@@ -105,32 +105,32 @@ generate_rewrite_rules() {
     
     cat << EOF
 
-      # Open5GS 3GPP DNS Rewrite Rules
-      # HPLMN (MNC: $hplmn_mnc, MCC: $hplmn_mcc)
-      rewrite name nrf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org nrf.hplmn.svc.cluster.local
-      rewrite name scp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org scp.hplmn.svc.cluster.local
-      rewrite name udr.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org udr.hplmn.svc.cluster.local
-      rewrite name udm.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org udm.hplmn.svc.cluster.local
-      rewrite name ausf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org ausf.hplmn.svc.cluster.local
-      rewrite name sepp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp.hplmn.svc.cluster.local
-      rewrite name sepp1.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32c.hplmn.svc.cluster.local
-      rewrite name sepp2.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32f.hplmn.svc.cluster.local
-      
-      # VPLMN (MNC: $vplmn_mnc, MCC: $vplmn_mcc)
-      rewrite name nrf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org nrf.vplmn.svc.cluster.local
-      rewrite name scp.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org scp.vplmn.svc.cluster.local
-      rewrite name udr.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org udr.vplmn.svc.cluster.local
-      rewrite name udm.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org udm.vplmn.svc.cluster.local
-      rewrite name pcf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org pcf.vplmn.svc.cluster.local
-      rewrite name upf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org upf.vplmn.svc.cluster.local
-      rewrite name smf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org smf.vplmn.svc.cluster.local
-      rewrite name amf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org amf.vplmn.svc.cluster.local
-      rewrite name bsf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org bsf.vplmn.svc.cluster.local
-      rewrite name nssf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org nssf.vplmn.svc.cluster.local
-      rewrite name ausf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org ausf.vplmn.svc.cluster.local
-      rewrite name sepp.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp.vplmn.svc.cluster.local
-      rewrite name sepp1.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp-n32c.vplmn.svc.cluster.local
-      rewrite name sepp2.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp-n32f.vplmn.svc.cluster.local
+    # Open5GS 3GPP DNS Rewrite Rules
+    # HPLMN (MNC: $hplmn_mnc, MCC: $hplmn_mcc)
+    rewrite name nrf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org nrf.hplmn.svc.cluster.local
+    rewrite name scp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org scp.hplmn.svc.cluster.local
+    rewrite name udr.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org udr.hplmn.svc.cluster.local
+    rewrite name udm.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org udm.hplmn.svc.cluster.local
+    rewrite name ausf.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org ausf.hplmn.svc.cluster.local
+    rewrite name sepp.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp.hplmn.svc.cluster.local
+    rewrite name sepp1.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32c.hplmn.svc.cluster.local
+    rewrite name sepp2.5gc.mnc$hplmn_mnc.mcc$hplmn_mcc.3gppnetwork.org sepp-n32f.hplmn.svc.cluster.local
+    
+    # VPLMN (MNC: $vplmn_mnc, MCC: $vplmn_mcc)
+    rewrite name nrf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org nrf.vplmn.svc.cluster.local
+    rewrite name scp.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org scp.vplmn.svc.cluster.local
+    rewrite name udr.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org udr.vplmn.svc.cluster.local
+    rewrite name udm.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org udm.vplmn.svc.cluster.local
+    rewrite name pcf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org pcf.vplmn.svc.cluster.local
+    rewrite name upf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org upf.vplmn.svc.cluster.local
+    rewrite name smf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org smf.vplmn.svc.cluster.local
+    rewrite name amf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org amf.vplmn.svc.cluster.local
+    rewrite name bsf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org bsf.vplmn.svc.cluster.local
+    rewrite name nssf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org nssf.vplmn.svc.cluster.local
+    rewrite name ausf.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org ausf.vplmn.svc.cluster.local
+    rewrite name sepp.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp.vplmn.svc.cluster.local
+    rewrite name sepp1.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp-n32c.vplmn.svc.cluster.local
+    rewrite name sepp2.5gc.mnc$vplmn_mnc.mcc$vplmn_mcc.3gppnetwork.org sepp-n32f.vplmn.svc.cluster.local
 EOF
 }
 

@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: pcf
-          image: docker.io/library/pcf-local:v2.7.5
+          image: docker.io/vinch05/pcf-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-pcfd", "-c", "/etc/open5gs/pcf.yaml" ]
+          command: ['open5gs-pcfd', '-c', '/etc/open5gs/pcf.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/pcf.yaml
@@ -28,4 +28,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: pcf-config 
+            name: pcf-config

@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: nssf
-          image: docker.io/library/nssf-local:v2.7.5
+          image: docker.io/vinch05/nssf-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-nssfd", "-c", "/etc/open5gs/nssf.yaml" ]
+          command: ['open5gs-nssfd', '-c', '/etc/open5gs/nssf.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/nssf.yaml
@@ -28,4 +28,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: nssf-config 
+            name: nssf-config

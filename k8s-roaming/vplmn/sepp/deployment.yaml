@@ -15,14 +15,14 @@ spec:
     spec:
       containers:
         - name: sepp
-          image: docker.io/library/sepp-new-v2:v2.7.5
+          image: docker.io/vinch05/sepp-new-v2:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml" ]
+          command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
               subPath: sepp.yaml
-            - name: pcap-volume              
+            - name: pcap-volume
               mountPath: /pcap
             - name: tls-n32c
               mountPath: /etc/open5gs/tls/n32c
@@ -32,7 +32,7 @@ spec:
               readOnly: true
             - name: tls-ca
               mountPath: /etc/open5gs/tls/ca
-              readOnly: true 
+              readOnly: true
           ports:
             - containerPort: 80
               name: sbi
@@ -45,8 +45,8 @@ spec:
         - name: sniffer
           image: corfr/tcpdump
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args: ["tcpdump -i any -w /pcap/sepp.pcap"]
+          command: ['/bin/sh', '-c']
+          args: ['tcpdump -i any -w /pcap/sepp.pcap']
           securityContext:
             privileged: true
           volumeMounts:

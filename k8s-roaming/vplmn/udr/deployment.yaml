@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: udr
-          image: docker.io/library/udr-local:v2.7.5
+          image: docker.io/vinch05/udr-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-udrd", "-c", "/etc/open5gs/udr.yaml" ]
+          command: ['open5gs-udrd', '-c', '/etc/open5gs/udr.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/udr.yaml

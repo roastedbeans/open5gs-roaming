@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: smf
-          image: docker.io/library/smf-local:v2.7.5
+          image: docker.io/vinch05/smf-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-smfd", "-c", "/etc/open5gs/smf.yaml" ]
+          command: ['open5gs-smfd', '-c', '/etc/open5gs/smf.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/smf.yaml
@@ -32,4 +32,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: smf-config 
+            name: smf-config

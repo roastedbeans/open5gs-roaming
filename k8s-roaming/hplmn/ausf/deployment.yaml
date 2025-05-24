@@ -15,17 +15,17 @@ spec:
     spec:
       containers:
         - name: ausf
-          image: docker.io/library/ausf-local:v2.7.5
+          image: docker.io/vinch05/ausf-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-ausfd", "-c", "/etc/open5gs/ausf.yaml"]
+          command: ['open5gs-ausfd', '-c', '/etc/open5gs/ausf.yaml']
           volumeMounts:
-          - name: config
-            mountPath: /etc/open5gs/ausf.yaml
-            subPath: ausf.yaml
+            - name: config
+              mountPath: /etc/open5gs/ausf.yaml
+              subPath: ausf.yaml
           ports:
             - containerPort: 80
               name: sbi
       volumes:
-      - name: config
-        configMap:
-          name: ausf-config
+        - name: config
+          configMap:
+            name: ausf-config

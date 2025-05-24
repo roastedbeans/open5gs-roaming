@@ -178,6 +178,20 @@ cmd_deploy_roaming() {
     
     info "Deploying complete roaming setup..."
     
+    # First, configure CoreDNS rewrite rules
+    info "Configuring CoreDNS rewrite rules..."
+    cmd_coredns_rewrite || {
+        error "Failed to configure CoreDNS rewrite rules"
+        return 1
+    }
+    
+    # Deploy certificates
+    info "Deploying certificates..."
+    cmd_deploy_certs || {
+        error "Failed to deploy certificates"
+        return 1
+    }
+    
     # Deploy HPLMN
     if [[ "$with_mongodb" == true ]]; then
         cmd_deploy_hplmn --tag "$tag"

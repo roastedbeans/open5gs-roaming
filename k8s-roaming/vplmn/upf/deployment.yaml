@@ -15,13 +15,13 @@ spec:
     spec:
       containers:
         - name: upf
-          image: docker.io/library/upf-local:v2.7.5
-          imagePullPolicy: IfNotPresent 
-          command: [ "open5gs-upfd", "-c", "/etc/open5gs/upf.yaml" ]
+          image: docker.io/vinch05/upf-local:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: ['open5gs-upfd', '-c', '/etc/open5gs/upf.yaml']
           securityContext:
             privileged: true
             capabilities:
-              add: ["NET_ADMIN", "NET_RAW", "SYS_ADMIN"]
+              add: ['NET_ADMIN', 'NET_RAW', 'SYS_ADMIN']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/upf.yaml

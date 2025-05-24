@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: amf
-          image: docker.io/library/amf-local:v2.7.5
+          image: docker.io/vinch05/amf-local:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: [ "open5gs-amfd", "-c", "/etc/open5gs/amf.yaml" ]
+          command: ['open5gs-amfd', '-c', '/etc/open5gs/amf.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/amf.yaml
