@@ -41,6 +41,9 @@ declare -A SCRIPTS=(
     ["cert-deploy"]="cert-deploy.sh"
     ["cert-generate"]="cert/generate-sepp-certs.sh"
     
+    # DNS configuration
+    ["coredns-rewrite"]="coredns-rewrite.sh"
+    
     # Database management
     ["mongodb-hplmn"]="mongodb-hplmn.sh"
     ["mongodb44-setup"]="mongodb44-setup.sh"
@@ -50,6 +53,9 @@ declare -A SCRIPTS=(
     # Management & Monitoring
     ["restart-pods"]="restart-pods.sh"
     ["get-status"]="get-status.sh"
+    
+    # WebUI
+    ["deploy-webui"]="kubectl-deploy-webui.sh"
     
     # Cleanup
     ["microk8s-clean"]="microk8s-clean.sh"
@@ -62,6 +68,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Deployment"]="deploy-hplmn deploy-vplmn deploy-roaming docker-deploy"
     ["Image Management"]="pull-images import-images update-configs"
     ["Certificate Management"]="generate-certs deploy-certs"
+    ["DNS Configuration"]="coredns-rewrite"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
     ["Management & Monitoring"]="restart-pods get-status"
     ["Cleanup"]="clean-k8s clean-docker"
@@ -235,6 +242,9 @@ cmd_generate_certs() {
 
 cmd_deploy_certs() { run_script "cert-deploy" "$@"; }
 
+# DNS Configuration
+cmd_coredns_rewrite() { run_script "coredns-rewrite" "$@"; }
+
 # Database Management
 cmd_mongodb_hplmn() { run_script "mongodb-hplmn" "$@"; }
 cmd_mongodb_install() { run_script "mongodb44-setup" "$@"; }
@@ -244,6 +254,9 @@ cmd_subscribers() { run_script "subscribers" "$@"; }
 # Management & Monitoring
 cmd_restart_pods() { run_script "restart-pods" "$@"; }
 cmd_get_status() { run_script "get-status" "$@"; }
+
+# WebUI
+cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
 
 # Cleanup
 cmd_clean_k8s() { run_script "microk8s-clean" "$@"; }
@@ -277,6 +290,9 @@ $(warning "🔐 Certificates:")
   generate-certs      Generate TLS certificates
   deploy-certs        Deploy certificates as K8s secrets
 
+$(warning "🌐 DNS Configuration:")
+  coredns-rewrite     Configure CoreDNS rewrite rules for 3GPP names
+
 $(warning "🗄️ Database:")
   mongodb-hplmn       Deploy MongoDB for HPLMN
   mongodb-install     Install MongoDB 4.4 locally
@@ -286,6 +302,9 @@ $(warning "🗄️ Database:")
 $(warning "🔧 Management & Monitoring:")
   restart-pods        Restart pods in Open5GS namespaces
   get-status          Show status of Open5GS deployments
+
+$(warning "🌐 WebUI:")
+  deploy-webui        Deploy Open5GS WebUI (HPLMN only)
 
 $(warning "🧹 Cleanup:")
   clean-k8s           Clean Kubernetes resources
@@ -379,6 +398,49 @@ Examples:
   $0 get-status --namespace hplmn
 EOF
             ;;
+        deploy-webui)
+            cat << EOF
+$(info "deploy-webui - Deploy Open5GS WebUI")
+
+Operations:
+  --namespace, -n NS   Deploy to specific namespace (default: hplmn)
+  --force, -f          Skip confirmation prompt
+
+Examples:
+  $0 deploy-webui
+  $0 deploy-webui --force
+  $0 deploy-webui --namespace hplmn
+
+Note: WebUI is only available for HPLMN namespace and connects to HPLMN MongoDB
+Access: http://NODE_IP:30999 (default credentials: admin / 1423)
+EOF
+            ;;
+        coredns-rewrite)
+            cat << EOF
+$(info "coredns-rewrite - Configure CoreDNS Rewrite Rules")
+
+Operations:
+  --hplmn-mnc MNC      HPLMN MNC code (default: 001)
+  --hplmn-mcc MCC      HPLMN MCC code (default: 001)  
+  --vplmn-mnc MNC      VPLMN MNC code (default: 070)
+  --vplmn-mcc MCC      VPLMN MCC code (default: 999)
+  --dry-run            Preview changes without applying
+  --force              Skip confirmation prompts
+  --backup-only        Create backup without changes
+  --restore FILE       Restore from backup file
+  --status             Show current CoreDNS config
+  --test               Test DNS resolution
+
+Examples:
+  $0 coredns-rewrite                        # Add default rules
+  $0 coredns-rewrite --dry-run              # Preview changes
+  $0 coredns-rewrite --hplmn-mnc 001 --hplmn-mcc 001
+  $0 coredns-rewrite --backup-only          # Backup only
+  $0 coredns-rewrite --test                 # Test DNS resolution
+
+Note: Configures 3GPP FQDN to Kubernetes service name mappings in CoreDNS
+EOF
+            ;;
         *)
             warning "No detailed help available for: $cmd"
             ;;
@@ -430,6 +492,9 @@ case $command in
     generate-certs) cmd_generate_certs "$@" ;;
     deploy-certs) cmd_deploy_certs "$@" ;;
     
+    # DNS Configuration
+    coredns-rewrite) cmd_coredns_rewrite "$@" ;;
+    
     # Database
     mongodb-hplmn) cmd_mongodb_hplmn "$@" ;;
     mongodb-install) cmd_mongodb_install "$@" ;;
@@ -439,6 +504,9 @@ case $command in
     # Management & Monitoring
     restart-pods) cmd_restart_pods "$@" ;;
     get-status) cmd_get_status "$@" ;;
+    
+    # WebUI
+    deploy-webui) cmd_deploy_webui "$@" ;;
     
     # Cleanup
     clean-k8s) cmd_clean_k8s "$@" ;;

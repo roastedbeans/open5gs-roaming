@@ -17,6 +17,9 @@ spec:
         - name: webui
           image: docker.io/vinch05/webui:v2.7.5
           imagePullPolicy: IfNotPresent
+          command: ['npm']
+          args: ['run', 'dev']
+          workingDir: /usr/local/src/webui
           env:
             - name: DB_URI
               value: 'mongodb://mongodb.hplmn.svc.cluster.local:27017/open5gs'

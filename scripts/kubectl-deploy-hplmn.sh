@@ -89,12 +89,22 @@ deploy_components "sepp"
 echo -e "${GREEN}Core Network Functions deployed successfully${NC}"
 
 # Step 4: Deploy MongoDb if needed
-echo -e "${YELLOW}[4/4] Deploying MongoDB...${NC}"
+echo -e "${YELLOW}[4/5] Deploying MongoDB...${NC}"
 if [ -d "$BASE_DIR/$NAMESPACE/mongodb" ]; then
     deploy_components "mongodb"
     echo -e "${GREEN}MongoDB deployed successfully${NC}"
 else
     echo -e "${YELLOW}No MongoDB directory found, skipping...${NC}"
+fi
+
+# Step 5: Deploy WebUI
+echo -e "${YELLOW}[5/5] Deploying WebUI...${NC}"
+if [ -d "$BASE_DIR/$NAMESPACE/webui" ]; then
+    deploy_components "webui"
+    echo -e "${GREEN}WebUI deployed successfully${NC}"
+    echo -e "${BLUE}WebUI will be available at: http://NODE_IP:30999${NC}"
+else
+    echo -e "${YELLOW}No WebUI directory found, skipping...${NC}"
 fi
 
 # Deploy packet capture if available
