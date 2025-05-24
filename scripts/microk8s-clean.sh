@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MicroK8s Cleanup Script for Open5GS
-# This script removes all Open5GS related resources from a MicroK8s namespace
+# This script removes all Open5GS related resources and the namespace from MicroK8s
 
 # Exit on error
 set -e
@@ -60,6 +60,7 @@ if [ "$FORCE" != "true" ]; then
   echo -e "${RED}WARNING: This will delete ALL resources in namespace $NAMESPACE${NC}"
   echo -e "${RED}This includes all deployments, services, configmaps, etc.${NC}"
   echo -e "${YELLOW}Data in persistent volumes may be lost${NC}"
+  echo -e "${RED}The namespace itself will also be deleted${NC}"
   echo ""
   read -p "Are you sure you want to continue? (y/N): " -n 1 -r
   echo ""
@@ -80,6 +81,10 @@ RESOURCE_TYPES=(
   "persistentvolumeclaims"
   "pods"
   "secrets"
+  "replicasets"
+  "daemonsets"
+  "jobs"
+  "cronjobs"
 )
 
 # Delete resources by type
@@ -149,22 +154,15 @@ elif [ "$FORCE" != "true" ]; then
   fi
 fi
 
-# Verify cleanup
-remaining_resources=0
-for resource_type in "${RESOURCE_TYPES[@]}"; do
-  count=$(microk8s kubectl get $resource_type -n $NAMESPACE -o name 2>/dev/null | wc -l)
-  remaining_resources=$((remaining_resources + count))
-done
+# Delete namespace
+echo -e "${YELLOW}Deleting namespace $NAMESPACE...${NC}"
+microk8s kubectl delete namespace $NAMESPACE --force --grace-period=0 2>/dev/null || true
 
-if [ "$remaining_resources" -eq 0 ]; then
-  echo -e "${GREEN}Cleanup complete! All resources have been removed from namespace $NAMESPACE${NC}"
+# Verify namespace deletion
+if ! microk8s kubectl get namespace $NAMESPACE &> /dev/null; then
+  echo -e "${GREEN}Cleanup complete! Namespace $NAMESPACE has been removed${NC}"
 else
-  echo -e "${YELLOW}Warning: $remaining_resources resources could not be deleted. You may need to delete them manually${NC}"
-  # List remaining resources
-  for resource_type in "${RESOURCE_TYPES[@]}"; do
-    microk8s kubectl get $resource_type -n $NAMESPACE --no-headers 2>/dev/null || true
-  done
+  echo -e "${YELLOW}Warning: Namespace $NAMESPACE could not be deleted. You may need to delete it manually${NC}"
 fi
 
-echo -e "${GREEN}MicroK8s cleanup operation completed.${NC}"
-echo -e "${BLUE}You can now redeploy your applications to namespace $NAMESPACE${NC}" 
+echo -e "${GREEN}MicroK8s cleanup operation completed.${NC}" 
