@@ -7,34 +7,24 @@ global:
 smf:
   sbi:
     server:
-    - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
-      port: 80
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+        port: 80
     client:
       scp:
         - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org:80
   pfcp:
     server:
-    - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
     client:
       upf:
-      - address: upf.5gc.mnc070.mcc999.3gppnetwork.org
+        - address: upf.5gc.mnc070.mcc999.3gppnetwork.org
   gtpu:
     server:
-    - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
   session:
-  - subnet: 10.45.0.0/16
-    gateway: 10.45.0.1
-    dnn: internet
-    plmn_id:
-      mcc: 999
-      mnc: 70
-  - subnet: 10.46.0.0/16
-    gateway: 10.46.0.1
-    dnn: internet
-    plmn_id:
-      mcc: 1
-      mnc: 1
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
   dns:
-  - 8.8.8.8
-  - 8.8.4.4
+    - 8.8.8.8
+    - 8.8.4.4
   mtu: 1400

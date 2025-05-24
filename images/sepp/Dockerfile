@@ -19,10 +19,10 @@ RUN apt-get update && apt-get install libgnutls28-dev libgcrypt-dev libtalloc-de
 COPY --from=builder /open5gs/install/bin/open5gs-seppd /usr/local/bin/open5gs-seppd
 COPY --from=builder /open5gs/install/etc/open5gs/sepp1.yaml /etc/open5gs/default/sepp.yaml
 COPY --from=builder /open5gs/install/etc/open5gs/tls/ca.crt /open5gs/install/etc/open5gs/tls/sepp1.crt \
-    /open5gs/install/etc/open5gs/tls/sepp1.key /etc/open5gs/default/tls/
+/open5gs/install/etc/open5gs/tls/sepp1.key /etc/open5gs/default/tls/
 COPY --from=builder /open5gs/install/lib/*/libogsproto.so.2 /open5gs/install/lib/*/libogscore.so.2 \
-    /open5gs/install/lib/*/libogssbi.so.2 /open5gs/install/lib/*/libogsapp.so.2 /open5gs/install/lib/*/libogssbi-openapi.so.2 \
-    /open5gs/install/lib/*/libogscrypt.so.2 /usr/local/lib/
+/open5gs/install/lib/*/libogssbi.so.2 /open5gs/install/lib/*/libogsapp.so.2 /open5gs/install/lib/*/libogssbi-openapi.so.2 \
+/open5gs/install/lib/*/libogscrypt.so.2 /usr/local/lib/
 
 # configure dynamically linked libraries
 RUN ldconfig
