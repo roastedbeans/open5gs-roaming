@@ -3,6 +3,10 @@ kind: StatefulSet
 metadata:
   name: mongodb
   namespace: hplmn
+  labels:
+    app: mongodb
+    component: database
+    part-of: open5gs
 spec:
   serviceName: mongodb
   replicas: 1
@@ -13,30 +17,78 @@ spec:
     metadata:
       labels:
         app: mongodb
+        component: database
+        part-of: open5gs
     spec:
       containers:
         - name: mongodb
-          image: mongo:4.4
+          image: mongo:4.4.18 # Pin to specific version
           ports:
             - containerPort: 27017
+              name: mongodb
+          # Resource limits to prevent OOM issues
+          resources:
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+          # Health probes for proper startup detection
+          readinessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ismaster')"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ismaster')"
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # Environment variables for configuration
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: 'open5gs'
           volumeMounts:
             - name: db-data
               mountPath: /data/db
             - name: db-config
               mountPath: /data/configdb
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-script
+          configMap:
+            name: mongodb-init
+            defaultMode: 0755
   volumeClaimTemplates:
     - metadata:
         name: db-data
+        labels:
+          app: mongodb
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ['ReadWriteOnce']
         storageClassName: microk8s-hostpath
         resources:
           requests:
-            storage: 1Gi
+            storage: 2Gi # Increased from 1Gi
     - metadata:
         name: db-config
+        labels:
+          app: mongodb
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ['ReadWriteOnce']
         storageClassName: microk8s-hostpath
         resources:
           requests:
