@@ -53,6 +53,7 @@ declare -A SCRIPTS=(
     # Management & Monitoring
     ["restart-pods"]="restart-pods.sh"
     ["get-status"]="get-status.sh"
+    ["pcap-capture"]="pcap-capture.sh"
     
     # WebUI
     ["deploy-webui"]="kubectl-deploy-webui.sh"
@@ -70,7 +71,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Certificate Management"]="generate-certs deploy-certs"
     ["DNS Configuration"]="coredns-rewrite"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
-    ["Management & Monitoring"]="restart-pods get-status"
+    ["Management & Monitoring"]="restart-pods get-status pcap-capture"
     ["Cleanup"]="clean-k8s clean-docker"
 )
 
@@ -313,6 +314,7 @@ cmd_subscribers() { run_script "subscribers" "$@"; }
 # Management & Monitoring
 cmd_restart_pods() { run_script "restart-pods" "$@"; }
 cmd_get_status() { run_script "get-status" "$@"; }
+cmd_pcap_capture() { run_script "pcap-capture" "$@"; }
 
 # WebUI
 cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
@@ -361,6 +363,7 @@ $(warning "🗄️ Database:")
 $(warning "🔧 Management & Monitoring:")
   restart-pods        Restart pods in Open5GS namespaces
   get-status          Show status of Open5GS deployments
+  pcap-capture        Capture and download SEPP packet captures
 
 $(warning "🌐 WebUI:")
   deploy-webui        Deploy Open5GS WebUI (HPLMN only)
@@ -380,6 +383,7 @@ $(warning "Examples:")
   $0 deploy-roaming --tag v2.7.6
   $0 mongodb-access --setup
   $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
+  $0 pcap-capture -n vplmn -o ./pcap-logs
 
 For detailed command help: $0 [command] --help
 EOF
@@ -500,6 +504,23 @@ Examples:
 Note: Configures 3GPP FQDN to Kubernetes service name mappings in CoreDNS
 EOF
             ;;
+        pcap-capture)
+            cat << EOF
+$(info "pcap-capture - SEPP Packet Capture Management")
+
+Options:
+  --namespace, -n NS   Kubernetes namespace (default: vplmn)
+  --output, -o DIR    Output directory for PCAP files (default: ./pcap-logs)
+  --help, -h          Show this help message
+
+Examples:
+  $0 pcap-capture                    # Capture from VPLMN SEPP
+  $0 pcap-capture -n hplmn          # Capture from HPLMN SEPP
+  $0 pcap-capture -o /tmp/pcaps     # Save to /tmp/pcaps
+
+Note: PCAP files are saved with timestamp and namespace in filename
+EOF
+            ;;
         *)
             warning "No detailed help available for: $cmd"
             ;;
@@ -563,6 +584,7 @@ case $command in
     # Management & Monitoring
     restart-pods) cmd_restart_pods "$@" ;;
     get-status) cmd_get_status "$@" ;;
+    pcap-capture) cmd_pcap_capture "$@" ;;
     
     # WebUI
     deploy-webui) cmd_deploy_webui "$@" ;;
