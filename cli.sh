@@ -194,15 +194,60 @@ cmd_deploy_roaming() {
     
     # Deploy HPLMN
     if [[ "$with_mongodb" == true ]]; then
+        info "Deploying HPLMN with MongoDB..."
         cmd_deploy_hplmn --tag "$tag"
+        
+        # Wait for MongoDB to be ready
+        info "Waiting for MongoDB to be ready..."
+        microk8s kubectl wait --for=condition=ready pods -l app=mongodb \
+            --namespace="hplmn" --timeout=180s || {
+            error "MongoDB failed to become ready"
+            return 1
+        }
     else
+        info "Deploying HPLMN without MongoDB..."
         cmd_deploy_hplmn --tag "$tag" --no-mongodb
     fi
     
-    sleep 10
+    # Wait for HPLMN NRF to be ready
+    info "Waiting for HPLMN NRF to be ready..."
+    microk8s kubectl wait --for=condition=ready pods -l app=nrf \
+        --namespace="hplmn" --timeout=120s || {
+        error "HPLMN NRF failed to become ready"
+        return 1
+    }
+    
+    # Wait for HPLMN core services to be ready
+    info "Waiting for HPLMN core services to be ready..."
+    for service in udr udm ausf; do
+        microk8s kubectl wait --for=condition=ready pods -l app=$service \
+            --namespace="hplmn" --timeout=120s || {
+            error "HPLMN $service failed to become ready"
+            return 1
+        }
+    done
     
     # Deploy VPLMN
+    info "Deploying VPLMN..."
     cmd_deploy_vplmn --tag "$tag"
+    
+    # Wait for VPLMN NRF to be ready
+    info "Waiting for VPLMN NRF to be ready..."
+    microk8s kubectl wait --for=condition=ready pods -l app=nrf \
+        --namespace="vplmn" --timeout=120s || {
+        error "VPLMN NRF failed to become ready"
+        return 1
+    }
+    
+    # Wait for VPLMN core services to be ready
+    info "Waiting for VPLMN core services to be ready..."
+    for service in udr udm ausf; do
+        microk8s kubectl wait --for=condition=ready pods -l app=$service \
+            --namespace="vplmn" --timeout=120s || {
+            error "VPLMN $service failed to become ready"
+            return 1
+        }
+    done
     
     success "Completed roaming deployment"
 }
