@@ -22,7 +22,7 @@ spec:
           workingDir: /usr/local/src/webui
           env:
             - name: DB_URI
-              value: 'mongodb://mongodb.hplmn.svc.cluster.local:27017/open5gs'
+              value: 'mongodb://mongodb.hplmn.svc.cluster.local/open5gs'
             - name: HOSTNAME
               value: '0.0.0.0'
             - name: PORT
