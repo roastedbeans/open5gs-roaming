@@ -5,7 +5,7 @@ metadata:
   namespace: vplmn
 data:
   pcf.yaml: |
-    # db_uri: mongodb://mongodb.hplmn.svc.cluster.local/open5gs
+    #db_uri: mongodb://mongodb.hplmn.svc.cluster.local:27017/open5gs
 
     logger:
       file:
