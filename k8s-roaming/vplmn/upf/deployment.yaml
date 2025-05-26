@@ -13,6 +13,22 @@ spec:
       labels:
         app: upf
     spec:
+      initContainers:
+      - name: setup-network
+        image: alpine:latest
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ['NET_ADMIN']
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Enable IP forwarding
+          echo 1 > /proc/sys/net/ipv4/ip_forward
+          # Set up NAT for internet access
+          apk add --no-cache iptables
+          iptables -t nat -A POSTROUTING -s 10.45.0.0/16 -o eth0 -j MASQUERADE
       containers:
         - name: upf
           image: docker.io/vinch05/upf:v2.7.5
