@@ -55,7 +55,14 @@ clean_namespace() {
   local namespace=$1
   echo -e "${BLUE}Cleaning namespace $namespace...${NC}"
   
+  # Check if namespace exists before attempting to clean it
+  if ! microk8s kubectl get namespace $namespace &> /dev/null; then
+    echo -e "${GREEN}Namespace $namespace does not exist, skipping...${NC}"
+    return 0
+  fi
+  
   # Delete all resources in the namespace
+  echo -e "${YELLOW}Deleting all resources in $namespace...${NC}"
   microk8s kubectl delete all --all -n $namespace --force --grace-period=0 2>/dev/null || true
   microk8s kubectl delete configmap,secret,pvc --all -n $namespace --force --grace-period=0 2>/dev/null || true
   
@@ -67,7 +74,34 @@ clean_namespace() {
   if ! microk8s kubectl get namespace $namespace &> /dev/null; then
     echo -e "${GREEN}Namespace $namespace has been removed${NC}"
   else
-    echo -e "${YELLOW}Warning: Namespace $namespace could not be deleted. You may need to delete it manually${NC}"
+    echo -e "${YELLOW}Namespace $namespace is stuck in Terminating state. Attempting to remove finalizers...${NC}"
+    
+    # Get the namespace in JSON format
+    NS_JSON=$(microk8s kubectl get namespace $namespace -o json)
+    
+    # Remove finalizers and update the namespace
+    echo "$NS_JSON" | jq '.spec.finalizers = []' > /tmp/ns-without-finalizers.json
+    
+    # Use kubectl replace or proxy to update the namespace without finalizers
+    echo -e "${YELLOW}Removing finalizers from namespace $namespace...${NC}"
+    microk8s kubectl proxy &
+    PROXY_PID=$!
+    sleep 2
+    
+    # Use curl to update the namespace directly via the API server
+    curl -k -H "Content-Type: application/json" -X PUT --data-binary @/tmp/ns-without-finalizers.json http://127.0.0.1:8001/api/v1/namespaces/$namespace/finalize
+    
+    # Kill the proxy
+    kill $PROXY_PID
+    
+    # Check if namespace is now deleted
+    if ! microk8s kubectl get namespace $namespace &> /dev/null; then
+      echo -e "${GREEN}Successfully removed namespace $namespace${NC}"
+    else
+      echo -e "${RED}Failed to remove namespace $namespace. You may need to check for stuck resources manually:${NC}"
+      echo -e "${YELLOW}Try running: microk8s kubectl get all -n $namespace${NC}"
+      echo -e "${YELLOW}For each stuck resource: microk8s kubectl patch <resource-type>/<resource-name> -n $namespace -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge${NC}"
+    fi
   fi
 }
 
