@@ -102,7 +102,6 @@ create_subscriber_document() {
     "slice": [
         {
             "sst": NumberInt(1),
-            "sd": "000001",
             "default_indicator": true,
             "session": [
                 {
