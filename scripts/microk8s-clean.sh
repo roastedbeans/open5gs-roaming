@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MicroK8s Cleanup Script for Open5GS
-# This script removes hplmn and vplmn namespaces and all their resources
+# This script removes resources in hplmn and vplmn namespaces but preserves the namespaces
 
 # Exit on error
 set -e
@@ -14,6 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 FORCE=false
+NAMESPACE=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -22,9 +23,14 @@ while [[ $# -gt 0 ]]; do
       FORCE=true
       shift
       ;;
+    --namespace|-n)
+      NAMESPACE="$2"
+      shift 2
+      ;;
     --help|-h)
-      echo "Usage: $0 [--force|-f]"
+      echo "Usage: $0 [--force|-f] [--namespace|-n <namespace>]"
       echo "  --force, -f: Skip confirmation prompt"
+      echo "  --namespace, -n: Specify a single namespace to clean (default: clean both hplmn and vplmn)"
       echo "  --help, -h: Display this help message"
       exit 0
       ;;
@@ -38,9 +44,13 @@ done
 
 # Display warning and ask for confirmation unless force mode is enabled
 if [ "$FORCE" != "true" ]; then
-  echo -e "${RED}WARNING: This will delete ALL resources in hplmn and vplmn namespaces${NC}"
+  if [ -z "$NAMESPACE" ]; then
+    echo -e "${RED}WARNING: This will delete ALL resources in hplmn and vplmn namespaces${NC}"
+  else
+    echo -e "${RED}WARNING: This will delete ALL resources in the $NAMESPACE namespace${NC}"
+  fi
   echo -e "${RED}This includes all deployments, services, configmaps, etc.${NC}"
-  echo -e "${RED}The namespaces themselves will also be deleted${NC}"
+  echo -e "${GREEN}Note: The namespaces themselves will be preserved${NC}"
   echo ""
   read -p "Are you sure you want to continue? (y/N): " -n 1 -r
   echo ""
@@ -50,63 +60,33 @@ if [ "$FORCE" != "true" ]; then
   fi
 fi
 
-# Function to clean a namespace
-clean_namespace() {
+# Function to clean resources in a namespace but preserve the namespace
+clean_namespace_resources() {
   local namespace=$1
-  echo -e "${BLUE}Cleaning namespace $namespace...${NC}"
+  echo -e "${BLUE}Cleaning resources in namespace $namespace...${NC}"
   
   # Check if namespace exists before attempting to clean it
   if ! microk8s kubectl get namespace $namespace &> /dev/null; then
-    echo -e "${GREEN}Namespace $namespace does not exist, skipping...${NC}"
+    echo -e "${YELLOW}Namespace $namespace does not exist, skipping...${NC}"
     return 0
   fi
   
   # Delete all resources in the namespace
   echo -e "${YELLOW}Deleting all resources in $namespace...${NC}"
   microk8s kubectl delete all --all -n $namespace --force --grace-period=0 2>/dev/null || true
-  microk8s kubectl delete configmap,secret,pvc --all -n $namespace --force --grace-period=0 2>/dev/null || true
+  microk8s kubectl delete configmap,secret,pvc,serviceaccount,rolebinding,role --all -n $namespace --force --grace-period=0 2>/dev/null || true
   
-  # Delete the namespace
-  echo -e "${YELLOW}Deleting namespace $namespace...${NC}"
-  microk8s kubectl delete namespace $namespace --force --grace-period=0 2>/dev/null || true
-  
-  # Verify namespace deletion
-  if ! microk8s kubectl get namespace $namespace &> /dev/null; then
-    echo -e "${GREEN}Namespace $namespace has been removed${NC}"
-  else
-    echo -e "${YELLOW}Namespace $namespace is stuck in Terminating state. Attempting to remove finalizers...${NC}"
-    
-    # Get the namespace in JSON format
-    NS_JSON=$(microk8s kubectl get namespace $namespace -o json)
-    
-    # Remove finalizers and update the namespace
-    echo "$NS_JSON" | jq '.spec.finalizers = []' > /tmp/ns-without-finalizers.json
-    
-    # Use kubectl replace or proxy to update the namespace without finalizers
-    echo -e "${YELLOW}Removing finalizers from namespace $namespace...${NC}"
-    microk8s kubectl proxy &
-    PROXY_PID=$!
-    sleep 2
-    
-    # Use curl to update the namespace directly via the API server
-    curl -k -H "Content-Type: application/json" -X PUT --data-binary @/tmp/ns-without-finalizers.json http://127.0.0.1:8001/api/v1/namespaces/$namespace/finalize
-    
-    # Kill the proxy
-    kill $PROXY_PID
-    
-    # Check if namespace is now deleted
-    if ! microk8s kubectl get namespace $namespace &> /dev/null; then
-      echo -e "${GREEN}Successfully removed namespace $namespace${NC}"
-    else
-      echo -e "${RED}Failed to remove namespace $namespace. You may need to check for stuck resources manually:${NC}"
-      echo -e "${YELLOW}Try running: microk8s kubectl get all -n $namespace${NC}"
-      echo -e "${YELLOW}For each stuck resource: microk8s kubectl patch <resource-type>/<resource-name> -n $namespace -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge${NC}"
-    fi
-  fi
+  echo -e "${GREEN}Resources in namespace $namespace have been cleaned${NC}"
 }
 
-# Clean both namespaces
-clean_namespace "hplmn"
-clean_namespace "vplmn"
+# Clean namespaces
+if [ -z "$NAMESPACE" ]; then
+  # Clean both default namespaces
+  clean_namespace_resources "hplmn"
+  clean_namespace_resources "vplmn"
+else
+  # Clean only the specified namespace
+  clean_namespace_resources "$NAMESPACE"
+fi
 
-echo -e "${GREEN}MicroK8s cleanup operation completed.${NC}" 
+echo -e "${GREEN}MicroK8s cleanup operation completed. Namespaces were preserved.${NC}" 
