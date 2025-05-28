@@ -73,7 +73,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUTPUT_FILE="${OUTPUT_DIR}/sepp_${NAMESPACE}_${TIMESTAMP}.pcap"
 
 info "Copying PCAP file from pod..."
-kubectl cp "$NAMESPACE/$POD_NAME:/pcap/sepp.pcap" "$OUTPUT_FILE"
+kubectl cp "$POD_NAME:/pcap/sepp.pcap" "$OUTPUT_FILE" sniffer -n $NAMESPACE
 
 if [[ $? -eq 0 ]]; then
     success "PCAP file saved to: $OUTPUT_FILE"
