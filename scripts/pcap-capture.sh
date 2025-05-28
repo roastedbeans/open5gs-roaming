@@ -18,14 +18,27 @@ echo -e "${BLUE}=== SEPP PCAP Extractor ===${NC}"
 echo -e "${YELLOW}Creating folder: ${LOCAL_FOLDER}${NC}"
 mkdir -p "$LOCAL_FOLDER"
 
+# Check kubectl connectivity first
+echo -e "${YELLOW}Checking kubectl connectivity...${NC}"
+if ! kubectl cluster-info >/dev/null 2>&1; then
+    echo -e "${RED}❌ Cannot connect to Kubernetes cluster${NC}"
+    echo -e "${YELLOW}Please check your kubectl configuration:${NC}"
+    echo -e "${BLUE}  - kubectl config current-context${NC}"
+    echo -e "${BLUE}  - kubectl cluster-info${NC}"
+    echo -e "${BLUE}  - export KUBECONFIG=/path/to/your/kubeconfig${NC}"
+    exit 1
+fi
+
 # Find SEPP pod
 echo -e "${YELLOW}Looking for SEPP pods in namespace: ${NAMESPACE}${NC}"
-SEPP_POD=$(kubectl get pods -n "$NAMESPACE" | grep sepp | awk '{print $1}' | head -1)
+SEPP_POD=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep sepp | awk '{print $1}' | head -1)
 
 if [ -z "$SEPP_POD" ]; then
     echo -e "${RED}❌ No SEPP pod found in namespace: ${NAMESPACE}${NC}"
-    echo -e "${YELLOW}Available pods:${NC}"
-    kubectl get pods -n "$NAMESPACE"
+    echo -e "${YELLOW}Available namespaces:${NC}"
+    kubectl get namespaces
+    echo -e "${YELLOW}Available pods in ${NAMESPACE}:${NC}"
+    kubectl get pods -n "$NAMESPACE" 2>/dev/null || echo "Namespace not found or no access"
     exit 1
 fi
 
