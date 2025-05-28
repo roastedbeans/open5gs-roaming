@@ -68,15 +68,35 @@ mkdir -p "$OUTPUT_DIR"
 
 # Get SEPP pod name
 info "Looking for SEPP pod in namespace $NAMESPACE..."
+
+# Try multiple methods to find the pod
+POD_NAME=""
+
+# Method 1: Try with app=sepp label
 POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=sepp -o jsonpath="{.items[0].metadata.name}" 2>/dev/null || true)
 
+# Method 2: Try finding pod with 'sepp' in name
 if [[ -z "$POD_NAME" ]]; then
     warning "No pod found with label app=sepp, trying to find pod with 'sepp' in name..."
-    POD_NAME=$(kubectl get pods -n "$NAMESPACE" -o name | grep sepp | head -1 | cut -d'/' -f2 2>/dev/null || true)
+    POD_NAME=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null | grep sepp | awk '{print $1}' | head -1 || true)
+fi
+
+# Method 3: Try with different selectors
+if [[ -z "$POD_NAME" ]]; then
+    warning "Trying alternative selectors..."
+    POD_NAME=$(kubectl get pods -n "$NAMESPACE" -o name 2>/dev/null | grep -i sepp | head -1 | cut -d'/' -f2 || true)
+fi
+
+# Method 4: Manual fallback - use the exact pod name we can see
+if [[ -z "$POD_NAME" ]]; then
+    warning "All methods failed, checking for known SEPP pod pattern..."
+    POD_NAME=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null | grep 'sepp-.*-.*' | awk '{print $1}' | head -1 || true)
 fi
 
 if [[ -z "$POD_NAME" ]]; then
     error "No SEPP pod found in namespace $NAMESPACE"
+    info "Available pods:"
+    kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null || error "Failed to list pods - check kubectl configuration"
     exit 1
 fi
 
