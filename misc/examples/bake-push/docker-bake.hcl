@@ -24,7 +24,7 @@ variable "FIVEG_MAG_REGISTRY" {
 
 group "default" {
   targets = ["base-open5gs", "amf", "ausf", "bsf", "nrf", "nssf",
-              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui"]
+              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui", "networkui"]
 }
 
 target "base-open5gs" {
@@ -346,6 +346,27 @@ target "webui" {
     "${GITHUB_REGISTRY}/webui:latest",
     "${FIVEG_MAG_REGISTRY}/webui:${OPEN5GS_VERSION}",
     #"${FIVEG_MAG_REGISTRY}/webui:latest"
+  ]
+  labels = {
+    "org.opencontainers.image.source" = "https://github.com/Borjis131/docker-open5gs"
+  }
+  output = ["type=registry"]
+}
+
+target "networkui" {
+  args = {
+    NODE_VERSION = "${NODE_VERSION}"
+    OPEN5GS_VERSION = "${OPEN5GS_VERSION}"
+  }
+  context = "./images/networkui"
+  platforms = ["linux/amd64", "linux/arm64"]
+  tags = [
+    "${DOCKER_REGISTRY}/networkui:${OPEN5GS_VERSION}",
+    "${DOCKER_REGISTRY}/networkui:latest",
+    "${GITHUB_REGISTRY}/networkui:${OPEN5GS_VERSION}",
+    "${GITHUB_REGISTRY}/networkui:latest",
+    "${FIVEG_MAG_REGISTRY}/networkui:${OPEN5GS_VERSION}",
+    #"${FIVEG_MAG_REGISTRY}/networkui:latest"
   ]
   labels = {
     "org.opencontainers.image.source" = "https://github.com/Borjis131/docker-open5gs"
