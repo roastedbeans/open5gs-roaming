@@ -20,7 +20,7 @@ DB_NAME="open5gs"
 COLLECTION_NAME="subscribers"
 DEFAULT_KEY="465B5CE8B199B49FAA5F0A2EE238A6BC"
 DEFAULT_OPC="E8ED289DEBA952E4283B54E88E6183CA"
-BATCH_SIZE=10
+BATCH_SIZE=100
 
 # Global variables
 START_IMSI=""
@@ -102,7 +102,6 @@ create_subscriber_document() {
     "slice": [
         {
             "sst": NumberInt(1),
-            "sd": "000001",
             "default_indicator": true,
             "session": [
                 {
@@ -379,51 +378,51 @@ EOF
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --add-range)
+        -r|--add-range)
             OPERATION="add-range"
             shift
             ;;
-        --add-single)
+        -a|--add-single)
             OPERATION="add-single"
             shift
             ;;
-        --delete-all)
+        -d|--delete-all)
             OPERATION="delete-all"
             shift
             ;;
-        --list-subscribers)
+        -l|--list)
             OPERATION="list"
             shift
             ;;
-        --count-subscribers)
+        -c|--count)
             OPERATION="count"
             shift
             ;;
-        --start-imsi)
+        -s|--start-imsi)
             START_IMSI="$2"
             shift 2
             ;;
-        --end-imsi)
+        -e|--end-imsi)
             END_IMSI="$2"
             shift 2
             ;;
-        --imsi)
+        -i|--imsi)
             START_IMSI="$2"
             shift 2
             ;;
-        --key)
+        -k|--key)
             CUSTOM_KEY="$2"
             shift 2
             ;;
-        --opc)
+        -o|--opc)
             CUSTOM_OPC="$2"
             shift 2
             ;;
-        --batch-size)
+        -b|--batch-size)
             BATCH_SIZE="$2"
             shift 2
             ;;
-        --help)
+        -h|--help)
             show_usage
             exit 0
             ;;

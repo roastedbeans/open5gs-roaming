@@ -1,84 +1,118 @@
 #!/bin/bash
 
-# Open5GS Packet Capture Management Script
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-set -e
-
-# Colors
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly BLUE='\033[0;34m'
-readonly YELLOW='\033[1;33m'
-readonly NC='\033[0m' # No Color
-
-# Helper functions
-error() { echo -e "${RED}Error: $@${NC}" >&2; }
-info() { echo -e "${BLUE}$@${NC}"; }
-success() { echo -e "${GREEN}$@${NC}"; }
-warning() { echo -e "${YELLOW}$@${NC}"; }
-
-# Default values
+# Configuration
 NAMESPACE="vplmn"
-OUTPUT_DIR="./pcap-logs"
-POD_NAME=""
+PCAP_PATH="pcap/sepp.pcap"
+LOCAL_FOLDER="pcap-logs"
 
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --namespace|-n)
-            NAMESPACE="$2"
-            shift 2
-            ;;
-        --output|-o)
-            OUTPUT_DIR="$2"
-            shift 2
-            ;;
-        --help|-h)
-            cat << EOF
-Usage: $0 [options]
+echo -e "${BLUE}=== SEPP PCAP Extractor ===${NC}"
 
-Options:
-    --namespace, -n    Kubernetes namespace (default: vplmn)
-    --output, -o      Output directory for PCAP files (default: ./pcap-logs)
-    --help, -h        Show this help message
+# Create local folder if it doesn't exist
+echo -e "${YELLOW}Creating folder: ${LOCAL_FOLDER}${NC}"
+mkdir -p "$LOCAL_FOLDER"
 
-Examples:
-    $0                    # Capture packets from VPLMN SEPP
-    $0 -n hplmn          # Capture packets from HPLMN SEPP
-    $0 -o /tmp/pcaps     # Save PCAP files to /tmp/pcaps
-EOF
-            exit 0
-            ;;
-        *)
-            error "Unknown option: $1"
-            exit 1
-            ;;
-    esac
-done
-
-# Create output directory if it doesn't exist
-mkdir -p "$OUTPUT_DIR"
-
-# Get SEPP pod name
-POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=sepp -o jsonpath="{.items[0].metadata.name}" 2>/dev/null)
-if [[ -z "$POD_NAME" ]]; then
-    error "No SEPP pod found in namespace $NAMESPACE"
+# Check kubectl connectivity first
+echo -e "${YELLOW}Checking kubectl connectivity...${NC}"
+if ! kubectl cluster-info >/dev/null 2>&1; then
+    echo -e "${RED}❌ Cannot connect to Kubernetes cluster${NC}"
+    echo -e "${YELLOW}Please check your kubectl configuration:${NC}"
+    echo -e "${BLUE}  - kubectl config current-context${NC}"
+    echo -e "${BLUE}  - kubectl cluster-info${NC}"
+    echo -e "${BLUE}  - export KUBECONFIG=/path/to/your/kubeconfig${NC}"
     exit 1
 fi
 
-info "Found SEPP pod: $POD_NAME"
+# Find SEPP pod
+echo -e "${YELLOW}Looking for SEPP pods in namespace: ${NAMESPACE}${NC}"
+SEPP_POD=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep sepp | awk '{print $1}' | head -1)
 
-# Copy PCAP file from the pod
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-OUTPUT_FILE="${OUTPUT_DIR}/sepp_${NAMESPACE}_${TIMESTAMP}.pcap"
-
-info "Copying PCAP file from pod..."
-kubectl cp "$NAMESPACE/$POD_NAME:/pcap/sepp.pcap" "$OUTPUT_FILE"
-
-if [[ $? -eq 0 ]]; then
-    success "PCAP file saved to: $OUTPUT_FILE"
-    info "You can analyze this file using Wireshark or tcpdump"
-else
-    error "Failed to copy PCAP file"
+if [ -z "$SEPP_POD" ]; then
+    echo -e "${RED}❌ No SEPP pod found in namespace: ${NAMESPACE}${NC}"
+    echo -e "${YELLOW}Available namespaces:${NC}"
+    kubectl get namespaces
+    echo -e "${YELLOW}Available pods in ${NAMESPACE}:${NC}"
+    kubectl get pods -n "$NAMESPACE" 2>/dev/null || echo "Namespace not found or no access"
     exit 1
-fi 
+fi
+
+echo -e "${GREEN}✅ Found SEPP pod: ${SEPP_POD}${NC}"
+
+# Check containers in the pod
+echo -e "${YELLOW}Checking containers in pod...${NC}"
+CONTAINERS=$(kubectl get pod "$SEPP_POD" -n "$NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
+echo -e "${BLUE}Available containers: ${CONTAINERS}${NC}"
+
+# Function to try copying from a container
+try_copy() {
+    local container=$1
+    local timestamp=$(date +%Y%m%d-%H%M%S)
+    local output_file="${LOCAL_FOLDER}/sepp-${timestamp}.pcap"
+    
+    echo -e "${YELLOW}Trying to copy from container: ${container}${NC}"
+    
+    # Check if file exists first
+    if kubectl exec "$SEPP_POD" -c "$container" -n "$NAMESPACE" -- test -f "$PCAP_PATH" 2>/dev/null; then
+        echo -e "${GREEN}✅ File exists in ${container} container${NC}"
+        
+        # Copy the file
+        if kubectl cp "${SEPP_POD}:${PCAP_PATH}" "$output_file" -c "$container" -n "$NAMESPACE"; then
+            echo -e "${GREEN}✅ Successfully copied to: ${output_file}${NC}"
+            
+            # Show file info
+            file_size=$(du -h "$output_file" | cut -f1)
+            echo -e "${BLUE}📁 File size: ${file_size}${NC}"
+            echo -e "${BLUE}📁 Full path: $(pwd)/${output_file}${NC}"
+            return 0
+        else
+            echo -e "${RED}❌ Failed to copy from ${container} container${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  File not found in ${container} container${NC}"
+        return 1
+    fi
+}
+
+# Try copying from sniffer container first (most likely location)
+if echo "$CONTAINERS" | grep -q "sniffer"; then
+    if try_copy "sniffer"; then
+        exit 0
+    fi
+fi
+
+# Try copying from sepp container
+if echo "$CONTAINERS" | grep -q "sepp"; then
+    if try_copy "sepp"; then
+        exit 0
+    fi
+fi
+
+# If both fail, try all containers
+echo -e "${YELLOW}Trying all containers...${NC}"
+success=false
+for container in $CONTAINERS; do
+    if try_copy "$container"; then
+        success=true
+        break
+    fi
+done
+
+if [ "$success" = false ]; then
+    echo -e "${RED}❌ Failed to find or copy pcap file from any container${NC}"
+    echo -e "${YELLOW}Manual check - listing files in containers:${NC}"
+    
+    for container in $CONTAINERS; do
+        echo -e "${BLUE}--- Container: ${container} ---${NC}"
+        kubectl exec "$SEPP_POD" -c "$container" -n "$NAMESPACE" -- find . -name "*.pcap" 2>/dev/null || echo "No pcap files found or no access"
+    done
+    exit 1
+fi
+
+echo -e "${GREEN}🎉 Done!${NC}"

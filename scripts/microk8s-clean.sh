@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MicroK8s Cleanup Script for Open5GS
-# This script removes hplmn and vplmn namespaces and all their resources
+# This script removes resources in hplmn and vplmn namespaces but preserves the namespaces
 
 # Exit on error
 set -e
@@ -14,23 +14,29 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 FORCE=false
+NAMESPACE=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --force|-f)
+    -f|--force)
       FORCE=true
       shift
       ;;
-    --help|-h)
-      echo "Usage: $0 [--force|-f]"
-      echo "  --force, -f: Skip confirmation prompt"
-      echo "  --help, -h: Display this help message"
+    -n|--namespace)
+      NAMESPACE="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: $0 [-f] [-n <namespace>]"
+      echo "  -f, --force: Skip confirmation prompt"
+      echo "  -n, --namespace: Specify a single namespace to clean (default: clean both hplmn and vplmn)"
+      echo "  -h, --help: Display this help message"
       exit 0
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Use --help for usage information"
+      echo "Use -h for usage information"
       exit 1
       ;;
   esac
@@ -38,9 +44,13 @@ done
 
 # Display warning and ask for confirmation unless force mode is enabled
 if [ "$FORCE" != "true" ]; then
-  echo -e "${RED}WARNING: This will delete ALL resources in hplmn and vplmn namespaces${NC}"
+  if [ -z "$NAMESPACE" ]; then
+    echo -e "${RED}WARNING: This will delete ALL resources in hplmn and vplmn namespaces${NC}"
+  else
+    echo -e "${RED}WARNING: This will delete ALL resources in the $NAMESPACE namespace${NC}"
+  fi
   echo -e "${RED}This includes all deployments, services, configmaps, etc.${NC}"
-  echo -e "${RED}The namespaces themselves will also be deleted${NC}"
+  echo -e "${GREEN}Note: The namespaces themselves will be preserved${NC}"
   echo ""
   read -p "Are you sure you want to continue? (y/N): " -n 1 -r
   echo ""
@@ -50,29 +60,33 @@ if [ "$FORCE" != "true" ]; then
   fi
 fi
 
-# Function to clean a namespace
-clean_namespace() {
+# Function to clean resources in a namespace but preserve the namespace
+clean_namespace_resources() {
   local namespace=$1
-  echo -e "${BLUE}Cleaning namespace $namespace...${NC}"
+  echo -e "${BLUE}Cleaning resources in namespace $namespace...${NC}"
+  
+  # Check if namespace exists before attempting to clean it
+  if ! microk8s kubectl get namespace $namespace &> /dev/null; then
+    echo -e "${YELLOW}Namespace $namespace does not exist, skipping...${NC}"
+    return 0
+  fi
   
   # Delete all resources in the namespace
+  echo -e "${YELLOW}Deleting all resources in $namespace...${NC}"
   microk8s kubectl delete all --all -n $namespace --force --grace-period=0 2>/dev/null || true
-  microk8s kubectl delete configmap,secret,pvc --all -n $namespace --force --grace-period=0 2>/dev/null || true
+  microk8s kubectl delete configmap,secret,pvc,serviceaccount,rolebinding,role --all -n $namespace --force --grace-period=0 2>/dev/null || true
   
-  # Delete the namespace
-  echo -e "${YELLOW}Deleting namespace $namespace...${NC}"
-  microk8s kubectl delete namespace $namespace --force --grace-period=0 2>/dev/null || true
-  
-  # Verify namespace deletion
-  if ! microk8s kubectl get namespace $namespace &> /dev/null; then
-    echo -e "${GREEN}Namespace $namespace has been removed${NC}"
-  else
-    echo -e "${YELLOW}Warning: Namespace $namespace could not be deleted. You may need to delete it manually${NC}"
-  fi
+  echo -e "${GREEN}Resources in namespace $namespace have been cleaned${NC}"
 }
 
-# Clean both namespaces
-clean_namespace "hplmn"
-clean_namespace "vplmn"
+# Clean namespaces
+if [ -z "$NAMESPACE" ]; then
+  # Clean both default namespaces
+  clean_namespace_resources "hplmn"
+  clean_namespace_resources "vplmn"
+else
+  # Clean only the specified namespace
+  clean_namespace_resources "$NAMESPACE"
+fi
 
-echo -e "${GREEN}MicroK8s cleanup operation completed.${NC}" 
+echo -e "${GREEN}MicroK8s cleanup operation completed. Namespaces were preserved.${NC}" 
