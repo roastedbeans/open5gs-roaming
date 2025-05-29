@@ -98,13 +98,23 @@ else
 fi
 
 # Step 5: Deploy WebUI
-echo -e "${YELLOW}[5/5] Deploying WebUI...${NC}"
+echo -e "${YELLOW}[5/6] Deploying WebUI...${NC}"
 if [ -d "$BASE_DIR/$NAMESPACE/webui" ]; then
     deploy_components "webui"
     echo -e "${GREEN}WebUI deployed successfully${NC}"
     echo -e "${BLUE}WebUI will be available at: http://NODE_IP:30999${NC}"
 else
     echo -e "${YELLOW}No WebUI directory found, skipping...${NC}"
+fi
+
+# Step 6: Deploy NetworkUI
+echo -e "${YELLOW}[6/6] Deploying NetworkUI...${NC}"
+if [ -d "$BASE_DIR/$NAMESPACE/networkui" ]; then
+    deploy_components "networkui"
+    echo -e "${GREEN}NetworkUI deployed successfully${NC}"
+    echo -e "${BLUE}NetworkUI will be available at: http://NODE_IP:30998${NC}"
+else
+    echo -e "${YELLOW}No NetworkUI directory found, skipping...${NC}"
 fi
 
 # Deploy packet capture if available

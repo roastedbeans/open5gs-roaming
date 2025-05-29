@@ -24,6 +24,7 @@ COMPONENTS=(
   "udr"
   "upf"
   "webui"
+  "networkui"
 )
 
 # Pull each image

@@ -16,6 +16,7 @@ NC='\033[0m' # No Color
 OPEN5GS_IMAGES=(
   "sepp:v2.7.5"
   "webui:v2.7.5"
+  "networkui:v2.7.5"
   "smf:v2.7.5"
   "udm:v2.7.5"
   "amf:v2.7.5"

@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webui
+  name: networkui
   namespace: hplmn
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: webui
+      app: networkui
   template:
     metadata:
       labels:
-        app: webui
+        app: networkui
     spec:
       containers:
-        - name: webui
+        - name: networkui
           image: docker.io/vinch05/networkui:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ['npm']

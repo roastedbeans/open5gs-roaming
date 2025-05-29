@@ -56,6 +56,7 @@ declare -A SCRIPTS=(
     
     # WebUI
     ["deploy-webui"]="kubectl-deploy-webui.sh"
+    ["deploy-networkui"]="kubectl-deploy-networkui.sh"
     
     # Cleanup
     ["microk8s-clean"]="microk8s-clean.sh"
@@ -316,6 +317,7 @@ cmd_get_status() { run_script "get-status" "$@"; }
 
 # WebUI
 cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
+cmd_deploy_networkui() { run_script "deploy-networkui" "$@"; }
 
 # Cleanup
 cmd_clean_k8s() { run_script "microk8s-clean" "$@"; }
@@ -364,6 +366,7 @@ $(warning "🔧 Management & Monitoring:")
 
 $(warning "🌐 WebUI:")
   deploy-webui        Deploy Open5GS WebUI (HPLMN only)
+  deploy-networkui     Deploy Open5GS NetworkUI
 
 $(warning "🧹 Cleanup:")
   clean-k8s           Clean Kubernetes resources
@@ -475,6 +478,23 @@ Note: WebUI is only available for HPLMN namespace and connects to HPLMN MongoDB
 Access: http://NODE_IP:30999 (default credentials: admin / 1423)
 EOF
             ;;
+        deploy-networkui)
+            cat << EOF
+$(info "deploy-networkui - Deploy Open5GS NetworkUI")
+
+Operations:
+  -n, --namespace NS      Deploy to specific namespace (default: hplmn)
+  -f, --force             Skip confirmation prompt
+
+Examples:
+  $0 deploy-networkui
+  $0 deploy-networkui -f
+  $0 deploy-networkui -n hplmn
+
+Note: NetworkUI is only available for HPLMN namespace and connects to HPLMN MongoDB
+Access: http://NODE_IP:30998 (default credentials: admin / 1423)
+EOF
+            ;;
         coredns-rewrite)
             cat << EOF
 $(info "coredns-rewrite - Configure CoreDNS Rewrite Rules")
@@ -567,6 +587,7 @@ case $command in
     
     # WebUI
     deploy-webui) cmd_deploy_webui "$@" ;;
+    deploy-networkui) cmd_deploy_networkui "$@" ;;
     
     # Cleanup
     clean-k8s) cmd_clean_k8s "$@" ;;
