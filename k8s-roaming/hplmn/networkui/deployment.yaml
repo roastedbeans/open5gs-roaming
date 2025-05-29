@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webui
+  namespace: hplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webui
+  template:
+    metadata:
+      labels:
+        app: webui
+    spec:
+      containers:
+        - name: webui
+          image: docker.io/vinch05/networkui:v2.7.5
+          imagePullPolicy: IfNotPresent
+          command: ['npm']
+          args: ['run', 'dev']
+          workingDir: /usr/local/src/webui
+          env:
+            - name: DB_URI
+              value: 'mongodb://mongodb.hplmn.svc.cluster.local/open5gs'
+            - name: HOSTNAME
+              value: '0.0.0.0'
+            - name: PORT
+              value: '9998'
+            - name: NODE_ENV
+              value: 'dev'
+          ports:
+            - containerPort: 9998
+              name: http
