@@ -12,7 +12,7 @@ variable "NODE_VERSION" {
 
 group "default" {
   targets = ["base-open5gs", "amf", "ausf", "bsf", "nrf", "nssf",
-              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui"]
+              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui", "networkui"]
 }
 
 target "base-open5gs" {
@@ -188,5 +188,15 @@ target "webui" {
   }
   context = "./images/webui"
   tags = ["webui:${OPEN5GS_VERSION}"]
+  output = ["type=image"]
+}
+
+target "networkui" {
+  args = {
+    NODE_VERSION = "${NODE_VERSION}"
+    OPEN5GS_VERSION = "${OPEN5GS_VERSION}"
+  }
+  context = "./images/networkui"
+  tags = ["networkui:${OPEN5GS_VERSION}"]
   output = ["type=image"]
 }
