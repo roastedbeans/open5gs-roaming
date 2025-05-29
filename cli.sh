@@ -53,7 +53,6 @@ declare -A SCRIPTS=(
     # Management & Monitoring
     ["restart-pods"]="restart-pods.sh"
     ["get-status"]="get-status.sh"
-    ["pcap-capture"]="pcap-capture.sh"
     
     # WebUI
     ["deploy-webui"]="kubectl-deploy-webui.sh"
@@ -71,7 +70,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Certificate Management"]="generate-certs deploy-certs"
     ["DNS Configuration"]="coredns-rewrite"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
-    ["Management & Monitoring"]="restart-pods get-status pcap-capture"
+    ["Management & Monitoring"]="restart-pods get-status"
     ["Cleanup"]="clean-k8s clean-docker"
 )
 
@@ -130,7 +129,7 @@ cmd_setup_roaming() {
     
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --tag|-t) tag="$2"; shift 2 ;;
+            -t|--tag) tag="$2"; shift 2 ;;
             *) args+=("$1"); shift ;;
         esac
     done
@@ -146,15 +145,15 @@ cmd_deploy_hplmn() {
     
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --namespace|-n) namespace="$2"; shift 2 ;;
-            --no-mongodb) with_mongodb=false; shift ;;
+            -n|--namespace) namespace="$2"; shift 2 ;;
+            -m|--no-mongodb) with_mongodb=false; shift ;;
             *) args+=("$1"); shift ;;
         esac
     done
     
     if [[ "$with_mongodb" == true ]]; then
         info "Deploying MongoDB for HPLMN..."
-        run_script "mongodb-hplmn" --namespace "$namespace" --force || warning "MongoDB deployment failed, continuing..."
+        run_script "mongodb-hplmn" -n "$namespace" -f || warning "MongoDB deployment failed, continuing..."
         microk8s kubectl wait --for=condition=ready pods -l app=mongodb \
             --namespace="$namespace" --timeout=120s || warning "MongoDB not ready, continuing..."
     fi
@@ -171,8 +170,8 @@ cmd_deploy_roaming() {
     
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --tag|-t) tag="$2"; shift 2 ;;
-            --no-mongodb) with_mongodb=false; shift ;;
+            -t|--tag) tag="$2"; shift 2 ;;
+            -m|--no-mongodb) with_mongodb=false; shift ;;
             *) shift ;;
         esac
     done
@@ -196,7 +195,7 @@ cmd_deploy_roaming() {
     # Deploy HPLMN
     if [[ "$with_mongodb" == true ]]; then
         info "Deploying HPLMN with MongoDB..."
-        cmd_deploy_hplmn --tag "$tag"
+        cmd_deploy_hplmn -t "$tag"
         
         # Wait for MongoDB to be ready
         info "Waiting for MongoDB to be ready..."
@@ -207,7 +206,7 @@ cmd_deploy_roaming() {
         }
     else
         info "Deploying HPLMN without MongoDB..."
-        cmd_deploy_hplmn --tag "$tag" --no-mongodb
+        cmd_deploy_hplmn -t "$tag" -m
     fi
     
     # Wait for HPLMN NRF to be ready
@@ -230,7 +229,7 @@ cmd_deploy_roaming() {
     
     # Deploy VPLMN
     info "Deploying VPLMN..."
-    cmd_deploy_vplmn --tag "$tag"
+    cmd_deploy_vplmn -t "$tag"
     
     # Wait for VPLMN NRF to be ready
     info "Waiting for VPLMN NRF to be ready..."
@@ -259,8 +258,8 @@ cmd_docker_deploy() {
     
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --username|-u) username="$2"; shift 2 ;;
-            --tag|-t) tag="$2"; shift 2 ;;
+            -u|--username) username="$2"; shift 2 ;;
+            -t|--tag) tag="$2"; shift 2 ;;
             *) shift ;;
         esac
     done
@@ -281,7 +280,7 @@ cmd_docker_deploy() {
 # Image Management
 cmd_pull_images() {
     local tag="$DEFAULT_TAG"
-    [[ "$1" == "--tag" || "$1" == "-t" ]] && tag="$2"
+    [[ "$1" == "-t" || "$1" == "--tag" ]] && tag="$2"
     run_script "pull-images" "$tag"
 }
 
@@ -314,7 +313,6 @@ cmd_subscribers() { run_script "subscribers" "$@"; }
 # Management & Monitoring
 cmd_restart_pods() { run_script "restart-pods" "$@"; }
 cmd_get_status() { run_script "get-status" "$@"; }
-cmd_pcap_capture() { run_script "pcap-capture" "$@"; }
 
 # WebUI
 cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
@@ -337,13 +335,13 @@ $(warning "📦 Installation & Setup:")
   setup-roaming       Complete automated k8s-roaming setup
 
 $(warning "🚀 Deployment:")
-  deploy-hplmn        Deploy HPLMN components [--no-mongodb]
+  deploy-hplmn        Deploy HPLMN components [-m]
   deploy-vplmn        Deploy VPLMN components
   deploy-roaming      Deploy both HPLMN and VPLMN
   docker-deploy       Publish images to Docker Hub
 
 $(warning "📦 Image Management:")
-  pull-images         Pull Open5GS images [--tag VERSION]
+  pull-images         Pull Open5GS images [-t VERSION]
   import-images       Import to MicroK8s registry
   update-configs      Update deployment configs
 
@@ -363,7 +361,6 @@ $(warning "🗄️ Database:")
 $(warning "🔧 Management & Monitoring:")
   restart-pods        Restart pods in Open5GS namespaces
   get-status          Show status of Open5GS deployments
-  pcap-capture        Capture and download SEPP packet captures
 
 $(warning "🌐 WebUI:")
   deploy-webui        Deploy Open5GS WebUI (HPLMN only)
@@ -373,19 +370,19 @@ $(warning "🧹 Cleanup:")
   clean-docker        Clean Docker resources
 
 $(warning "Common Options:")
-  --namespace, -n     Kubernetes namespace
-  --tag, -t          Image tag (default: $DEFAULT_TAG)
-  --force, -f        Skip confirmations
-  --help, -h         Show detailed help
+  -n, --namespace     Kubernetes namespace
+  -t, --tag          Image tag (default: $DEFAULT_TAG)
+  -f, --force        Skip confirmations
+  -h, --help         Show detailed help
 
 $(warning "Examples:")
-  $0 setup-roaming --full-setup
-  $0 deploy-roaming --tag v2.7.6
-  $0 mongodb-access --setup
-  $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
-  $0 pcap-capture -n vplmn -o ./pcap-logs
+  $0 setup-roaming -f
+  $0 deploy-roaming -t v2.7.6
+  $0 mongodb-access -s
+  $0 subscribers -a -s 001011234567891 -e 001011234567900
+  kubectl cp <pod-name>:/path/to/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
 
-For detailed command help: $0 [command] --help
+For detailed command help: $0 [command] -h
 EOF
 }
 
@@ -397,19 +394,19 @@ show_detailed_help() {
 $(info "mongodb-access - MongoDB External Access Management")
 
 Operations:
-  --setup              Create NodePort service
-  --remove             Remove NodePort service  
-  --status             Show connection details
-  --port-forward       Start kubectl port forwarding
-  --test               Test MongoDB connectivity
+  -s, --setup              Create NodePort service
+  -r, --remove             Remove NodePort service  
+  -S, --status             Show connection details
+  -p, --port-forward       Start kubectl port forwarding
+  -T, --test               Test MongoDB connectivity
 
 Options:
-  --node-port PORT     Custom NodePort (default: 30017)
+  -P, --node-port PORT     Custom NodePort (default: 30017)
 
 Examples:
-  $0 mongodb-access --setup
-  $0 mongodb-access --status
-  $0 mongodb-access --setup --node-port 31017
+  $0 mongodb-access -s
+  $0 mongodb-access -S
+  $0 mongodb-access -s -P 31017
 EOF
             ;;
         subscribers)
@@ -417,16 +414,16 @@ EOF
 $(info "subscribers - Subscriber Database Management")
 
 Operations:
-  --add-single         Add single subscriber
-  --add-range          Add subscriber range
-  --list-subscribers   List all subscribers
-  --count-subscribers  Count subscribers
-  --delete-all         Delete all subscribers
+  -a, --add-single         Add single subscriber
+  -r, --add-range          Add subscriber range
+  -l, --list              List all subscribers
+  -c, --count             Count subscribers
+  -d, --delete-all        Delete all subscribers
 
 Examples:
-  $0 subscribers --add-single --imsi 001011234567891
-  $0 subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
-  $0 subscribers --list-subscribers
+  $0 subscribers -a -i 001011234567891
+  $0 subscribers -r -s 001011234567891 -e 001011234567900
+  $0 subscribers -l
 EOF
             ;;
         restart-pods)
@@ -434,17 +431,17 @@ EOF
 $(info "restart-pods - Restart Kubernetes Pods")
 
 Operations:
-  --all, -a            Restart pods in all Open5GS namespaces
-  --hplmn              Restart pods in HPLMN namespace only
-  --vplmn              Restart pods in VPLMN namespace only
-  --namespace, -n NS   Restart pods in specific namespace
-  --force, -f          Skip confirmation prompt
-  --timeout, -t SEC    Wait timeout for pods (default: 300s)
+  -a, --all               Restart pods in all Open5GS namespaces
+  -H, --hplmn             Restart pods in HPLMN namespace only
+  -V, --vplmn             Restart pods in VPLMN namespace only
+  -n, --namespace NS      Restart pods in specific namespace
+  -f, --force             Skip confirmation prompt
+  -t, --timeout SEC      Wait timeout for pods (default: 300s)
 
 Examples:
-  $0 restart-pods --all
-  $0 restart-pods --hplmn
-  $0 restart-pods --namespace custom-ns --force
+  $0 restart-pods -a
+  $0 restart-pods -H
+  $0 restart-pods -n custom-ns -f
 EOF
             ;;
         get-status)
@@ -452,13 +449,13 @@ EOF
 $(info "get-status - Show Open5GS Status")
 
 Operations:
-  --namespace, -n NS   Show status for specific namespace
-  --details, -d        Show detailed information (services, deployments)
+  -n, --namespace NS      Show status for specific namespace
+  -d, --details          Show detailed information (services, deployments)
 
 Examples:
   $0 get-status
-  $0 get-status --details
-  $0 get-status --namespace hplmn
+  $0 get-status -d
+  $0 get-status -n hplmn
 EOF
             ;;
         deploy-webui)
@@ -466,13 +463,13 @@ EOF
 $(info "deploy-webui - Deploy Open5GS WebUI")
 
 Operations:
-  --namespace, -n NS   Deploy to specific namespace (default: hplmn)
-  --force, -f          Skip confirmation prompt
+  -n, --namespace NS      Deploy to specific namespace (default: hplmn)
+  -f, --force             Skip confirmation prompt
 
 Examples:
   $0 deploy-webui
-  $0 deploy-webui --force
-  $0 deploy-webui --namespace hplmn
+  $0 deploy-webui -f
+  $0 deploy-webui -n hplmn
 
 Note: WebUI is only available for HPLMN namespace and connects to HPLMN MongoDB
 Access: http://NODE_IP:30999 (default credentials: admin / 1423)
@@ -483,42 +480,25 @@ EOF
 $(info "coredns-rewrite - Configure CoreDNS Rewrite Rules")
 
 Operations:
-  --hplmn-mnc MNC      HPLMN MNC code (default: 001)
-  --hplmn-mcc MCC      HPLMN MCC code (default: 001)  
-  --vplmn-mnc MNC      VPLMN MNC code (default: 070)
-  --vplmn-mcc MCC      VPLMN MCC code (default: 999)
-  --dry-run            Preview changes without applying
-  --force              Skip confirmation prompts
-  --backup-only        Create backup without changes
-  --restore FILE       Restore from backup file
-  --status             Show current CoreDNS config
-  --test               Test DNS resolution
+  -H, --hplmn-mnc MNC     HPLMN MNC code (default: 001)
+  -M, --hplmn-mcc MCC     HPLMN MCC code (default: 001)  
+  -v, --vplmn-mnc MNC     VPLMN MNC code (default: 070)
+  -m, --vplmn-mcc MCC     VPLMN MCC code (default: 999)
+  -d, --dry-run           Preview changes without applying
+  -f, --force             Skip confirmation prompts
+  -b, --backup-only       Create backup without changes
+  -r, --restore FILE      Restore from backup file
+  -s, --status            Show current CoreDNS config
+  -t, --test              Test DNS resolution
 
 Examples:
-  $0 coredns-rewrite                        # Add default rules
-  $0 coredns-rewrite --dry-run              # Preview changes
-  $0 coredns-rewrite --hplmn-mnc 001 --hplmn-mcc 001
-  $0 coredns-rewrite --backup-only          # Backup only
-  $0 coredns-rewrite --test                 # Test DNS resolution
+  $0 coredns-rewrite                  # Add default rules
+  $0 coredns-rewrite -d              # Preview changes
+  $0 coredns-rewrite -H 001 -M 001
+  $0 coredns-rewrite -b              # Backup only
+  $0 coredns-rewrite -t              # Test DNS resolution
 
 Note: Configures 3GPP FQDN to Kubernetes service name mappings in CoreDNS
-EOF
-            ;;
-        pcap-capture)
-            cat << EOF
-$(info "pcap-capture - SEPP Packet Capture Management")
-
-Options:
-  --namespace, -n NS   Kubernetes namespace (default: vplmn)
-  --output, -o DIR    Output directory for PCAP files (default: ./pcap-logs)
-  --help, -h          Show this help message
-
-Examples:
-  $0 pcap-capture                    # Capture from VPLMN SEPP
-  $0 pcap-capture -n hplmn          # Capture from HPLMN SEPP
-  $0 pcap-capture -o /tmp/pcaps     # Save to /tmp/pcaps
-
-Note: PCAP files are saved with timestamp and namespace in filename
 EOF
             ;;
         *)
@@ -542,7 +522,7 @@ command=$1
 shift
 
 # Handle help requests
-if [[ "$command" == "--help" || "$command" == "-h" || "$command" == "help" ]]; then
+if [[ "$command" == "-h" || "$command" == "--help" || "$command" == "help" ]]; then
     if [[ -n "$1" ]]; then
         show_detailed_help "$1"
     else
@@ -584,7 +564,6 @@ case $command in
     # Management & Monitoring
     restart-pods) cmd_restart_pods "$@" ;;
     get-status) cmd_get_status "$@" ;;
-    pcap-capture) cmd_pcap_capture "$@" ;;
     
     # WebUI
     deploy-webui) cmd_deploy_webui "$@" ;;

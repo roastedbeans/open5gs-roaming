@@ -21,51 +21,51 @@ WAIT_TIMEOUT=300
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --namespace|-n)
+    -n|--namespace)
       SELECTED_NAMESPACES+=("$2")
       shift 2
       ;;
-    --all|-a)
+    -a|--all)
       SELECTED_NAMESPACES=("${DEFAULT_NAMESPACES[@]}")
       shift
       ;;
-    --hplmn)
+    -H|--hplmn)
       SELECTED_NAMESPACES+=("hplmn")
       shift
       ;;
-    --vplmn)
+    -V|--vplmn)
       SELECTED_NAMESPACES+=("vplmn")
       shift
       ;;
-    --force|-f)
+    -f|--force)
       FORCE=true
       shift
       ;;
-    --timeout|-t)
+    -t|--timeout)
       WAIT_TIMEOUT="$2"
       shift 2
       ;;
-    --help|-h)
+    -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --namespace, -n NAMESPACE  Restart pods in specific namespace"
-      echo "  --all, -a                  Restart pods in all Open5GS namespaces (hplmn, vplmn)"
-      echo "  --hplmn                    Restart pods in hplmn namespace only"
-      echo "  --vplmn                    Restart pods in vplmn namespace only"
-      echo "  --force, -f                Skip confirmation prompt"
-      echo "  --timeout, -t SECONDS      Wait timeout for pods to be ready (default: 300s)"
-      echo "  --help, -h                 Show this help message"
+      echo "  -n, --namespace NS      Restart pods in specific namespace"
+      echo "  -a, --all              Restart pods in all Open5GS namespaces (hplmn, vplmn)"
+      echo "  -H, --hplmn            Restart pods in hplmn namespace only"
+      echo "  -V, --vplmn            Restart pods in vplmn namespace only"
+      echo "  -f, --force            Skip confirmation prompt"
+      echo "  -t, --timeout SEC      Wait timeout for pods (default: 300s)"
+      echo "  -h, --help             Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 --all                   # Restart all Open5GS pods"
-      echo "  $0 --hplmn                 # Restart HPLMN pods only"
-      echo "  $0 -n custom-namespace     # Restart pods in custom namespace"
+      echo "  $0 -a                   # Restart all Open5GS pods"
+      echo "  $0 -H                   # Restart HPLMN pods only"
+      echo "  $0 -n custom-namespace  # Restart pods in custom namespace"
       exit 0
       ;;
     *)
       echo -e "${RED}Unknown argument: $1${NC}"
-      echo "Use --help for usage information"
+      echo "Use -h for usage information"
       exit 1
       ;;
   esac

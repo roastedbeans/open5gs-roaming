@@ -19,24 +19,24 @@ NAMESPACE=""
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --force|-f)
+    -f|--force)
       FORCE=true
       shift
       ;;
-    --namespace|-n)
+    -n|--namespace)
       NAMESPACE="$2"
       shift 2
       ;;
-    --help|-h)
-      echo "Usage: $0 [--force|-f] [--namespace|-n <namespace>]"
-      echo "  --force, -f: Skip confirmation prompt"
-      echo "  --namespace, -n: Specify a single namespace to clean (default: clean both hplmn and vplmn)"
-      echo "  --help, -h: Display this help message"
+    -h|--help)
+      echo "Usage: $0 [-f] [-n <namespace>]"
+      echo "  -f, --force: Skip confirmation prompt"
+      echo "  -n, --namespace: Specify a single namespace to clean (default: clean both hplmn and vplmn)"
+      echo "  -h, --help: Display this help message"
       exit 0
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Use --help for usage information"
+      echo "Use -h for usage information"
       exit 1
       ;;
   esac

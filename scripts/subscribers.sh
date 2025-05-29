@@ -378,51 +378,51 @@ EOF
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --add-range)
+        -r|--add-range)
             OPERATION="add-range"
             shift
             ;;
-        --add-single)
+        -a|--add-single)
             OPERATION="add-single"
             shift
             ;;
-        --delete-all)
+        -d|--delete-all)
             OPERATION="delete-all"
             shift
             ;;
-        --list-subscribers)
+        -l|--list)
             OPERATION="list"
             shift
             ;;
-        --count-subscribers)
+        -c|--count)
             OPERATION="count"
             shift
             ;;
-        --start-imsi)
+        -s|--start-imsi)
             START_IMSI="$2"
             shift 2
             ;;
-        --end-imsi)
+        -e|--end-imsi)
             END_IMSI="$2"
             shift 2
             ;;
-        --imsi)
+        -i|--imsi)
             START_IMSI="$2"
             shift 2
             ;;
-        --key)
+        -k|--key)
             CUSTOM_KEY="$2"
             shift 2
             ;;
-        --opc)
+        -o|--opc)
             CUSTOM_OPC="$2"
             shift 2
             ;;
-        --batch-size)
+        -b|--batch-size)
             BATCH_SIZE="$2"
             shift 2
             ;;
-        --help)
+        -h|--help)
             show_usage
             exit 0
             ;;

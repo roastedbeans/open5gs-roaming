@@ -19,21 +19,21 @@ SHOW_DETAILS=false
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --namespace|-n)
+    -n|--namespace)
       NAMESPACES=("$2")
       shift 2
       ;;
-    --details|-d)
+    -d|--details)
       SHOW_DETAILS=true
       shift
       ;;
-    --help|-h)
+    -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --namespace, -n NAMESPACE  Show status for specific namespace"
-      echo "  --details, -d              Show detailed information"
-      echo "  --help, -h                 Show this help message"
+      echo "  -n, --namespace NS      Show status for specific namespace"
+      echo "  -d, --details          Show detailed information"
+      echo "  -h, --help             Show this help message"
       exit 0
       ;;
     *)
