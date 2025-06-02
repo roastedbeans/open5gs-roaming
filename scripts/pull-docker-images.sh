@@ -17,7 +17,7 @@ COMPONENTS=(
   "nrf"
   "nssf"
   "pcf"
-  "scp"
+  # "scp"
   "sepp"
   "smf"
   "udm"

@@ -67,7 +67,7 @@ update_image_references() {
     # Check if file contains image references
     if grep -q "image:" "$file"; then
       # Update references for Open5GS components
-      sed -i -E "s|image: (sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|scp|ausf|nssf|bsf|base-open5gs):v2.7.5|image: ${REGISTRY}\1:v2.7.5|g" "$file"
+      sed -i -E "s|image: (sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|ausf|nssf|bsf|base-open5gs):v2.7.5|image: ${REGISTRY}\1:v2.7.5|g" "$file"
       
       # Update utility images
       sed -i "s|image: ghcr.io/borjis131/packetrusher:20250225|image: ${REGISTRY}packetrusher:20250225|g" "$file"

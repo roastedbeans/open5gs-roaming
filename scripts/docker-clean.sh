@@ -51,11 +51,11 @@ echo -e "${BLUE}Starting Docker cleanup for Open5GS...${NC}"
 
 # Step 1: Stop and remove all Open5GS containers
 echo -e "${YELLOW}Stopping and removing Open5GS containers...${NC}"
-CONTAINERS=$(docker ps -a | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|scp|ausf|nssf|bsf' | awk '{print $1}')
+CONTAINERS=$(docker ps -a | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|ausf|nssf|bsf' | awk '{print $1}')
 
 if [ -n "$CONTAINERS" ]; then
   echo -e "${BLUE}Found the following containers to remove:${NC}"
-  docker ps -a | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|scp|ausf|nssf|bsf'
+  docker ps -a | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|ausf|nssf|bsf'
   docker rm -f $CONTAINERS
   echo -e "${GREEN}Containers removed successfully${NC}"
 else
@@ -66,11 +66,11 @@ echo "----------------------------------------"
 
 # Step 2: Remove all Open5GS images
 echo -e "${YELLOW}Removing Open5GS images...${NC}"
-IMAGES=$(docker images | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|scp|ausf|nssf|bsf' | awk '{print $1":"$2}')
+IMAGES=$(docker images | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|ausf|nssf|bsf' | awk '{print $1":"$2}')
 
 if [ -n "$IMAGES" ]; then
   echo -e "${BLUE}Found the following images to remove:${NC}"
-  docker images | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|scp|ausf|nssf|bsf'
+  docker images | grep -E 'open5gs|sepp|webui|networkui|smf|udm|amf|udr|upf|pcf|nrf|ausf|nssf|bsf'
   docker rmi -f $IMAGES
   echo -e "${GREEN}Images removed successfully${NC}"
 else

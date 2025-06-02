@@ -32,7 +32,7 @@ IMAGES=(
   "upf:v2.7.5"
   "pcf:v2.7.5"
   "nrf:v2.7.5"
-  "scp:v2.7.5"
+  # "scp:v2.7.5"
   "ausf:v2.7.5"
   "nssf:v2.7.5"
   "bsf:v2.7.5"
