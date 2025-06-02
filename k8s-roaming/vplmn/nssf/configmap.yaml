@@ -17,8 +17,8 @@ data:
           - dev: eth0
             advertise: nssf.5gc.mnc070.mcc999.3gppnetwork.org
         client:
-          scp:
-            - uri: http://scp.5gc.mnc070.mcc999.3gppnetwork.org
+          nrf:
+            - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org
           nsi:
             - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org
               s_nssai:
