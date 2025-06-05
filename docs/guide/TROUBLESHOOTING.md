@@ -75,12 +75,14 @@ microk8s kubectl get ingress -A
 ### Issue: Pods Stuck in Pending State
 
 **Symptoms:**
+
 ```bash
 NAME                    READY   STATUS    RESTARTS   AGE
 nrf-xxx                 0/1     Pending   0          5m
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check pod details
 microk8s kubectl describe pod nrf-xxx -n hplmn
@@ -96,6 +98,7 @@ microk8s status | grep storage
 **Common Causes and Solutions:**
 
 #### Insufficient Resources
+
 ```bash
 # Check resource requests vs available
 microk8s kubectl describe nodes | grep -A 5 "Allocated resources"
@@ -105,6 +108,7 @@ microk8s kubectl scale deployment nrf --replicas=1 -n hplmn
 ```
 
 #### Storage Issues
+
 ```bash
 # Check if storage addon is enabled
 microk8s status | grep storage
@@ -117,6 +121,7 @@ microk8s kubectl get storageclass
 ```
 
 #### Image Pull Issues
+
 ```bash
 # Check image pull status
 microk8s kubectl describe pod pod-name -n namespace | grep -A 10 Events
@@ -128,12 +133,14 @@ microk8s kubectl describe pod pod-name -n namespace | grep -A 10 Events
 ### Issue: Pods in CrashLoopBackOff
 
 **Symptoms:**
+
 ```bash
 NAME                    READY   STATUS             RESTARTS   AGE
 amf-xxx                 0/1     CrashLoopBackOff   5          10m
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check pod logs
 microk8s kubectl logs pod-name -n namespace
@@ -146,6 +153,7 @@ microk8s kubectl describe pod pod-name -n namespace
 **Common Causes and Solutions:**
 
 #### Configuration Issues
+
 ```bash
 # Check configmap
 microk8s kubectl get configmap -n namespace
@@ -159,6 +167,7 @@ microk8s kubectl rollout restart deployment/component -n namespace
 ```
 
 #### Missing Dependencies
+
 ```bash
 # Check if required services are running
 microk8s kubectl get pods -n hplmn | grep nrf
@@ -171,6 +180,7 @@ sleep 30
 ```
 
 #### Resource Limits
+
 ```bash
 # Check resource limits
 microk8s kubectl describe pod pod-name -n namespace | grep -A 5 Limits
@@ -183,12 +193,14 @@ microk8s kubectl edit deployment component -n namespace
 ### Issue: Pods Not Ready
 
 **Symptoms:**
+
 ```bash
 NAME                    READY   STATUS    RESTARTS   AGE
 smf-xxx                 0/1     Running   0          5m
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check readiness probe
 microk8s kubectl describe pod pod-name -n namespace | grep -A 5 "Readiness"
@@ -198,6 +210,7 @@ microk8s kubectl logs pod-name -n namespace
 ```
 
 **Solutions:**
+
 ```bash
 # Increase readiness probe timeout
 microk8s kubectl edit deployment component -n namespace
@@ -214,11 +227,13 @@ microk8s kubectl get endpoints component -n namespace
 ### Issue: Service Communication Failures
 
 **Symptoms:**
+
 - Services cannot reach each other
 - Connection refused errors in logs
 - Empty service endpoints
 
 **Diagnostic Steps:**
+
 ```bash
 # Check service status
 microk8s kubectl get services -n hplmn -o wide
@@ -233,6 +248,7 @@ microk8s kubectl exec -n hplmn deployment/nrf -- curl -v http://scp.hplmn.svc.cl
 **Solutions:**
 
 #### Missing or Incorrect Service Configuration
+
 ```bash
 # Check service configuration
 microk8s kubectl describe service component -n namespace
@@ -243,6 +259,7 @@ microk8s kubectl describe service component -n namespace | grep Selector
 ```
 
 #### Port Configuration Issues
+
 ```bash
 # Check if ports match between service and deployment
 microk8s kubectl describe service component -n namespace
@@ -253,6 +270,7 @@ microk8s kubectl exec -n namespace deployment/component -- netstat -tlnp
 ```
 
 #### Network Policy Restrictions
+
 ```bash
 # Check network policies
 microk8s kubectl get networkpolicy -A
@@ -264,11 +282,13 @@ microk8s kubectl delete networkpolicy policy-name -n namespace
 ### Issue: External Access Not Working
 
 **Symptoms:**
+
 - Cannot access services from outside cluster
 - NodePort services not responding
 - Connection timeouts from external clients
 
 **Diagnostic Steps:**
+
 ```bash
 # Check NodePort services
 microk8s kubectl get services -n namespace | grep NodePort
@@ -284,6 +304,7 @@ sudo netstat -tlnp | grep port-number
 **Solutions:**
 
 #### NodePort Service Issues
+
 ```bash
 # Verify NodePort configuration
 microk8s kubectl describe service service-name -n namespace
@@ -296,6 +317,7 @@ microk8s kubectl patch service service-name -n namespace -p '{"spec":{"type":"No
 ```
 
 #### Firewall Configuration
+
 ```bash
 # Allow port through firewall
 sudo ufw allow port-number
@@ -314,11 +336,13 @@ sudo ufw allow 31412
 ### Issue: 3GPP FQDN Resolution Failures
 
 **Symptoms:**
+
 ```bash
 nslookup: can't resolve 'nrf.5gc.mnc001.mcc001.3gppnetwork.org'
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Test DNS resolution from pod
 microk8s kubectl run dns-test --image=nicolaka/netshoot -it --rm -- nslookup nrf.5gc.mnc001.mcc001.3gppnetwork.org
@@ -333,6 +357,7 @@ microk8s kubectl get pods -n kube-system | grep coredns
 **Solutions:**
 
 #### Missing DNS Rewrite Rules
+
 ```bash
 # Edit CoreDNS configuration
 microk8s kubectl edit configmap coredns -n kube-system
@@ -346,6 +371,7 @@ microk8s kubectl rollout restart deployment/coredns -n kube-system
 ```
 
 #### Incorrect DNS Configuration
+
 ```bash
 # Verify DNS service
 microk8s kubectl get service -n kube-system | grep dns
@@ -358,6 +384,7 @@ microk8s kubectl exec -n hplmn deployment/nrf -- nslookup nrf.hplmn.svc.cluster.
 ```
 
 #### CoreDNS Pod Issues
+
 ```bash
 # Check CoreDNS logs
 microk8s kubectl logs -n kube-system deployment/coredns
@@ -369,11 +396,13 @@ microk8s kubectl delete pods -n kube-system -l k8s-app=kube-dns
 ### Issue: Internal Service Resolution Fails
 
 **Symptoms:**
+
 ```bash
 nslookup: can't resolve 'scp.hplmn.svc.cluster.local'
 ```
 
 **Solutions:**
+
 ```bash
 # Check if service exists
 microk8s kubectl get service scp -n hplmn
@@ -395,12 +424,14 @@ microk8s kubectl exec -n hplmn deployment/nrf -- nslookup scp.hplmn.svc.cluster.
 ### Issue: TLS Handshake Failures
 
 **Symptoms:**
+
 ```bash
 TLS handshake error
 SSL certificate verify failed
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check certificates exist
 microk8s kubectl get secrets -n hplmn | grep sepp
@@ -416,6 +447,7 @@ microk8s kubectl get secret sepp-n32c -n hplmn -o jsonpath='{.data.tls\.crt}' | 
 **Solutions:**
 
 #### Missing Certificates
+
 ```bash
 # Regenerate certificates
 ./cli.sh generate-certs
@@ -428,6 +460,7 @@ microk8s kubectl describe secret sepp-n32c -n hplmn
 ```
 
 #### Expired Certificates
+
 ```bash
 # Check certificate expiration
 microk8s kubectl get secret sepp-n32c -n hplmn -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates
@@ -440,6 +473,7 @@ cd ../..
 ```
 
 #### Certificate Mounting Issues
+
 ```bash
 # Check if certificates are mounted in pods
 microk8s kubectl describe pod sepp-pod-name -n hplmn | grep -A 10 Mounts
@@ -451,11 +485,13 @@ microk8s kubectl exec -n hplmn deployment/sepp -- ls -la /etc/open5gs/tls/
 ### Issue: CA Certificate Problems
 
 **Symptoms:**
+
 ```bash
 certificate signed by unknown authority
 ```
 
 **Solutions:**
+
 ```bash
 # Check CA secret
 microk8s kubectl get secret sepp-ca -n hplmn -o yaml
@@ -476,11 +512,13 @@ microk8s kubectl create secret generic sepp-ca \
 ### Issue: MongoDB Connection Failures
 
 **Symptoms:**
+
 ```bash
 MongoNetworkError: failed to connect to server
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check MongoDB pod status
 microk8s kubectl get pods -n hplmn -l app=mongodb
@@ -495,6 +533,7 @@ microk8s kubectl exec -n hplmn deployment/udr -- mongo mongodb.hplmn.svc.cluster
 **Solutions:**
 
 #### MongoDB Pod Not Running
+
 ```bash
 # Check MongoDB deployment
 microk8s kubectl describe deployment mongodb -n hplmn
@@ -508,6 +547,7 @@ microk8s kubectl rollout restart statefulset/mongodb -n hplmn
 ```
 
 #### Storage Issues
+
 ```bash
 # Check persistent volume status
 microk8s kubectl get pv | grep hplmn
@@ -521,6 +561,7 @@ microk8s kubectl exec -n hplmn mongodb-0 -- chown -R mongodb:mongodb /data/db
 ```
 
 #### Network Connectivity
+
 ```bash
 # Check MongoDB service
 microk8s kubectl get service mongodb -n hplmn
@@ -535,10 +576,12 @@ microk8s kubectl exec -n hplmn mongodb-0 -- mongo --eval "db.adminCommand('getCm
 ### Issue: External MongoDB Access Not Working
 
 **Symptoms:**
+
 - Cannot connect to MongoDB from outside cluster
 - Connection timeouts on NodePort
 
 **Diagnostic Steps:**
+
 ```bash
 # Check external access setup
 ./cli.sh mongodb-access --status
@@ -551,6 +594,7 @@ microk8s kubectl get service mongodb-external -n hplmn
 ```
 
 **Solutions:**
+
 ```bash
 # Setup external access
 ./cli.sh mongodb-access --setup
@@ -568,12 +612,14 @@ telnet your-vm-ip 30017
 ### Issue: Subscriber Operations Failing
 
 **Symptoms:**
+
 ```bash
 Error: MongoDB pod not found
 ERROR: Failed to add subscriber
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check subscriber script
 ./cli.sh subscribers --count-subscribers
@@ -584,6 +630,7 @@ echo $MONGODB_POD
 ```
 
 **Solutions:**
+
 ```bash
 # Ensure MongoDB is running
 microk8s kubectl get pods -n hplmn -l app=mongodb
@@ -605,11 +652,13 @@ microk8s kubectl exec -n hplmn $MONGODB_POD -- mongo open5gs --eval "db.subscrib
 ### Issue: Image Pull Errors
 
 **Symptoms:**
+
 ```bash
 Failed to pull image "your-registry/nrf:v2.7.5": rpc error: code = Unknown
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check if images exist locally
 docker images | grep nrf
@@ -625,6 +674,7 @@ docker login
 **Solutions:**
 
 #### Missing Images
+
 ```bash
 # Pull images manually
 ./cli.sh pull-images -t v2.7.5
@@ -638,6 +688,7 @@ docker buildx bake
 ```
 
 #### Registry Authentication
+
 ```bash
 # Login to registry
 docker login your-registry.com
@@ -653,6 +704,7 @@ microk8s kubectl create secret docker-registry regcred \
 ```
 
 #### Wrong Image References
+
 ```bash
 # Check deployment image references
 microk8s kubectl describe deployment nrf -n hplmn | grep Image
@@ -667,10 +719,12 @@ find k8s-roaming/ -name "*.yaml" -exec sed -i 's|old-registry|new-registry|g' {}
 ### Issue: Image Version Mismatches
 
 **Symptoms:**
+
 - Different component versions causing compatibility issues
 - Components failing to start due to API mismatches
 
 **Solutions:**
+
 ```bash
 # Check current image versions
 microk8s kubectl describe deployments -n hplmn | grep Image
@@ -691,6 +745,7 @@ microk8s kubectl rollout restart deployment -n vplmn
 ### Issue: High CPU/Memory Usage
 
 **Symptoms:**
+
 ```bash
 # Pods showing high resource usage
 NAME                    CPU(cores)   MEMORY(bytes)
@@ -698,6 +753,7 @@ amf-xxx                 500m         800Mi
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check resource usage
 microk8s kubectl top pods -n hplmn
@@ -711,6 +767,7 @@ microk8s kubectl describe pods -n hplmn | grep -A 5 Limits
 **Solutions:**
 
 #### Increase Resource Limits
+
 ```bash
 # Edit deployment to increase limits
 microk8s kubectl edit deployment component -n namespace
@@ -726,6 +783,7 @@ resources:
 ```
 
 #### Scale Horizontally
+
 ```bash
 # Scale deployment
 microk8s kubectl scale deployment nrf --replicas=3 -n hplmn
@@ -735,6 +793,7 @@ microk8s kubectl autoscale deployment nrf --cpu-percent=70 --min=1 --max=5 -n hp
 ```
 
 #### Optimize Configuration
+
 ```bash
 # Reduce log verbosity
 microk8s kubectl edit configmap component-config -n namespace
@@ -747,10 +806,12 @@ microk8s kubectl edit configmap component-config -n namespace
 ### Issue: Slow Pod Startup
 
 **Symptoms:**
+
 - Pods taking long time to become ready
 - Services not available quickly enough
 
 **Solutions:**
+
 ```bash
 # Adjust readiness probe timing
 microk8s kubectl edit deployment component -n namespace
@@ -772,11 +833,13 @@ readinessProbe:
 ### Issue: MicroK8s Not Starting
 
 **Symptoms:**
+
 ```bash
 microk8s is not running
 ```
 
 **Solutions:**
+
 ```bash
 # Check MicroK8s status
 microk8s status
@@ -796,11 +859,13 @@ microk8s start
 ### Issue: Addon Issues
 
 **Symptoms:**
+
 - DNS addon not working
 - Storage addon failing
 - Registry addon unavailable
 
 **Diagnostic Steps:**
+
 ```bash
 # Check addon status
 microk8s status
@@ -810,6 +875,7 @@ microk8s kubectl logs -n kube-system deployment/coredns
 ```
 
 **Solutions:**
+
 ```bash
 # Disable and re-enable addon
 microk8s disable dns
@@ -825,11 +891,13 @@ microk8s reset  # WARNING: This removes all data
 ### Issue: kubectl Permission Denied
 
 **Symptoms:**
+
 ```bash
 The connection to the server localhost:8080 was refused
 ```
 
 **Solutions:**
+
 ```bash
 # Check if user is in microk8s group
 groups $USER
@@ -851,11 +919,13 @@ microk8s config > ~/.kube/config
 ### Issue: Subscriber Addition Fails
 
 **Symptoms:**
+
 ```bash
 ERROR: Failed to add subscriber 001011234567891
 ```
 
 **Diagnostic Steps:**
+
 ```bash
 # Check IMSI format
 ./cli.sh subscribers --add-single --imsi 001011234567891
@@ -868,6 +938,7 @@ ERROR: Failed to add subscriber 001011234567891
 ```
 
 **Solutions:**
+
 ```bash
 # Verify IMSI format (15 digits)
 ./cli.sh subscribers --add-single --imsi 001011234567891
@@ -883,10 +954,12 @@ microk8s kubectl exec -n hplmn $MONGODB_POD -- mongo open5gs --eval "db.subscrib
 ### Issue: Bulk Subscriber Operations Timeout
 
 **Symptoms:**
+
 - Large subscriber ranges failing
 - Timeout errors during batch processing
 
 **Solutions:**
+
 ```bash
 # Reduce batch size
 ./cli.sh subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900 --batch-size 5
@@ -975,28 +1048,35 @@ docker images > logs/images.txt
 
 ```markdown
 ## Issue Description
+
 Brief description of the problem
 
 ## Environment
+
 - OS: Ubuntu 22.04
 - MicroK8s version: 1.28
 - Open5GS version: v2.7.5
 - Deployment method: Automated/Manual
 
 ## Steps to Reproduce
+
 1. Step one
 2. Step two
 3. Step three
 
 ## Expected Behavior
+
 What should happen
 
 ## Actual Behavior
+
 What actually happens
 
 ## Logs and Output
 ```
+
 [Paste relevant logs here]
+
 ```
 
 ## Additional Context

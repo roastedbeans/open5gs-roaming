@@ -34,7 +34,7 @@ This project documentation is organized into focused guides:
 
 ## 🏗️ Open5GS Overview
 
-### Architecture
+### Architecture xx
 
 This project implements a complete 5G roaming scenario with two separate networks:
 

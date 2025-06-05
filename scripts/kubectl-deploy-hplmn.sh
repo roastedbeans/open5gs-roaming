@@ -84,7 +84,6 @@ echo -e "${GREEN}Subscriber Data Management components deployed successfully${NC
 
 # Step 3: Deploy Core Network Functions
 echo -e "${YELLOW}[3/4] Deploying Core Network Functions...${NC}"
-deploy_components "scp"
 deploy_components "sepp"
 echo -e "${GREEN}Core Network Functions deployed successfully${NC}"
 

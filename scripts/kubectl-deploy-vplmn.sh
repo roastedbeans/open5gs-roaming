@@ -91,7 +91,6 @@ echo -e "${GREEN}Policy components deployed successfully${NC}"
 
 # Step 4: Deploy Core Network Functions
 echo -e "${YELLOW}[4/6] Deploying Core Network Functions...${NC}"
-deploy_components "scp"
 deploy_components "sepp"
 deploy_components "smf"
 echo -e "${GREEN}Core Network Functions deployed successfully${NC}"

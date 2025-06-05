@@ -36,10 +36,10 @@ show_usage() {
     echo ""
     echo "Operations:"
     echo "  --add-range          Add subscribers in IMSI range"
-    echo "  --add-single         Add single subscriber"
+    echo "  --add                Add single subscriber"
     echo "  --delete-all         Delete all subscribers"
-    echo "  --list-subscribers   List all subscribers"
-    echo "  --count-subscribers  Count total subscribers"
+    echo "  --list               List all subscribers"
+    echo "  --count              Count total subscribers"
     echo ""
     echo "Options:"
     echo "  --start-imsi IMSI    Starting IMSI for range operations"
@@ -52,9 +52,7 @@ show_usage() {
     echo ""
     echo "Examples:"
     echo "  $0 --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
-    echo "  $0 --add-single --imsi 001011234567891"
-    echo "  $0 --delete-all"
-    echo "  $0 --count-subscribers"
+    echo "  $0 --add --imsi 001011234567891"
 }
 
 # Function to validate IMSI format
@@ -382,8 +380,8 @@ while [[ $# -gt 0 ]]; do
             OPERATION="add-range"
             shift
             ;;
-        -a|--add-single)
-            OPERATION="add-single"
+        -a|--add)
+            OPERATION="add"
             shift
             ;;
         -d|--delete-all)
@@ -458,7 +456,7 @@ case $OPERATION in
         validate_imsi "$END_IMSI" || exit 1
         add_subscribers_range "$START_IMSI" "$END_IMSI" "$CUSTOM_KEY" "$CUSTOM_OPC"
         ;;
-    "add-single")
+    "add")
         if [ -z "$START_IMSI" ]; then
             echo -e "${RED}Error: --imsi is required for single subscriber operations${NC}"
             exit 1
