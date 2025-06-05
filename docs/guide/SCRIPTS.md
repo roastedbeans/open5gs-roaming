@@ -1,116 +1,71 @@
-# Scripts and CLI Reference Guide
+# Scripts Reference Guide
 
-This guide provides comprehensive documentation for all scripts and CLI commands in the Open5GS roaming deployment project. Understanding these tools will help you customize, troubleshoot, and extend the deployment.
+This guide documents all scripts in the Open5GS roaming deployment project and their actual functionality.
 
-## 📋 Table of Contents
+## 📋 Quick Reference
 
-- [CLI Overview](#cli-overview)
-- [Core Management Scripts](#core-management-scripts)
-- [Deployment Scripts](#deployment-scripts)
-- [Database Management Scripts](#database-management-scripts)
-- [Certificate Management Scripts](#certificate-management-scripts)
-- [Image Management Scripts](#image-management-scripts)
-- [Cleanup Scripts](#cleanup-scripts)
-- [Script Architecture](#script-architecture)
-
----
-
-## 🛠️ CLI Overview
-
-### Main CLI Interface
-
-The `cli.sh` script serves as the unified interface for all operations:
-
-```bash
-# View all available commands
-./cli.sh help
-
-# Check CLI version
-./cli.sh version
-```
-
-### CLI Command Structure
-
-```bash
-./cli.sh [command] [options]
-
-# Examples:
-./cli.sh deploy-hplmn --namespace hplmn
-./cli.sh mongodb-access --setup --node-port 30017
-./cli.sh subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
-```
-
-### Common CLI Options
-
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--namespace, -n` | Specify Kubernetes namespace | `-n hplmn` |
-| `--tag, -t` | Specify image tag | `-t v2.7.5` |
-| `--force, -f` | Skip confirmation prompts | `--force` |
-| `--help` | Show help for command | `--help` |
+| Script                    | Purpose                  | Usage                                    |
+| ------------------------- | ------------------------ | ---------------------------------------- |
+| `setup-k8s-roaming.sh`    | Complete automated setup | `./scripts/setup-k8s-roaming.sh v2.7.5`  |
+| `install-dep.sh`          | Install dependencies     | `./scripts/install-dep.sh`               |
+| `pull-docker-images.sh`   | Pull container images    | `./scripts/pull-docker-images.sh v2.7.5` |
+| `kubectl-deploy-hplmn.sh` | Deploy HPLMN             | `./scripts/kubectl-deploy-hplmn.sh`      |
+| `kubectl-deploy-vplmn.sh` | Deploy VPLMN             | `./scripts/kubectl-deploy-vplmn.sh`      |
+| `mongodb-hplmn.sh`        | Deploy MongoDB           | `./scripts/mongodb-hplmn.sh`             |
+| `subscribers.sh`          | Manage subscribers       | `./scripts/subscribers.sh --help`        |
+| `cert-deploy.sh`          | Deploy certificates      | `./scripts/cert-deploy.sh`               |
 
 ---
 
-## 🏗️ Core Management Scripts
-
-### install-dep.sh
-
-**Purpose**: Install all system dependencies required for Open5GS deployment.
-
-**Location**: `scripts/install-dep.sh`
-
-**What it does**:
-1. Installs Docker CE with buildx plugin
-2. Installs Git and OpenSSL tools  
-3. Builds and installs GTP5G kernel module
-4. Configures Docker for non-root use
-5. Verifies all installations
-
-**Usage**:
-```bash
-# Install all dependencies
-./cli.sh install-dep
-
-# Direct script execution
-scripts/install-dep.sh
-```
-
-**Post-installation requirements**:
-```bash
-# Log out and back in for Docker group changes
-# Verify installations:
-docker --version
-git --version
-lsmod | grep gtp5g
-```
+## 🏗️ Core Setup Scripts
 
 ### setup-k8s-roaming.sh
 
-**Purpose**: Complete automated setup orchestrator that handles the entire deployment process.
-
-**Location**: `scripts/setup-k8s-roaming.sh`
+**Purpose**: Complete automated deployment orchestrator
 
 **What it does**:
-1. Installs and configures MicroK8s
-2. Pulls all required Docker images
-3. Generates TLS certificates for SEPP
-4. Creates Kubernetes namespaces
-5. Deploys certificates as secrets
-6. Configures DNS and networking
+
+1. Installs Docker CE
+2. Installs MicroK8s 1.28
+3. Pulls Open5GS container images from `docker.io/vinch05`
+4. Generates TLS certificates for SEPP
+5. Creates Kubernetes namespaces (`hplmn`, `vplmn`)
+6. Deploys certificates as secrets
 
 **Usage**:
-```bash
-# Complete automated setup
-./cli.sh setup-roaming --full-setup
 
-# Direct script execution with version
-scripts/setup-k8s-roaming.sh v2.7.5
+```bash
+# Full automated setup
+./scripts/setup-k8s-roaming.sh v2.7.5
+
+# Without version (defaults to v2.7.5)
+./scripts/setup-k8s-roaming.sh
 ```
 
-**Configuration**:
-- Default Open5GS version: `v2.7.5`
-- Namespaces created: `hplmn`, `vplmn`
-- Certificates stored in: `scripts/cert/open5gs_tls/`
+**Components pulled**:
+
+- `base-open5gs`, `amf`, `ausf`, `bsf`, `nrf`, `nssf`, `pcf`, `sepp`, `smf`, `udm`, `udr`, `upf`, `webui`, `networkui`
+- `corfr/tcpdump` for packet capture
+
+### install-dep.sh
+
+**Purpose**: Install system dependencies
+
+**What it installs**:
+
+1. **Docker CE** with buildx plugin
+2. **Git** for repository management
+3. **GTP5G kernel module** for 5G support
+4. **Build tools** (gcc-12, linux-headers)
+
+**Usage**:
+
+```bash
+./scripts/install-dep.sh
+# ⚠️ Log out and back in after completion
+```
+
+**Post-installation**: User is added to `docker` group, requires re-login.
 
 ---
 
@@ -118,375 +73,234 @@ scripts/setup-k8s-roaming.sh v2.7.5
 
 ### kubectl-deploy-hplmn.sh
 
-**Purpose**: Deploy HPLMN (Home Network) components in the correct dependency order.
+**Purpose**: Deploy HPLMN components in correct order
 
-**Location**: `scripts/kubectl-deploy-hplmn.sh`
+**Deployment order**:
 
-**Deployment Order**:
-1. **NRF** (Network Repository Function) - Service registry first
+1. **NRF** (Network Repository Function) - Service registry
 2. **UDR → UDM → AUSF** - User data management chain
-3. **SCP** (Service Communication Proxy)
-4. **SEPP** (Security Edge Protection Proxy)
-5. **MongoDB** (if directory exists)
+3. **SEPP** - Security Edge Protection
+4. **MongoDB** (if directory exists)
+5. **WebUI** (if directory exists) - Port 30999
+6. **NetworkUI** (if directory exists) - Port 30998
 
 **Usage**:
-```bash
-# Deploy HPLMN components
-./cli.sh deploy-hplmn
 
-# Direct script execution
-scripts/kubectl-deploy-hplmn.sh
+```bash
+./scripts/kubectl-deploy-hplmn.sh
 ```
 
-**What each step does**:
-```bash
-# 1. Creates namespace if not exists
-microk8s kubectl create namespace hplmn --dry-run=client -o yaml | microk8s kubectl apply -f -
+**What it deploys per component**:
 
-# 2. Deploys each component (example for NRF):
-cd k8s-roaming/hplmn/nrf/
-microk8s kubectl apply -f configmap.yaml -n hplmn    # Configuration
-microk8s kubectl apply -f deployment.yaml -n hplmn   # Pod specification
-microk8s kubectl apply -f service.yaml -n hplmn      # Network service
-
-# 3. Waits for all pods to be ready
-microk8s kubectl wait --for=condition=ready pods --all --namespace=hplmn --timeout=300s
-```
+- `configmap.yaml` (if exists)
+- `deployment.yaml`
+- `service.yaml`
 
 ### kubectl-deploy-vplmn.sh
 
-**Purpose**: Deploy VPLMN (Visited Network) components in the correct dependency order.
+**Purpose**: Deploy VPLMN components in correct order
 
-**Location**: `scripts/kubectl-deploy-vplmn.sh`
+**Deployment order**:
 
-**Deployment Order**:
 1. **NRF** - Service registry
 2. **UDR → UDM → AUSF** - User data management
 3. **PCF → BSF → NSSF** - Policy functions
-4. **SCP → SEPP → SMF** - Core functions
-5. **UPF** - User plane
-6. **AMF** - Access and mobility (last)
+4. **SEPP → SMF** - Core functions
+5. **UPF** - User plane function
+6. **AMF** - Access management (deployed last)
 
 **Usage**:
-```bash
-# Deploy VPLMN components
-./cli.sh deploy-vplmn
 
-# Direct script execution
-scripts/kubectl-deploy-vplmn.sh
+```bash
+./scripts/kubectl-deploy-vplmn.sh
 ```
 
-**Why deployment order matters**:
-- **NRF must be first**: Other services register with NRF
-- **Data services before policy**: UDM/UDR provide data for policy decisions
-- **Core functions before access**: SMF/UPF must be ready before AMF starts
-- **AMF last**: AMF connects to external RAN, so all internal services must be ready
+**Why order matters**: AMF connects to external RAN, so all internal services must be ready first.
 
 ---
 
-## 🗄️ Database Management Scripts
+## 🗄️ Database Scripts
 
 ### mongodb-hplmn.sh
 
-**Purpose**: Deploy MongoDB StatefulSet and Service for HPLMN namespace.
+**Purpose**: Deploy MongoDB StatefulSet for HPLMN
 
-**Location**: `scripts/mongodb-hplmn.sh`
+**What it creates**:
 
-**What it deploys**:
-- **StatefulSet**: For persistent MongoDB instances
-- **Service**: For internal cluster access and optional NodePort
-- **ConfigMap**: For MongoDB configuration (if present)
-- **PVC/PV**: For persistent storage (if configured)
+- **StatefulSet**: MongoDB 4.4 with persistent storage
+- **ClusterIP Service**: Internal cluster access
+- **NodePort Service**: External access (optional)
+- **PVC**: 1Gi data storage + 500Mi config storage
 
 **Usage**:
+
 ```bash
-# Deploy MongoDB for HPLMN
-./cli.sh mongodb-hplmn
+# Basic deployment
+./scripts/mongodb-hplmn.sh
 
-# Deploy with specific options
-./cli.sh mongodb-hplmn --namespace hplmn --force
+# With external access
+./scripts/mongodb-hplmn.sh --with-nodeport --node-port 30017
 
-# Skip waiting for pods to be ready
-./cli.sh mongodb-hplmn --no-wait
+# Custom storage
+./scripts/mongodb-hplmn.sh --storage-size 2Gi
 ```
 
-**Configuration options**:
-```bash
-# Default values in the script
-NAMESPACE="hplmn"
-STORAGE_SIZE="1Gi"
-CONFIG_STORAGE="500Mi"
-STORAGE_CLASS="microk8s-hostpath"
-```
+**Storage**: Uses `microk8s-hostpath` storage class by default.
 
 ### mongodb-access.sh
 
-**Purpose**: Manage external access to MongoDB running in Kubernetes.
-
-**Location**: `scripts/mongodb-access.sh`
+**Purpose**: Manage external MongoDB access
 
 **Operations**:
-- **Setup**: Create NodePort service for external access
-- **Remove**: Remove NodePort service
-- **Status**: Show connection status and details
-- **Port Forward**: Start kubectl port forwarding (temporary)
-- **Test**: Test connectivity to MongoDB
+
+- `--setup`: Create NodePort service (port 30017)
+- `--remove`: Remove NodePort service
+- `--status`: Show connection details
+- `--test`: Test connectivity
 
 **Usage**:
+
 ```bash
 # Setup external access
-./cli.sh mongodb-access --setup
+./scripts/mongodb-access.sh --setup
 
-# Check connection status
-./cli.sh mongodb-access --status
+# Check status
+./scripts/mongodb-access.sh --status
 
 # Remove external access
-./cli.sh mongodb-access --remove
-
-# Test connectivity
-./cli.sh mongodb-access --test
-
-# Custom port
-./cli.sh mongodb-access --setup --node-port 31017
+./scripts/mongodb-access.sh --remove
 ```
 
-**Output example**:
-```bash
-MongoDB External Access Status
-================================
-VM IP Address: 192.168.1.100
-NodePort Service: Active
-External Port: 30017
-Connection String: mongodb://192.168.1.100:30017
+---
 
-Connection Examples:
-MongoDB Compass: mongodb://192.168.1.100:30017
-MongoDB Shell:   mongo --host 192.168.1.100 --port 30017
-Python:          mongodb://192.168.1.100:30017
-```
+## 👥 Subscriber Management
 
 ### subscribers.sh
 
-**Purpose**: Comprehensive subscriber management for the 5G core network database.
-
-**Location**: `scripts/subscribers.sh`
+**Purpose**: Comprehensive subscriber management for 5G core
 
 **Operations**:
-- **Add Single**: Add individual subscriber with IMSI
-- **Add Range**: Add multiple subscribers with IMSI range
-- **List All**: Display all subscribers in database
-- **Count**: Show total number of subscribers
-- **Delete All**: Remove all subscribers (with confirmation)
+
+- `--add-range`: Add multiple subscribers
+- `--add`: Add single subscriber
+- `--list`: List all subscribers
+- `--count`: Count subscribers
+- `--delete-all`: Remove all subscribers
 
 **Usage**:
+
 ```bash
+# Add subscriber range
+./scripts/subscribers.sh --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
+
 # Add single subscriber
-./cli.sh subscribers --add-single --imsi 001011234567891
-
-# Add range of subscribers
-./cli.sh subscribers --add-range --start-imsi 001011234567891 --end-imsi 001011234567900
-
-# Add with custom authentication keys
-./cli.sh subscribers --add-single --imsi 001011234567891 --key "CUSTOM_KEY" --opc "CUSTOM_OPC"
+./scripts/subscribers.sh --add --imsi 001011234567891
 
 # List all subscribers
-./cli.sh subscribers --list-subscribers
+./scripts/subscribers.sh --list
 
 # Count subscribers
-./cli.sh subscribers --count-subscribers
+./scripts/subscribers.sh --count
 
 # Delete all subscribers
-./cli.sh subscribers --delete-all
+./scripts/subscribers.sh --delete-all
 ```
 
-**Batch processing features**:
-- Processes subscribers in configurable batches (default: 10)
-- Shows progress indicators for large ranges
-- Efficient bulk operations for better performance
-- Input validation for IMSI format (15 digits)
+**Default values**:
 
-**Subscriber document structure**:
-```javascript
-{
-  "schema_version": NumberInt(1),
-  "imsi": "001011234567891",
-  "slice": [{
-    "sst": NumberInt(1),
-    "sd": "000001",
-    "default_indicator": true,
-    "session": [{
-      "name": "internet",
-      "type": NumberInt(3),
-      "qos": {"index": NumberInt(9)},
-      "ambr": {
-        "downlink": {"value": NumberInt(1), "unit": NumberInt(3)},
-        "uplink": {"value": NumberInt(1), "unit": NumberInt(3)}
-      }
-    }]
-  }],
-  "security": {
-    "k": "7F176C500D47CF2090CB6D91F4A73479",
-    "opc": "3D45770E83C7BBB6900F3653FDA6330F",
-    "amf": "8000",
-    "sqn": NumberLong(1184)
-  }
-}
+- **Key**: `465B5CE8B199B49FAA5F0A2EE238A6BC`
+- **OPC**: `E8ED289DEBA952E4283B54E88E6183CA`
+- **Batch size**: 100 subscribers per operation
+
+**Custom authentication**:
+
+```bash
+./scripts/subscribers.sh --add --imsi 001011234567891 --key CUSTOM_KEY --opc CUSTOM_OPC
 ```
 
 ---
 
-## 🔐 Certificate Management Scripts
-
-### generate-sepp-certs.sh
-
-**Purpose**: Generate TLS certificates for SEPP N32 interfaces between HPLMN and VPLMN.
-
-**Location**: `scripts/cert/generate-sepp-certs.sh`
-
-**Certificates generated**:
-- **CA Certificate**: Root certificate authority
-- **HPLMN N32-C**: `sepp1.5gc.mnc001.mcc001.3gppnetwork.org`
-- **HPLMN N32-F**: `sepp2.5gc.mnc001.mcc001.3gppnetwork.org`
-- **VPLMN N32-C**: `sepp1.5gc.mnc070.mcc999.3gppnetwork.org`
-- **VPLMN N32-F**: `sepp2.5gc.mnc070.mcc999.3gppnetwork.org`
-
-**Usage**:
-```bash
-# Generate certificates
-./cli.sh generate-certs
-
-# Direct script execution
-scripts/cert/generate-sepp-certs.sh
-```
-
-**Certificate details**:
-- **Validity**: 365 days
-- **Algorithm**: RSA 2048-bit
-- **Hash**: SHA-256
-- **Output directory**: `scripts/cert/open5gs_tls/`
+## 🔐 Certificate Management
 
 ### cert-deploy.sh
 
-**Purpose**: Deploy TLS certificates as Kubernetes secrets in both namespaces.
+**Purpose**: Deploy TLS certificates as Kubernetes secrets
 
-**Location**: `scripts/cert-deploy.sh`
+**What it creates**:
 
-**Secrets created**:
-- `sepp-n32c`: N32-C interface certificates
-- `sepp-n32f`: N32-F interface certificates  
-- `sepp-ca`: Certificate Authority certificate
+- **CA secrets**: `sepp-ca` in both namespaces
+- **N32C secrets**: `sepp-n32c` (consumer interface)
+- **N32F secrets**: `sepp-n32f` (forwarder interface)
 
 **Usage**:
-```bash
-# Deploy certificates as secrets
-./cli.sh deploy-certs
 
-# Direct script execution
-scripts/cert-deploy.sh
+```bash
+./scripts/cert-deploy.sh
 ```
 
-**What it does**:
-```bash
-# Creates TLS secrets for HPLMN
-microk8s kubectl create secret tls sepp-n32c \
-    --cert=scripts/cert/open5gs_tls/sepp-hplmn-n32c.crt \
-    --key=scripts/cert/open5gs_tls/sepp-hplmn-n32c.key \
-    -n hplmn
+**Certificate mapping**:
 
-# Creates CA secret
-microk8s kubectl create secret generic sepp-ca \
-    --from-file=ca.crt=scripts/cert/open5gs_tls/ca.crt \
-    -n hplmn
-
-# Repeats for VPLMN namespace
-```
+- **HPLMN**: `sepp-hplmn-n32c.crt/key`, `sepp-hplmn-n32f.crt/key`
+- **VPLMN**: `sepp-vplmn-n32c.crt/key`, `sepp-vplmn-n32f.crt/key`
 
 ---
 
-## 📦 Image Management Scripts
+## 🐳 Image Management
 
 ### pull-docker-images.sh
 
-**Purpose**: Pull all Open5GS component images from a Docker registry.
-
-**Location**: `scripts/pull-docker-images.sh`
+**Purpose**: Pull all required container images
 
 **Images pulled**:
-- All Open5GS components (AMF, SMF, UPF, NRF, etc.)
-- Utility images (tcpdump, netshoot, MongoDB)
 
-**Usage**:
 ```bash
-# Pull images with default version
-./cli.sh pull-images
-
-# Pull specific version
-./cli.sh pull-images -t v2.7.5
-
-# Direct script execution
-scripts/pull-docker-images.sh v2.7.5
-```
-
-**Default image list**:
-```bash
-COMPONENTS=(
-  "base-open5gs"
-  "amf" "ausf" "bsf" "nrf" "nssf" "pcf"
-  "scp" "sepp" "smf" "udm" "udr" "upf" "webui"
-)
+# Open5GS components from docker.io/vinch05
+vinch05/base-open5gs:v2.7.5
+vinch05/amf:v2.7.5
+vinch05/ausf:v2.7.5
+vinch05/bsf:v2.7.5
+vinch05/nrf:v2.7.5
+vinch05/nssf:v2.7.5
+vinch05/pcf:v2.7.5
+vinch05/sepp:v2.7.5
+vinch05/smf:v2.7.5
+vinch05/udm:v2.7.5
+vinch05/udr:v2.7.5
+vinch05/upf:v2.7.5
+vinch05/webui:v2.7.5
+vinch05/networkui:v2.7.5
 
 # Utility images
-UTIL_IMAGES=(
-  "corfr/tcpdump"
-  "nicolaka/netshoot:latest"
-  "mongo:4.4"
-)
+corfr/tcpdump
 ```
-
-### import.sh
-
-**Purpose**: Import Docker images into MicroK8s registry for air-gapped deployments.
-
-**Location**: `scripts/import.sh`
 
 **Usage**:
-```bash
-# Import images to MicroK8s registry
-./cli.sh import-images
 
-# Direct script execution
-scripts/import.sh
+```bash
+# Pull latest version
+./scripts/pull-docker-images.sh v2.7.5
+
+# Pull default version
+./scripts/pull-docker-images.sh
 ```
 
+### docker-deploy.sh
+
+**Purpose**: Push images to Docker Hub
+
 **What it does**:
-1. Enables MicroK8s registry if not enabled
-2. Tags images for local registry (`localhost:32000/`)
-3. Pushes images to MicroK8s registry
-4. Lists imported images for verification
 
-### update.sh
-
-**Purpose**: Update Kubernetes deployment manifests to use custom registry.
-
-**Location**: `scripts/update.sh`
+1. Tags local images with Docker Hub username
+2. Pushes all Open5GS images to registry
+3. Provides status feedback
 
 **Usage**:
+
 ```bash
-# Update configs for MicroK8s registry
-./cli.sh update-configs
+# Set username and push
+DOCKERHUB_USERNAME="your-username" ./scripts/docker-deploy.sh
 
-# Direct script execution
-scripts/update.sh
-```
-
-**What it does**:
-```bash
-# Updates image references in deployment files
-find k8s-roaming/ -name "*.yaml" -type f -exec sed -i \
-    's|image: docker.io/vinch05/|image: localhost:32000/|g' {} \;
-
-# Sets imagePullPolicy to IfNotPresent
-sed -i "/image: localhost:32000/a \        imagePullPolicy: IfNotPresent" file.yaml
+# Or edit script to set username permanently
 ```
 
 ---
@@ -495,242 +309,113 @@ sed -i "/image: localhost:32000/a \        imagePullPolicy: IfNotPresent" file.y
 
 ### microk8s-clean.sh
 
-**Purpose**: Clean all Kubernetes resources from specified namespace.
+**Purpose**: Clean MicroK8s deployment
 
-**Location**: `scripts/microk8s-clean.sh`
+**What it removes**:
 
-**Resources cleaned**:
-- Deployments and StatefulSets
-- Services and ConfigMaps
-- PersistentVolumeClaims
-- Pods and Secrets
-- Optional: PersistentVolumes
+- All pods in `hplmn` and `vplmn` namespaces
+- Persistent Volume Claims
+- Secrets
+- ConfigMaps
+- Services
 
 **Usage**:
+
 ```bash
-# Clean specific namespace
-./cli.sh clean-k8s -n hplmn
-
-# Clean with persistent volumes
-./cli.sh clean-k8s -n hplmn --delete-pv
-
-# Force clean without confirmation
-./cli.sh clean-k8s -n hplmn --force
+./scripts/microk8s-clean.sh
 ```
-
-**Safety features**:
-- Confirmation prompt before deletion
-- Counts resources before deletion
-- Graceful termination with timeouts
-- Option to preserve or delete persistent volumes
 
 ### docker-clean.sh
 
-**Purpose**: Clean all Docker containers and images related to Open5GS.
+**Purpose**: Clean Docker images and containers
 
-**Location**: `scripts/docker-clean.sh`
+**What it removes**:
 
-**What it cleans**:
-- All Open5GS containers (running and stopped)
-- All Open5GS images
-- Optional: Dangling images and volumes
+- Stopped containers
+- Unused images
+- Open5GS specific images
 
 **Usage**:
-```bash
-# Clean Docker resources
-./cli.sh clean-docker
-
-# Force clean without confirmation
-./cli.sh clean-docker --force
-```
-
-**Safety features**:
-- Shows resources before deletion
-- Confirmation prompt
-- Option to clean dangling images
-- Preserves non-Open5GS containers/images
-
----
-
-## 🏗️ Script Architecture
-
-### CLI Command Flow
-
-```mermaid
-graph TD
-    A[cli.sh] --> B{Command Type}
-    B -->|Deployment| C[deploy-hplmn.sh<br/>deploy-vplmn.sh]
-    B -->|Database| D[mongodb-hplmn.sh<br/>mongodb-access.sh<br/>subscribers.sh]
-    B -->|Images| E[pull-docker-images.sh<br/>import.sh<br/>update.sh]
-    B -->|Certificates| F[generate-sepp-certs.sh<br/>cert-deploy.sh]
-    B -->|Cleanup| G[microk8s-clean.sh<br/>docker-clean.sh]
-    B -->|Setup| H[install-dep.sh<br/>setup-k8s-roaming.sh]
-    
-    C --> I[kubectl apply]
-    D --> J[MongoDB Operations]
-    E --> K[Docker/Registry Ops]
-    F --> L[OpenSSL/K8s Secrets]
-    G --> M[Resource Cleanup]
-    H --> N[System Setup]
-```
-
-### Error Handling
-
-All scripts implement consistent error handling:
 
 ```bash
-# Exit on error
-set -e
-
-# Color-coded output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# Error function
-handle_error() {
-    echo -e "${RED}Error: $1${NC}"
-    exit 1
-}
-
-# Success function  
-success() {
-    echo -e "${GREEN}Success: $1${NC}"
-}
-```
-
-### Common Functions
-
-Several scripts share common utilities:
-
-```bash
-# Check if script exists and is executable
-check_script() {
-    local script_path=$1
-    if [ ! -f "$script_path" ]; then
-        echo "Error: Script not found"
-        return 1
-    fi
-}
-
-# Get MongoDB pod name
-get_mongodb_pod() {
-    local pod_name=$(microk8s kubectl get pods -n hplmn -l app=mongodb -o jsonpath='{.items[0].metadata.name}')
-    echo $pod_name
-}
-
-# Validate IMSI format
-validate_imsi() {
-    local imsi=$1
-    if [[ ! $imsi =~ ^[0-9]{15}$ ]]; then
-        echo "Error: IMSI must be exactly 15 digits"
-        return 1
-    fi
-}
-```
-
-### Configuration Management
-
-Scripts use environment variables and defaults:
-
-```bash
-# Default values
-NAMESPACE="hplmn"
-VERSION="v2.7.5"
-BATCH_SIZE=10
-NODE_PORT="30017"
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --namespace|-n)
-            NAMESPACE="$2"
-            shift 2
-            ;;
-        --tag|-t)
-            VERSION="$2"
-            shift 2
-            ;;
-        *)
-            echo "Unknown argument: $1"
-            exit 1
-            ;;
-    esac
-done
+./scripts/docker-clean.sh
 ```
 
 ---
 
-## 📚 Script Development Guidelines
+## 🔧 Utility Scripts
 
-### Creating New Scripts
+### restart-pods.sh
 
-1. **Follow naming convention**: `action-target.sh` (e.g., `deploy-hplmn.sh`)
-2. **Use consistent error handling**: Exit on error, color-coded output
-3. **Add help documentation**: Usage function with examples
-4. **Implement argument parsing**: Support standard options
-5. **Add to CLI**: Register in `cli.sh` for consistency
+**Purpose**: Restart all pods in a namespace
 
-### Script Template
+**Usage**:
 
 ```bash
-#!/bin/bash
-# Script Name and Purpose
-# This script does [specific function]
+# Restart HPLMN pods
+./scripts/restart-pods.sh hplmn
 
-set -e
+# Restart VPLMN pods
+./scripts/restart-pods.sh vplmn
+```
 
-# Color codes for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+### get-status.sh
 
-# Default values
-DEFAULT_VALUE="default"
+**Purpose**: Get comprehensive status of deployment
 
-# Function to show usage
-show_usage() {
-    echo "Usage: $0 [OPTIONS]"
-    echo "Options:"
-    echo "  --option VALUE    Description"
-    echo "  --help           Show this help"
-}
+**Usage**:
 
-# Main function
-main() {
-    echo -e "${BLUE}Starting [script purpose]...${NC}"
-    # Script logic here
-    echo -e "${GREEN}Completed successfully${NC}"
-}
+```bash
+./scripts/get-status.sh
+```
 
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --help)
-            show_usage
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}Unknown argument: $1${NC}"
-            show_usage
-            exit 1
-            ;;
-    esac
-done
+### pcap-capture.sh
 
-# Run main function
-main "$@"
+**Purpose**: Start packet capture for debugging
+
+**Usage**:
+
+```bash
+./scripts/pcap-capture.sh
 ```
 
 ---
 
-## 🔗 Related Documentation
+## 🔍 Debugging Scripts
 
-- **[← Back to Main README](../README.md)**
-- **[Setup Guide](SETUP.md)** - For deployment instructions  
-- **[Docker Guide](DOCKER.md)** - For container management
-- **[Kubernetes Guide](KUBERNETES.md)** - For K8s-specific configurations
-- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - For debugging help
+### mongodb44-setup.sh
+
+**Purpose**: Setup MongoDB 4.4 with specific configuration
+
+### coredns-rewrite.sh
+
+**Purpose**: Configure CoreDNS rewrite rules for 3GPP FQDNs
+
+### update.sh
+
+**Purpose**: Update deployment configurations
+
+---
+
+## 📝 Script Dependencies
+
+**Execution order for full deployment**:
+
+1. `install-dep.sh` (requires logout/login)
+2. `setup-k8s-roaming.sh`
+3. `kubectl-deploy-hplmn.sh`
+4. `kubectl-deploy-vplmn.sh`
+5. `subscribers.sh` (optional)
+
+**Common script paths**:
+
+- All scripts expect to be run from repository root
+- Kubernetes manifests in `k8s-roaming/`
+- Certificates in `k8s-roaming/cert/`
+
+**Environment requirements**:
+
+- Ubuntu 22.04 LTS
+- Root/sudo access
+- Docker group membership
+- MicroK8s group membership
