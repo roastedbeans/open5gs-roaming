@@ -264,7 +264,7 @@ EOF
 // Execute bulk operation
 if (operations.length > 0) {
     var result = db.$COLLECTION_NAME.bulkWrite(operations);
-    print("Batch completed: " + result.upsertedCount + " new subscribers added, " + result.modifiedCount + " updated");
+    print("Batch completed: " + result.upsertedCount + " new subscribers added");
     added_count = result.upsertedCount;
 } else {
     print("No operations to execute");

@@ -10,9 +10,11 @@ data:
     logger:
       file:
         path: /var/log/open5gs/pcf.log
+        
     global:
       max:
-        ue: 1024
+        ue: 100000
+
     pcf:
       sbi:
         server:

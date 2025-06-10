@@ -9,7 +9,10 @@ data:
       file:
         path: /var/log/open5gs/udm.log
       level: debug
+      
     global:
+      max:
+        ue: 100000
 
     udm:
       sbi:

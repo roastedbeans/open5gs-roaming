@@ -383,8 +383,8 @@ $(warning "Examples:")
   $0 deploy-roaming -t v2.7.6
   $0 mongodb-access -s
   $0 subscribers -a -s 001011234567891 -e 001011234567900
-  $0 copy sepp.pcap | kubectl cp <pod-name>:/pcap/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
-  $0 remove sepp.pcap | kubectl delete -f ./pcap-logs/sepp.pcap
+  copy sepp.pcap | kubectl cp <pod-name>:/pcap/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
+  remove sepp.pcap | kubectl delete -f ./pcap-logs/sepp.pcap
 
 For detailed command help: $0 [command] -h
 EOF

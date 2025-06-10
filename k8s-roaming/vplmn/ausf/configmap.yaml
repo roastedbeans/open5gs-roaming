@@ -11,6 +11,8 @@ data:
       level: debug
 
     global:
+      max:
+        ue: 100000
 
     ausf:
       sbi:

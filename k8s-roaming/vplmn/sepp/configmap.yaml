@@ -11,6 +11,8 @@ data:
       level: trace  # fatal|error|warn|info(default)|debug|trace
 
     global:
+      max:
+        ue: 100000
 
     sepp:
       sbi:
