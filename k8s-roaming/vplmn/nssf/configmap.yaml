@@ -10,6 +10,8 @@ data:
         path: /var/log/open5gs/nssf.log
 
     global:
+      max:
+        ue: 100000
 
     nssf:
       sbi:

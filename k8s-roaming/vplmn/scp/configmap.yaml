@@ -10,6 +10,8 @@ data:
         path: /var/log/open5gs/scp.log
 
     global:
+      max:
+        ue: 100000
 
     scp:
       sbi:
