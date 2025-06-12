@@ -17,14 +17,8 @@ spec:
         - name: nrf
           image: docker.io/vinch05/nrf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ['open5gs-nrfd', '-c', '/etc/open5gs/nrf.yaml']
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "4Gi"
-              cpu: "500m"
+          command: ["open5gs-nrfd", "-c", "/etc/open5gs/nrf.yaml"]
+
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/nrf.yaml

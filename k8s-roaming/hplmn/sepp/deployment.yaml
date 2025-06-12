@@ -17,14 +17,7 @@ spec:
         - name: sepp
           image: docker.io/vinch05/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "4Gi"
-              cpu: "500m"
+          command: ["open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml"]
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml

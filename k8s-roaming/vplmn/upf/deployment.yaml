@@ -14,37 +14,30 @@ spec:
         app: upf
     spec:
       initContainers:
-      - name: setup-network
-        image: alpine:latest
-        securityContext:
-          privileged: true
-          capabilities:
-            add: ['NET_ADMIN']
-        command:
-        - /bin/sh
-        - -c
-        - |
-          # Enable IP forwarding
-          echo 1 > /proc/sys/net/ipv4/ip_forward
-          # Set up NAT for internet access
-          apk add --no-cache iptables
-          iptables -t nat -A POSTROUTING -s 10.45.0.0/16 -o eth0 -j MASQUERADE
+        - name: setup-network
+          image: alpine:latest
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Enable IP forwarding
+              echo 1 > /proc/sys/net/ipv4/ip_forward
+              # Set up NAT for internet access
+              apk add --no-cache iptables
+              iptables -t nat -A POSTROUTING -s 10.45.0.0/16 -o eth0 -j MASQUERADE
       containers:
         - name: upf
           image: docker.io/vinch05/upf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ['open5gs-upfd', '-c', '/etc/open5gs/upf.yaml']
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "4Gi"
-              cpu: "500m"
+          command: ["open5gs-upfd", "-c", "/etc/open5gs/upf.yaml"]
           securityContext:
             privileged: true
             capabilities:
-              add: ['NET_ADMIN', 'NET_RAW', 'SYS_ADMIN']
+              add: ["NET_ADMIN", "NET_RAW", "SYS_ADMIN"]
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/upf.yaml
