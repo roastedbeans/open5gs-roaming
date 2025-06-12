@@ -73,16 +73,3 @@ spec:
         - name: pcap-volume
           persistentVolumeClaim:
             claimName: sepp-pcap-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sepp-pcap-pvc
-  namespace: vplmn
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: 'manual'
