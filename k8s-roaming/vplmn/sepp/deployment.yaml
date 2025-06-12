@@ -17,7 +17,7 @@ spec:
         - name: sepp
           image: docker.io/vinch05/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-seppd", "-c", "/etc/open5gs/sepp.yaml"]
+          command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
@@ -45,10 +45,15 @@ spec:
         - name: sniffer
           image: corfr/tcpdump
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args: ["tcpdump -i any -w /pcap/sepp.pcap"]
+          command: ['/bin/sh', '-c']
+          args: ['tcpdump -i any -w /pcap/sepp.pcap']
           securityContext:
             privileged: true
+          resources:
+            requests:
+              ephemeral-storage: '5Gi'
+            limits:
+              ephemeral-storage: '5Gi'
           volumeMounts:
             - name: pcap-volume
               mountPath: /pcap
@@ -66,4 +71,18 @@ spec:
           secret:
             secretName: sepp-ca
         - name: pcap-volume
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: sepp-pcap-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sepp-pcap-pvc
+  namespace: vplmn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ''
