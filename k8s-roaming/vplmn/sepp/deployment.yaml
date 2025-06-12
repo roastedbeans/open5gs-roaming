@@ -71,5 +71,4 @@ spec:
           secret:
             secretName: sepp-ca
         - name: pcap-volume
-          persistentVolumeClaim:
-            claimName: sepp-pcap-pvc
+          emptyDir: {}
