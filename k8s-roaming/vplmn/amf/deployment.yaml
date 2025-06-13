@@ -17,7 +17,14 @@ spec:
         - name: amf
           image: docker.io/vinch05/amf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-amfd", "-c", "/etc/open5gs/amf.yaml"]
+          command: ['open5gs-amfd', '-c', '/etc/open5gs/amf.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/amf.yaml
