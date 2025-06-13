@@ -17,14 +17,21 @@ spec:
         - name: scp
           image: docker.io/vinch05/scp:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-scpd", "-c", "/etc/open5gs/scp.yaml"]
+          command: ['open5gs-scpd', '-c', '/etc/open5gs/scp.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/scp.yaml
               subPath: scp.yaml
           ports:
             - containerPort: 80
-              name: http
+              name: sbi
       volumes:
         - name: config
           configMap:

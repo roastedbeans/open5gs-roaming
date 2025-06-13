@@ -17,7 +17,14 @@ spec:
         - name: ausf
           image: docker.io/vinch05/ausf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-ausfd", "-c", "/etc/open5gs/ausf.yaml"]
+          command: ['open5gs-ausfd', '-c', '/etc/open5gs/ausf.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/ausf.yaml

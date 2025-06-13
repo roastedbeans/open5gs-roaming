@@ -17,8 +17,14 @@ spec:
         - name: nssf
           image: docker.io/vinch05/nssf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-nssfd", "-c", "/etc/open5gs/nssf.yaml"]
-
+          command: ['open5gs-nssfd', '-c', '/etc/open5gs/nssf.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/nssf.yaml

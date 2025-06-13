@@ -17,7 +17,14 @@ spec:
         - name: pcf
           image: docker.io/vinch05/pcf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-pcfd", "-c", "/etc/open5gs/pcf.yaml"]
+          command: ['open5gs-pcfd', '-c', '/etc/open5gs/pcf.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/pcf.yaml

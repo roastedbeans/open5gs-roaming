@@ -17,14 +17,21 @@ spec:
         - name: udr
           image: docker.io/vinch05/udr:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-udrd", "-c", "/etc/open5gs/udr.yaml"]
+          command: ['open5gs-udrd', '-c', '/etc/open5gs/udr.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/udr.yaml
               subPath: udr.yaml
           ports:
             - containerPort: 80
-              name: http
+              name: sbi
       volumes:
         - name: config
           configMap:

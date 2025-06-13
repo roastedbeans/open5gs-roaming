@@ -17,14 +17,21 @@ spec:
         - name: udm
           image: docker.io/vinch05/udm:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-udmd", "-c", "/etc/open5gs/udm.yaml"]
+          command: ['open5gs-udmd', '-c', '/etc/open5gs/udm.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/udm.yaml
               subPath: udm.yaml
           ports:
             - containerPort: 80
-              name: http
+              name: sbi
       volumes:
         - name: config
           configMap:

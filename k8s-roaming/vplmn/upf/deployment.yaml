@@ -19,7 +19,7 @@ spec:
           securityContext:
             privileged: true
             capabilities:
-              add: ["NET_ADMIN"]
+              add: ['NET_ADMIN']
           command:
             - /bin/sh
             - -c
@@ -33,11 +33,18 @@ spec:
         - name: upf
           image: docker.io/vinch05/upf:v2.7.5
           imagePullPolicy: IfNotPresent
-          command: ["open5gs-upfd", "-c", "/etc/open5gs/upf.yaml"]
+          command: ['open5gs-upfd', '-c', '/etc/open5gs/upf.yaml']
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
           securityContext:
             privileged: true
             capabilities:
-              add: ["NET_ADMIN", "NET_RAW", "SYS_ADMIN"]
+              add: ['NET_ADMIN', 'NET_RAW', 'SYS_ADMIN']
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/upf.yaml
@@ -48,12 +55,12 @@ spec:
             - name: var-log
               mountPath: /var/log/open5gs
           ports:
-            - name: pfcp
-              containerPort: 8805
-              protocol: UDP
-            - name: gtpu
-              containerPort: 2152
-              protocol: UDP
+            - containerPort: 80
+              name: sbi
+            - containerPort: 8805
+              name: pfcp
+            - containerPort: 2152
+              name: gtp
       volumes:
         - name: config
           configMap:
