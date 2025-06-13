@@ -18,13 +18,6 @@ spec:
           image: docker.io/vinch05/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
-          resources:
-            requests:
-              cpu: '5m'
-              memory: '512Mi'
-            limits:
-              cpu: '10m'
-              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
@@ -47,6 +40,13 @@ spec:
             - containerPort: 7779
               name: n32f
               protocol: TCP
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
       volumes:
         - name: config
           configMap:

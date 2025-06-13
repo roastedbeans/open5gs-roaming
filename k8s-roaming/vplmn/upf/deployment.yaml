@@ -34,13 +34,6 @@ spec:
           image: docker.io/vinch05/upf:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ['open5gs-upfd', '-c', '/etc/open5gs/upf.yaml']
-          resources:
-            requests:
-              cpu: '5m'
-              memory: '512Mi'
-            limits:
-              cpu: '10m'
-              memory: '5Gi'
           securityContext:
             privileged: true
             capabilities:
@@ -55,12 +48,19 @@ spec:
             - name: var-log
               mountPath: /var/log/open5gs
           ports:
-            - containerPort: 80
-              name: sbi
-            - containerPort: 8805
-              name: pfcp
-            - containerPort: 2152
-              name: gtp
+            - name: pfcp
+              containerPort: 8805
+              protocol: UDP
+            - name: gtpu
+              containerPort: 2152
+              protocol: UDP
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
       volumes:
         - name: config
           configMap:
