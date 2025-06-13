@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-bsfd', '-c', '/etc/open5gs/bsf.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              cpu: '5m'
+              memory: '512Mi'
             limits:
-              memory: "4Gi"
-              cpu: "500m"
+              cpu: '10m'
+              memory: '5Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/bsf.yaml

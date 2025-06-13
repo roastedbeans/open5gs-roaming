@@ -29,6 +29,13 @@ spec:
             - containerPort: 8805
               name: pfcp
               protocol: UDP
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '512Mi'
+            limits:
+              cpu: '10m'
+              memory: '5Gi'
       volumes:
         - name: config
           configMap:
