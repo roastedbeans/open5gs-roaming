@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: '512Mi'
+              cpu: '250m'
             limits:
-              memory: "10Gi"
-              cpu: "500m"
+              memory: '10Gi'
+              cpu: '500m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
@@ -59,6 +59,11 @@ spec:
           volumeMounts:
             - name: pcap-volume
               mountPath: /pcap
+          resources:
+            requests:
+              ephemeral-storage: '1Gi'
+            limits:
+              ephemeral-storage: '5Gi'
       volumes:
         - name: config
           configMap:
