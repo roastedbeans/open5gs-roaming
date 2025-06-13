@@ -51,8 +51,12 @@ spec:
             privileged: true
           resources:
             requests:
-              ephemeral-storage: '5Gi'
+              cpu: '5m'
+              memory: '512Mi'
+              ephemeral-storage: '1Gi'
             limits:
+              cpu: '10m'
+              memory: '5Gi'
               ephemeral-storage: '5Gi'
           volumeMounts:
             - name: pcap-volume
