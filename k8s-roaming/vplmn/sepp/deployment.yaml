@@ -18,6 +18,8 @@ spec:
           image: docker.io/vinch05/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
+
+
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
@@ -44,11 +46,11 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: '5m'
               memory: '512Mi'
+              cpu: '250m'
             limits:
-              cpu: '10m'
-              memory: '5Gi'
+              memory: '10Gi'
+              cpu: '500m'
         - name: sniffer
           image: corfr/tcpdump
           imagePullPolicy: IfNotPresent
@@ -56,18 +58,14 @@ spec:
           args: ['tcpdump -i any -w /pcap/sepp.pcap']
           securityContext:
             privileged: true
-          resources:
-            requests:
-              cpu: '5m'
-              memory: '512Mi'
-              ephemeral-storage: '1Gi'
-            limits:
-              cpu: '10m'
-              memory: '5Gi'
-              ephemeral-storage: '5Gi'
           volumeMounts:
             - name: pcap-volume
               mountPath: /pcap
+          resources:
+            requests:
+              ephemeral-storage: '1Gi'
+            limits:
+              ephemeral-storage: '5Gi'
       volumes:
         - name: config
           configMap:
