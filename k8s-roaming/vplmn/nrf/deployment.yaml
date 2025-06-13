@@ -31,7 +31,7 @@ spec:
               subPath: nrf.yaml
           ports:
             - containerPort: 80
-              name: sbi
+              name: http
       volumes:
         - name: config
           configMap:
