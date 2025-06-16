@@ -53,6 +53,7 @@ declare -A SCRIPTS=(
     # Management & Monitoring
     ["restart-pods"]="restart-pods.sh"
     ["get-status"]="get-status.sh"
+    ["copy-pcap"]="copy-pcap.sh"
     
     # WebUI
     ["deploy-webui"]="kubectl-deploy-webui.sh"
@@ -71,7 +72,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Certificate Management"]="generate-certs deploy-certs"
     ["DNS Configuration"]="coredns-rewrite"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
-    ["Management & Monitoring"]="restart-pods get-status"
+    ["Management & Monitoring"]="restart-pods get-status copy-pcap"
     ["Cleanup"]="clean-k8s clean-docker"
 )
 
@@ -314,6 +315,7 @@ cmd_subscribers() { run_script "subscribers" "$@"; }
 # Management & Monitoring
 cmd_restart_pods() { run_script "restart-pods" "$@"; }
 cmd_get_status() { run_script "get-status" "$@"; }
+cmd_copy_pcap() { run_script "copy-pcap" "$@"; }
 
 # WebUI
 cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
@@ -363,6 +365,7 @@ $(warning "🗄️ Database:")
 $(warning "🔧 Management & Monitoring:")
   restart-pods        Restart pods in Open5GS namespaces
   get-status          Show status of Open5GS deployments
+  copy-pcap           Copy PCAP files from pods to local directory
 
 $(warning "🌐 WebUI:")
   deploy-webui        Deploy Open5GS WebUI (HPLMN only)
@@ -460,6 +463,30 @@ Examples:
   $0 get-status
   $0 get-status -d
   $0 get-status -n hplmn
+EOF
+            ;;
+        copy-pcap)
+            cat << EOF
+$(info "copy-pcap - Copy PCAP Files from Pods")
+
+Operations:
+  Interactive mode: Lists VPLMN pods and prompts for pod name and output filename
+  
+Usage:
+  $0 copy-pcap
+
+The script will:
+  1. Display all pods in the vplmn namespace
+  2. Prompt for the pod name to copy from
+  3. Prompt for the output filename (without extension)
+  4. Copy /pcap/sepp.pcap from the specified pod to ./pcap-logs/
+
+Examples:
+  $0 copy-pcap
+
+Note: Copies from sniffer container in vplmn namespace
+Source path: /pcap/sepp.pcap
+Destination: ./pcap-logs/<filename>.pcap
 EOF
             ;;
         deploy-webui)
@@ -585,6 +612,7 @@ case $command in
     # Management & Monitoring
     restart-pods) cmd_restart_pods "$@" ;;
     get-status) cmd_get_status "$@" ;;
+    copy-pcap) cmd_copy_pcap "$@" ;;
     
     # WebUI
     deploy-webui) cmd_deploy_webui "$@" ;;
