@@ -3,7 +3,7 @@
 # Function to get the list of pods in the vplmn namespace
 get_pods() {
     echo "Fetching pods in the vplmn namespace..."
-    kubectl get pods -n vplmn
+    microk8s kubectl get pods -n vplmn
 }
 
 # Function to copy the pcap file from the specified pod
@@ -19,7 +19,7 @@ copy_pcap() {
 
     # Execute the kubectl cp command
     echo "Copying pcap file from pod $pod_name..."
-    kubectl cp "$pod_name:/pcap/sepp.pcap" "./pcap-logs/$file_name.pcap" -c sniffer -n vplmn
+    microk8s kubectl cp "$pod_name:/pcap/sepp.pcap" "./pcap-logs/$file_name.pcap" -c sniffer -n vplmn
 }
 
 # Main script execution
