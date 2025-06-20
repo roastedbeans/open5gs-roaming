@@ -385,7 +385,7 @@ $(warning "Examples:")
   $0 setup-roaming -f
   $0 deploy-roaming -t v2.7.6
   $0 mongodb-access -s
-  $0 subscribers -a -s 001011234567891 -e 001011234567900
+  $0 subscribers add-range -s 001010000000000 -e 001010000100000
   copy sepp.pcap | kubectl cp <pod-name>:/pcap/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
   remove sepp.pcap | kubectl delete -f ./pcap-logs/sepp.pcap
 
@@ -420,17 +420,35 @@ EOF
             cat << EOF
 $(info "subscribers - Subscriber Database Management")
 
-Operations:
-  -a, --add-single         Add single subscriber
-  -r, --add-range          Add subscriber range
-  -l, --list              List all subscribers
-  -c, --count             Count subscribers
-  -d, --delete-all        Delete all subscribers
+Commands:
+  add-range, --ar, -r    Add subscribers in IMSI range
+  add, --add, -a         Add single subscriber
+  delete-all, --del, -d  Delete all subscribers
+  list, --list, -l       List all subscribers
+  count, --count, -c     Count total subscribers
+
+Options:
+  -s, --start-imsi IMSI    Starting IMSI for range operations
+  -e, --end-imsi IMSI      Ending IMSI for range operations
+  -i, --imsi IMSI          IMSI for single subscriber
+  -k, --key KEY            Custom authentication key
+  -o, --opc OPC            Custom OPC value
+  -b, --batch-size SIZE    Batch size (default: 100)
 
 Examples:
+  $0 subscribers add-range -s 001010000000000 -e 001010000100000
+  $0 subscribers --ar -s 001010000000000 -e 001010000100000
+  $0 subscribers -r -s 001010000000000 -e 001010000100000
+  $0 subscribers add -i 001011234567891
+  $0 subscribers --add -i 001011234567891
   $0 subscribers -a -i 001011234567891
-  $0 subscribers -r -s 001011234567891 -e 001011234567900
+  $0 subscribers list
+  $0 subscribers --list
   $0 subscribers -l
+  $0 subscribers count
+  $0 subscribers -c
+  $0 subscribers delete-all
+  $0 subscribers -d
 EOF
             ;;
         restart-pods)

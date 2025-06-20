@@ -25,34 +25,46 @@ BATCH_SIZE=100
 # Global variables
 START_IMSI=""
 END_IMSI=""
-OPERATION=""
 CUSTOM_KEY=""
 CUSTOM_OPC=""
 
 # Function to display usage
 show_usage() {
     echo -e "${CYAN}5G Subscriber Management Script${NC}"
-    echo -e "${BLUE}Usage: $0 [OPTIONS]${NC}"
+    echo -e "${BLUE}Usage: $0 [COMMAND] [OPTIONS]${NC}"
     echo ""
-    echo "Operations:"
-    echo "  --add-range          Add subscribers in IMSI range"
-    echo "  --add                Add single subscriber"
-    echo "  --delete-all         Delete all subscribers"
-    echo "  --list               List all subscribers"
-    echo "  --count              Count total subscribers"
+    echo "Commands:"
+    echo "  add-range, --ar, -r    Add subscribers in IMSI range"
+    echo "  add, --add, -a         Add single subscriber"
+    echo "  delete-all, --del, -d  Delete all subscribers"
+    echo "  list, --list, -l       List all subscribers"
+    echo "  count, --count, -c     Count total subscribers"
     echo ""
     echo "Options:"
-    echo "  --start-imsi IMSI    Starting IMSI for range operations"
-    echo "  --end-imsi IMSI      Ending IMSI for range operations"
-    echo "  --imsi IMSI          Single IMSI for single subscriber"
-    echo "  --key KEY            Custom authentication key (optional)"
-    echo "  --opc OPC            Custom OPC value (optional)"
-    echo "  --batch-size SIZE    Number of subscribers per batch (default: 10)"
-    echo "  --help               Show this help message"
+    echo "  -s, --start-imsi IMSI    Starting IMSI for range operations"
+    echo "  -e, --end-imsi IMSI      Ending IMSI for range operations"
+    echo "  -i, --imsi IMSI          IMSI for single subscriber"
+    echo "  -k, --key KEY            Custom authentication key (optional)"
+    echo "  -o, --opc OPC            Custom OPC value (optional)"
+    echo "  -b, --batch-size SIZE    Number of subscribers per batch (default: 100)"
+    echo "  -h, --help               Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
-    echo "  $0 --add --imsi 001011234567891"
+    echo "  $0 add-range -s 001011234567891 -e 001011234567900"
+    echo "  $0 --ar -s 001011234567891 -e 001011234567900"
+    echo "  $0 -r -s 001011234567891 -e 001011234567900"
+    echo "  $0 add -i 001011234567891"
+    echo "  $0 --add -i 001011234567891"
+    echo "  $0 -a -i 001011234567891"
+    echo "  $0 list"
+    echo "  $0 --list"
+    echo "  $0 -l"
+    echo "  $0 count"
+    echo "  $0 --count"
+    echo "  $0 -c"
+    echo "  $0 delete-all"
+    echo "  $0 --del"
+    echo "  $0 -d"
 }
 
 # Function to validate IMSI format
@@ -374,28 +386,18 @@ EOF
 }
 
 # Parse command line arguments
+if [[ $# -eq 0 ]]; then
+    show_usage
+    exit 0
+fi
+
+# Get the command
+COMMAND=$1
+shift
+
+# Parse remaining arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -r|--add-range)
-            OPERATION="add-range"
-            shift
-            ;;
-        -a|--add)
-            OPERATION="add"
-            shift
-            ;;
-        -d|--delete-all)
-            OPERATION="delete-all"
-            shift
-            ;;
-        -l|--list)
-            OPERATION="list"
-            shift
-            ;;
-        -c|--count)
-            OPERATION="count"
-            shift
-            ;;
         -s|--start-imsi)
             START_IMSI="$2"
             shift 2
@@ -432,13 +434,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate operation
-if [ -z "$OPERATION" ]; then
-    echo -e "${RED}Error: No operation specified${NC}"
-    show_usage
-    exit 1
-fi
-
 # Main execution
 echo -e "${CYAN}5G Subscriber Management Script${NC}"
 echo -e "${BLUE}Namespace: $NAMESPACE (fixed)${NC}"
@@ -446,8 +441,8 @@ echo -e "${BLUE}Database: $DB_NAME${NC}"
 echo -e "${BLUE}Collection: $COLLECTION_NAME${NC}"
 echo "----------------------------------------"
 
-case $OPERATION in
-    "add-range")
+case $COMMAND in
+    "add-range"|"--ar"|"-r")
         if [ -z "$START_IMSI" ] || [ -z "$END_IMSI" ]; then
             echo -e "${RED}Error: Both --start-imsi and --end-imsi are required for range operations${NC}"
             exit 1
@@ -456,7 +451,7 @@ case $OPERATION in
         validate_imsi "$END_IMSI" || exit 1
         add_subscribers_range "$START_IMSI" "$END_IMSI" "$CUSTOM_KEY" "$CUSTOM_OPC"
         ;;
-    "add")
+    "add"|"--add"|"-a")
         if [ -z "$START_IMSI" ]; then
             echo -e "${RED}Error: --imsi is required for single subscriber operations${NC}"
             exit 1
@@ -464,17 +459,21 @@ case $OPERATION in
         validate_imsi "$START_IMSI" || exit 1
         add_single_subscriber "$START_IMSI" "$CUSTOM_KEY" "$CUSTOM_OPC"
         ;;
-    "delete-all")
+    "delete-all"|"--del"|"-d")
         delete_all_subscribers
         ;;
-    "list")
+    "list"|"--list"|"-l")
         list_subscribers
         ;;
-    "count")
+    "count"|"--count"|"-c")
         count_subscribers
         ;;
+    "help"|"-h"|"--help")
+        show_usage
+        ;;
     *)
-        echo -e "${RED}Error: Invalid operation${NC}"
+        echo -e "${RED}Error: Invalid command: $COMMAND${NC}"
+        echo -e "${YELLOW}Valid commands: add-range|--ar|-r, add|--add|-a, delete-all|--del|-d, list|--list|-l, count|--count|-c${NC}"
         show_usage
         exit 1
         ;;
