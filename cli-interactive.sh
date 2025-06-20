@@ -94,7 +94,8 @@ print_color() {
 }
 
 cleanup_and_exit() {
-    echo -e "$SHOW_CURSOR"
+    # Show cursor if supported
+    tput cnorm 2>/dev/null || true
     clear
     exit 0
 }
@@ -107,14 +108,14 @@ trap cleanup_and_exit SIGINT
 # ===============================
 
 draw_header() {
-    echo -e "${CLEAR}${HOME}"
-    echo -e "${CYAN}${BOLD}╔══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║                    Open5GS Scripts CLI v${VERSION}                    ║${NC}"
-    echo -e "${CYAN}${BOLD}║                     Interactive Menu System                      ║${NC}"
-    echo -e "${CYAN}${BOLD}╠══════════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}${BOLD}║ ${WHITE}Use ↑/↓ arrows to navigate, Enter to execute, 'q' to quit${CYAN}     ║${NC}"
-    echo -e "${CYAN}${BOLD}║ ${WHITE}Use ←/→ arrows to switch categories, 'h' for detailed help${CYAN}    ║${NC}"
-    echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    clear
+    echo -e "${CYAN}${BOLD}================================================================${NC}"
+    echo -e "${CYAN}${BOLD}                 Open5GS Scripts CLI v${VERSION}                 ${NC}"
+    echo -e "${CYAN}${BOLD}                  Interactive Menu System                   ${NC}"
+    echo -e "${CYAN}${BOLD}================================================================${NC}"
+    echo -e "${CYAN}${BOLD} ${WHITE}Use UP/DOWN arrows (or j/k) to navigate, Enter to execute${CYAN}     ${NC}"
+    echo -e "${CYAN}${BOLD} ${WHITE}Use LEFT/RIGHT arrows (or w/l) for categories, 'q' quit, 'h' help${CYAN} ${NC}"
+    echo -e "${CYAN}${BOLD}================================================================${NC}"
     echo
 }
 
@@ -163,10 +164,10 @@ draw_items() {
 
 draw_footer() {
     echo
-    echo -e "${CYAN}${BOLD}╔══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║ ${WHITE}Controls: ↑/↓ Navigate items | ←/→ Switch categories | Enter Execute${CYAN} ║${NC}"
-    echo -e "${CYAN}${BOLD}║ ${WHITE}Commands: 'h' Help | 'q' Quit | 'r' Refresh                     ${CYAN} ║${NC}"
-    echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}${BOLD}================================================================${NC}"
+    echo -e "${CYAN}${BOLD} ${WHITE}Controls: UP/DOWN (j/k) Navigate | LEFT/RIGHT (w/l) Categories${CYAN}  ${NC}"
+    echo -e "${CYAN}${BOLD} ${WHITE}Commands: Enter Execute | 'h' Help | 'q' Quit | 'r' Refresh    ${CYAN} ${NC}"
+    echo -e "${CYAN}${BOLD}================================================================${NC}"
 }
 
 get_current_command() {
@@ -214,7 +215,8 @@ execute_command() {
         return
     fi
     
-    echo -e "$SHOW_CURSOR"
+    # Show cursor for command execution
+    tput cnorm 2>/dev/null || true
     clear
     
     echo -e "${GREEN}${BOLD}Executing: $cmd${NC}"
@@ -256,7 +258,8 @@ execute_command() {
 show_detailed_help() {
     local cmd=$(get_current_command)
     
-    echo -e "$SHOW_CURSOR"
+    # Show cursor for help display
+    tput cnorm 2>/dev/null || true
     clear
     
     if [ -n "$cmd" ] && [ "$cmd" != "help" ] && [ "$cmd" != "version" ]; then
@@ -282,7 +285,8 @@ show_detailed_help() {
 # ===============================
 
 main_menu() {
-    echo -e "$HIDE_CURSOR"
+    # Hide cursor if supported
+    tput civis 2>/dev/null || true
     
     while true; do
         # Draw the interface
@@ -292,37 +296,40 @@ main_menu() {
         draw_items
         draw_footer
         
-        # Read user input
+        # Read user input with better compatibility
         read -rsn1 key
         
         case "$key" in
             $'\x1b')  # Escape sequence
-                read -rsn2 key
-                case "$key" in
-                    '[A') # Up arrow
-                        if [ $current_item -gt 0 ]; then
-                            ((current_item--))
-                        fi
-                        ;;
-                    '[B') # Down arrow
-                        local max_items=$(get_item_count)
-                        if [ $current_item -lt $((max_items - 1)) ]; then
-                            ((current_item++))
-                        fi
-                        ;;
-                    '[C') # Right arrow
-                        if [ $current_category -lt $((total_categories - 1)) ]; then
-                            ((current_category++))
-                            current_item=0
-                        fi
-                        ;;
-                    '[D') # Left arrow
-                        if [ $current_category -gt 0 ]; then
-                            ((current_category--))
-                            current_item=0
-                        fi
-                        ;;
-                esac
+                read -rsn1 -t 0.1 key2
+                if [ "$key2" = "[" ]; then
+                    read -rsn1 -t 0.1 key3
+                    case "$key3" in
+                        'A') # Up arrow
+                            if [ $current_item -gt 0 ]; then
+                                ((current_item--))
+                            fi
+                            ;;
+                        'B') # Down arrow
+                            local max_items=$(get_item_count)
+                            if [ $current_item -lt $((max_items - 1)) ]; then
+                                ((current_item++))
+                            fi
+                            ;;
+                        'C') # Right arrow
+                            if [ $current_category -lt $((total_categories - 1)) ]; then
+                                ((current_category++))
+                                current_item=0
+                            fi
+                            ;;
+                        'D') # Left arrow
+                            if [ $current_category -gt 0 ]; then
+                                ((current_category--))
+                                current_item=0
+                            fi
+                            ;;
+                    esac
+                fi
                 ;;
             '') # Enter key
                 execute_command
@@ -335,6 +342,29 @@ main_menu() {
                 ;;
             'r'|'R') # Refresh
                 # Just redraw the menu
+                ;;
+            'k'|'K') # Alternative up (vim-like)
+                if [ $current_item -gt 0 ]; then
+                    ((current_item--))
+                fi
+                ;;
+            'j'|'J') # Alternative down (vim-like)
+                local max_items=$(get_item_count)
+                if [ $current_item -lt $((max_items - 1)) ]; then
+                    ((current_item++))
+                fi
+                ;;
+            'l'|'L') # Alternative right (vim-like)
+                if [ $current_category -lt $((total_categories - 1)) ]; then
+                    ((current_category++))
+                    current_item=0
+                fi
+                ;;
+            'w'|'W') # Alternative left (vim-like)
+                if [ $current_category -gt 0 ]; then
+                    ((current_category--))
+                    current_item=0
+                fi
                 ;;
         esac
     done
