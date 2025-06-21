@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-udrd', '-c', '/etc/open5gs/udr.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: '128Mi'
+              cpu: '100m'
             limits:
-              memory: "4Gi"
-              cpu: "500m"
+              memory: '512Mi'
+              cpu: '300m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/udr.yaml

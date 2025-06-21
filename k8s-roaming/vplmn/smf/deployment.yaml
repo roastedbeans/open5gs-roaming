@@ -20,10 +20,10 @@ spec:
           command: ['open5gs-smfd', '-c', '/etc/open5gs/smf.yaml']
           resources:
             requests:
-              memory: '512Mi'
-              cpu: '250m'
+              memory: '256Mi'
+              cpu: '200m'
             limits:
-              memory: '4Gi'
+              memory: '1Gi'
               cpu: '500m'
           volumeMounts:
             - name: config

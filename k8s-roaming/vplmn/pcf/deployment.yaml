@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-pcfd', '-c', '/etc/open5gs/pcf.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: '256Mi'
+              cpu: '200m'
             limits:
-              memory: "4Gi"
-              cpu: "500m"
+              memory: '1Gi'
+              cpu: '500m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/pcf.yaml

@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
           resources:
             requests:
-              memory: '512Mi'
-              cpu: '250m'
+              memory: '256Mi'
+              cpu: '150m'
             limits:
-              memory: '10Gi'
-              cpu: '500m'
+              memory: '1Gi'
+              cpu: '400m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml

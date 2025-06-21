@@ -1,0 +1,20 @@
+=== RESOURCE OPTIMIZATION SUMMARY ===
+
+Resource limits have been optimized for all Kubernetes deployments:
+
+  11               memory: '512Mi'
+  11               cpu: '300m'
+  10               memory: '256Mi'
+  10               memory: '128Mi'
+  10               cpu: '100m'
+   8               memory: '1Gi'
+   8               cpu: '200m'
+   6               cpu: '500m'
+   2               memory: '64Mi'
+   2               cpu: '50m'
+   2               cpu: '400m'
+   2               cpu: '150m'
+   1               memory: '2Gi'
+   1               cpu: '1000m'
+
+=== OPTIMIZATION CATEGORIES ===
