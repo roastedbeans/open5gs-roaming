@@ -45,9 +45,6 @@ declare -A SCRIPTS=(
     ["coredns-rewrite"]="coredns-rewrite.sh"
     
     # Database management
-    ["mongodb-hplmn"]="mongodb-hplmn.sh"
-    ["mongodb44-setup"]="mongodb44-setup.sh"
-    ["mongodb-access"]="mongodb-access.sh"
     ["subscribers"]="subscribers.sh"
     
     # Management & Monitoring
@@ -71,7 +68,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Image Management"]="pull-images import-images update-configs"
     ["Certificate Management"]="generate-certs deploy-certs"
     ["DNS Configuration"]="coredns-rewrite"
-    ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
+    ["Database Management"]="subscribers"
     ["Management & Monitoring"]="restart-pods get-status copy-pcap"
     ["Cleanup"]="clean-k8s clean-docker"
 )
@@ -307,9 +304,6 @@ cmd_deploy_certs() { run_script "cert-deploy" "$@"; }
 cmd_coredns_rewrite() { run_script "coredns-rewrite" "$@"; }
 
 # Database Management
-cmd_mongodb_hplmn() { run_script "mongodb-hplmn" "$@"; }
-cmd_mongodb_install() { run_script "mongodb44-setup" "$@"; }
-cmd_mongodb_access() { run_script "mongodb-access" "$@"; }
 cmd_subscribers() { run_script "subscribers" "$@"; }
 
 # Management & Monitoring
@@ -335,8 +329,8 @@ $(info "Open5GS Scripts CLI v$VERSION")
 Usage: $0 [command] [options]
 
 $(warning "📦 Installation & Setup:")
+  setup-roaming       Complete automated k8s-roaming setup including dependencies
   install-dep         Install dependencies (Docker, Git, GTP5G)
-  setup-roaming       Complete automated k8s-roaming setup
 
 $(warning "🚀 Deployment:")
   deploy-hplmn        Deploy HPLMN components [-m]
@@ -357,9 +351,6 @@ $(warning "🌐 DNS Configuration:")
   coredns-rewrite     Configure CoreDNS rewrite rules for 3GPP names
 
 $(warning "🗄️ Database:")
-  mongodb-hplmn       Deploy MongoDB for HPLMN
-  mongodb-install     Install MongoDB 4.4 locally
-  mongodb-access      Manage MongoDB external access
   subscribers         Manage subscriber database
 
 $(warning "🔧 Management & Monitoring:")
@@ -380,14 +371,6 @@ $(warning "Common Options:")
   -t, --tag          Image tag (default: $DEFAULT_TAG)
   -f, --force        Skip confirmations
   -h, --help         Show detailed help
-
-$(warning "Examples:")
-  $0 setup-roaming -f
-  $0 deploy-roaming -t v2.7.6
-  $0 mongodb-access -s
-  $0 subscribers add-range -s 001010000000000 -e 001010000100000
-  copy sepp.pcap | kubectl cp <pod-name>:/pcap/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
-  remove sepp.pcap | kubectl delete -f ./pcap-logs/sepp.pcap
 
 For detailed command help: $0 [command] -h
 EOF
@@ -422,7 +405,7 @@ $(info "subscribers - Subscriber Database Management")
 
 Commands:
   add-range, --ar, -r    Add subscribers in IMSI range
-  add, --add, -a         Add single subscriber
+  add, --add, -a         Add single subscriber or bulk from starting IMSI
   delete-all, --del, -d  Delete all subscribers
   list, --list, -l       List all subscribers
   count, --count, -c     Count total subscribers
@@ -430,25 +413,19 @@ Commands:
 Options:
   -s, --start-imsi IMSI    Starting IMSI for range operations
   -e, --end-imsi IMSI      Ending IMSI for range operations
-  -i, --imsi IMSI          IMSI for single subscriber
+  -i, --imsi IMSI          IMSI for single subscriber or bulk starting point
+  -n, --number COUNT       Number of subscribers to add starting from IMSI
   -k, --key KEY            Custom authentication key
   -o, --opc OPC            Custom OPC value
   -b, --batch-size SIZE    Batch size (default: 100)
 
 Examples:
   $0 subscribers add-range -s 001010000000000 -e 001010000100000
-  $0 subscribers --ar -s 001010000000000 -e 001010000100000
-  $0 subscribers -r -s 001010000000000 -e 001010000100000
   $0 subscribers add -i 001011234567891
-  $0 subscribers --add -i 001011234567891
-  $0 subscribers -a -i 001011234567891
+  $0 subscribers add -i 001010000000001 -n 1000
   $0 subscribers list
-  $0 subscribers --list
-  $0 subscribers -l
   $0 subscribers count
-  $0 subscribers -c
   $0 subscribers delete-all
-  $0 subscribers -d
 EOF
             ;;
         restart-pods)
@@ -622,9 +599,6 @@ case $command in
     coredns-rewrite) cmd_coredns_rewrite "$@" ;;
     
     # Database
-    mongodb-hplmn) cmd_mongodb_hplmn "$@" ;;
-    mongodb-install) cmd_mongodb_install "$@" ;;
-    mongodb-access) cmd_mongodb_access "$@" ;;
     subscribers) cmd_subscribers "$@" ;;
     
     # Management & Monitoring

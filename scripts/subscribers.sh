@@ -27,6 +27,7 @@ START_IMSI=""
 END_IMSI=""
 CUSTOM_KEY=""
 CUSTOM_OPC=""
+NUMBER_COUNT=""
 
 # Function to display usage
 show_usage() {
@@ -43,7 +44,8 @@ show_usage() {
     echo "Options:"
     echo "  -s, --start-imsi IMSI    Starting IMSI for range operations"
     echo "  -e, --end-imsi IMSI      Ending IMSI for range operations"
-    echo "  -i, --imsi IMSI          IMSI for single subscriber"
+    echo "  -i, --imsi IMSI          IMSI for single subscriber or bulk starting point"
+    echo "  -n, --number COUNT       Number of subscribers to add starting from IMSI"
     echo "  -k, --key KEY            Custom authentication key (optional)"
     echo "  -o, --opc OPC            Custom OPC value (optional)"
     echo "  -b, --batch-size SIZE    Number of subscribers per batch (default: 100)"
@@ -54,8 +56,9 @@ show_usage() {
     echo "  $0 --ar -s 001011234567891 -e 001011234567900"
     echo "  $0 -r -s 001011234567891 -e 001011234567900"
     echo "  $0 add -i 001011234567891"
+    echo "  $0 add -i 001011234567891 -n 1000"
     echo "  $0 --add -i 001011234567891"
-    echo "  $0 -a -i 001011234567891"
+    echo "  $0 -a -i 001011234567891 -n 1000"
     echo "  $0 list"
     echo "  $0 --list"
     echo "  $0 -l"
@@ -410,6 +413,10 @@ while [[ $# -gt 0 ]]; do
             START_IMSI="$2"
             shift 2
             ;;
+        -n|--number)
+            NUMBER_COUNT="$2"
+            shift 2
+            ;;
         -k|--key)
             CUSTOM_KEY="$2"
             shift 2
@@ -453,11 +460,34 @@ case $COMMAND in
         ;;
     "add"|"--add"|"-a")
         if [ -z "$START_IMSI" ]; then
-            echo -e "${RED}Error: --imsi is required for single subscriber operations${NC}"
+            echo -e "${RED}Error: --imsi is required for subscriber operations${NC}"
             exit 1
         fi
         validate_imsi "$START_IMSI" || exit 1
-        add_single_subscriber "$START_IMSI" "$CUSTOM_KEY" "$CUSTOM_OPC"
+        
+        if [ -n "$NUMBER_COUNT" ]; then
+            # Validate number count
+            if ! [[ "$NUMBER_COUNT" =~ ^[0-9]+$ ]] || [ "$NUMBER_COUNT" -le 0 ]; then
+                echo -e "${RED}Error: Number count must be a positive integer${NC}"
+                exit 1
+            fi
+            
+            # Calculate end IMSI
+            local end_imsi_num=$((10#$START_IMSI + NUMBER_COUNT - 1))
+            local end_imsi=$(printf "%015d" $end_imsi_num)
+            
+            # Check for IMSI overflow (15-digit limit)
+            if [ ${#end_imsi} -gt 15 ]; then
+                echo -e "${RED}Error: Adding $NUMBER_COUNT subscribers would exceed 15-digit IMSI limit${NC}"
+                exit 1
+            fi
+            
+            echo -e "${BLUE}Adding $NUMBER_COUNT subscribers starting from $START_IMSI${NC}"
+            add_subscribers_range "$START_IMSI" "$end_imsi" "$CUSTOM_KEY" "$CUSTOM_OPC"
+        else
+            # Single subscriber
+            add_single_subscriber "$START_IMSI" "$CUSTOM_KEY" "$CUSTOM_OPC"
+        fi
         ;;
     "delete-all"|"--del"|"-d")
         delete_all_subscribers
