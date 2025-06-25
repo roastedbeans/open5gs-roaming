@@ -39,8 +39,8 @@ spec:
               memory: '512Mi'
               cpu: '300m'
             limits:
-              memory: '2Gi'
-              cpu: '1000m'
+              memory: '4Gi'
+              cpu: '300m'
           securityContext:
             privileged: true
             capabilities:

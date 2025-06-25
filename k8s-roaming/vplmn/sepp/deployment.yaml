@@ -23,8 +23,8 @@ spec:
               memory: '256Mi'
               cpu: '150m'
             limits:
-              memory: '1Gi'
-              cpu: '400m'
+              memory: '4Gi'
+              cpu: '300m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml

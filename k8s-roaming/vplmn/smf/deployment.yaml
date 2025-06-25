@@ -23,8 +23,8 @@ spec:
               memory: '256Mi'
               cpu: '200m'
             limits:
-              memory: '1Gi'
-              cpu: '500m'
+              memory: '4Gi'
+              cpu: '300m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/smf.yaml
