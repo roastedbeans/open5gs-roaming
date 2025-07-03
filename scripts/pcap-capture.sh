@@ -7,12 +7,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
-NAMESPACE="vplmn"
+# Configuration - allow namespace as parameter
+DEFAULT_NAMESPACE="vplmn"
+NAMESPACE="${1:-$DEFAULT_NAMESPACE}"
 PCAP_PATH="pcap/sepp.pcap"
 LOCAL_FOLDER="pcap-logs"
 
 echo -e "${BLUE}=== SEPP PCAP Extractor ===${NC}"
+echo -e "${YELLOW}Using namespace: ${NAMESPACE}${NC}"
 
 # Create local folder if it doesn't exist
 echo -e "${YELLOW}Creating folder: ${LOCAL_FOLDER}${NC}"
@@ -39,6 +41,9 @@ if [ -z "$SEPP_POD" ]; then
     kubectl get namespaces
     echo -e "${YELLOW}Available pods in ${NAMESPACE}:${NC}"
     kubectl get pods -n "$NAMESPACE" 2>/dev/null || echo "Namespace not found or no access"
+    echo -e "${YELLOW}Usage: $0 [namespace] (default: vplmn)${NC}"
+    echo -e "${BLUE}  Example: $0 hplmn${NC}"
+    echo -e "${BLUE}  Example: $0 vplmn${NC}"
     exit 1
 fi
 
@@ -53,7 +58,7 @@ echo -e "${BLUE}Available containers: ${CONTAINERS}${NC}"
 try_copy() {
     local container=$1
     local timestamp=$(date +%Y%m%d-%H%M%S)
-    local output_file="${LOCAL_FOLDER}/sepp-${timestamp}.pcap"
+    local output_file="${LOCAL_FOLDER}/sepp-${NAMESPACE}-${timestamp}.pcap"
     
     echo -e "${YELLOW}Trying to copy from container: ${container}${NC}"
     
