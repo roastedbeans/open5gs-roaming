@@ -20,11 +20,11 @@ spec:
           command: ['open5gs-amfd', '-c', '/etc/open5gs/amf.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: '512Mi'
+              cpu: '250m'
             limits:
-              memory: "10Gi"
-              cpu: "500m"
+              memory: '6Gi'
+              cpu: '250m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/amf.yaml
