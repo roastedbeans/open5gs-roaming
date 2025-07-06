@@ -23,8 +23,8 @@ spec:
               memory: '512Mi'
               cpu: '250m'
             limits:
-              memory: '6Gi'
-              cpu: '250m'
+              memory: '10Gi'
+              cpu: '500m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/amf.yaml
