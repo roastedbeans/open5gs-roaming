@@ -20,15 +20,17 @@ spec:
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: '512Mi'
+              cpu: '250m'
             limits:
-              memory: "4Gi"
-              cpu: "500m"
+              memory: '10Gi'
+              cpu: '500m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
               subPath: sepp.yaml
+            - name: pcap-volume
+              mountPath: /pcap
             - name: tls-n32c
               mountPath: /etc/open5gs/tls/n32c
               readOnly: true
@@ -47,6 +49,21 @@ spec:
             - containerPort: 7779
               name: n32f
               protocol: TCP
+        - name: sniffer
+          image: corfr/tcpdump
+          imagePullPolicy: IfNotPresent
+          command: ['/bin/sh', '-c']
+          args: ['tcpdump -i any -w /pcap/sepp.pcap']
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: pcap-volume
+              mountPath: /pcap
+          resources:
+            requests:
+              ephemeral-storage: '1Gi'
+            limits:
+              ephemeral-storage: '5Gi'
       volumes:
         - name: config
           configMap:
@@ -60,3 +77,5 @@ spec:
         - name: tls-ca
           secret:
             secretName: sepp-ca
+        - name: pcap-volume
+          emptyDir: {}
