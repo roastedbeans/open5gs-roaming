@@ -385,7 +385,7 @@ $(warning "Examples:")
   $0 setup-roaming -f
   $0 deploy-roaming -t v2.7.6
   $0 mongodb-access -s
-  $0 subscribers -a -s 001011234567891 -e 001011234567900
+  $0 subscribers -r -s 001010000000000 -e 001010000010000
   $0 copy-pcap hplmn
   $0 copy-pcap vplmn
 
@@ -428,8 +428,8 @@ Operations:
   -d, --delete-all        Delete all subscribers
 
 Examples:
-  $0 subscribers -a -i 001011234567891
-  $0 subscribers -r -s 001011234567891 -e 001011234567900
+  $0 subscribers -a -i 001010000000001
+  $0 subscribers -r -s 001010000000000 -e 001010000010000
   $0 subscribers -l
 EOF
             ;;
