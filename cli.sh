@@ -53,10 +53,10 @@ declare -A SCRIPTS=(
     # Management & Monitoring
     ["restart-pods"]="restart-pods.sh"
     ["get-status"]="get-status.sh"
+    ["copy-pcap"]="copy-pcap.sh"
     
     # WebUI
     ["deploy-webui"]="kubectl-deploy-webui.sh"
-    ["deploy-networkui"]="kubectl-deploy-networkui.sh"
     
     # Cleanup
     ["microk8s-clean"]="microk8s-clean.sh"
@@ -71,7 +71,7 @@ declare -A COMMAND_CATEGORIES=(
     ["Certificate Management"]="generate-certs deploy-certs"
     ["DNS Configuration"]="coredns-rewrite"
     ["Database Management"]="mongodb-hplmn mongodb-install mongodb-access subscribers"
-    ["Management & Monitoring"]="restart-pods get-status"
+    ["Management & Monitoring"]="restart-pods get-status copy-pcap"
     ["Cleanup"]="clean-k8s clean-docker"
 )
 
@@ -314,10 +314,10 @@ cmd_subscribers() { run_script "subscribers" "$@"; }
 # Management & Monitoring
 cmd_restart_pods() { run_script "restart-pods" "$@"; }
 cmd_get_status() { run_script "get-status" "$@"; }
+cmd_copy_pcap() { run_script "copy-pcap" "$@"; }
 
 # WebUI
 cmd_deploy_webui() { run_script "deploy-webui" "$@"; }
-cmd_deploy_networkui() { run_script "deploy-networkui" "$@"; }
 
 # Cleanup
 cmd_clean_k8s() { run_script "microk8s-clean" "$@"; }
@@ -363,10 +363,10 @@ $(warning "🗄️ Database:")
 $(warning "🔧 Management & Monitoring:")
   restart-pods        Restart pods in Open5GS namespaces
   get-status          Show status of Open5GS deployments
+  copy-pcap           Copy PCAP files from pods (supports vplmn/hplmn)
 
 $(warning "🌐 WebUI:")
   deploy-webui        Deploy Open5GS WebUI (HPLMN only)
-  deploy-networkui     Deploy Open5GS NetworkUI
 
 $(warning "🧹 Cleanup:")
   clean-k8s           Clean Kubernetes resources
@@ -382,9 +382,9 @@ $(warning "Examples:")
   $0 setup-roaming -f
   $0 deploy-roaming -t v2.7.6
   $0 mongodb-access -s
-  $0 subscribers -a -s 001011234567891 -e 001011234567900
-  copy sepp.pcap | kubectl cp <pod-name>:/pcap/sepp.pcap ./pcap-logs/sepp.pcap -c sniffer -n vplmn
-  remove sepp.pcap | kubectl delete -f ./pcap-logs/sepp.pcap
+  $0 subscribers -r -s 001010000000000 -e 001010000010000
+  $0 copy-pcap hplmn
+  $0 copy-pcap vplmn
 
 For detailed command help: $0 [command] -h
 EOF
@@ -425,8 +425,8 @@ Operations:
   -d, --delete-all        Delete all subscribers
 
 Examples:
-  $0 subscribers -a -i 001011234567891
-  $0 subscribers -r -s 001011234567891 -e 001011234567900
+  $0 subscribers -a -i 001010000000001
+  $0 subscribers -r -s 001010000000000 -e 001010000010000
   $0 subscribers -l
 EOF
             ;;
@@ -462,6 +462,38 @@ Examples:
   $0 get-status -n hplmn
 EOF
             ;;
+        copy-pcap)
+            cat << EOF
+$(info "copy-pcap - Copy PCAP Files from Pods")
+
+Operations:
+  Interactive mode: Lists pods in specified namespace and prompts for pod name and output filename
+  
+Usage:
+  $0 copy-pcap [namespace]
+
+Parameters:
+  namespace          Target namespace (default: vplmn)
+                     Supports: vplmn, hplmn
+
+The script will:
+  1. Display all pods in the specified namespace
+  2. Auto-detect SEPP pod or prompt for pod name
+  3. Prompt for the output filename (uses default if not provided)
+  4. Copy /pcap/sepp.pcap from the specified pod to ./pcap-logs/
+
+Examples:
+  $0 copy-pcap              # Copy from vplmn namespace
+  $0 copy-pcap hplmn        # Copy from hplmn namespace
+  $0 copy-pcap vplmn        # Copy from vplmn namespace
+
+Note: 
+- Tries sniffer container first, falls back to sepp container
+- Auto-generates filename: sepp-<namespace>-<timestamp>.pcap
+- Source path: /pcap/sepp.pcap
+- Destination: ./pcap-logs/<filename>.pcap
+EOF
+            ;;
         deploy-webui)
             cat << EOF
 $(info "deploy-webui - Deploy Open5GS WebUI")
@@ -477,23 +509,6 @@ Examples:
 
 Note: WebUI is only available for HPLMN namespace and connects to HPLMN MongoDB
 Access: http://NODE_IP:30999 (default credentials: admin / 1423)
-EOF
-            ;;
-        deploy-networkui)
-            cat << EOF
-$(info "deploy-networkui - Deploy Open5GS NetworkUI")
-
-Operations:
-  -n, --namespace NS      Deploy to specific namespace (default: hplmn)
-  -f, --force             Skip confirmation prompt
-
-Examples:
-  $0 deploy-networkui
-  $0 deploy-networkui -f
-  $0 deploy-networkui -n hplmn
-
-Note: NetworkUI is only available for HPLMN namespace and connects to HPLMN MongoDB
-Access: http://NODE_IP:30998 (default credentials: admin / 1423)
 EOF
             ;;
         coredns-rewrite)
@@ -585,10 +600,10 @@ case $command in
     # Management & Monitoring
     restart-pods) cmd_restart_pods "$@" ;;
     get-status) cmd_get_status "$@" ;;
+    copy-pcap) cmd_copy_pcap "$@" ;;
     
     # WebUI
     deploy-webui) cmd_deploy_webui "$@" ;;
-    deploy-networkui) cmd_deploy_networkui "$@" ;;
     
     # Cleanup
     clean-k8s) cmd_clean_k8s "$@" ;;

@@ -20,7 +20,7 @@ DB_NAME="open5gs"
 COLLECTION_NAME="subscribers"
 DEFAULT_KEY="465B5CE8B199B49FAA5F0A2EE238A6BC"
 DEFAULT_OPC="E8ED289DEBA952E4283B54E88E6183CA"
-BATCH_SIZE=100
+BATCH_SIZE=2000
 
 # Global variables
 START_IMSI=""
@@ -47,12 +47,12 @@ show_usage() {
     echo "  --imsi IMSI          Single IMSI for single subscriber"
     echo "  --key KEY            Custom authentication key (optional)"
     echo "  --opc OPC            Custom OPC value (optional)"
-    echo "  --batch-size SIZE    Number of subscribers per batch (default: 10)"
+    echo "  --batch-size SIZE    Number of subscribers per batch (default: 2000)"
     echo "  --help               Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 --add-range --start-imsi 001011234567891 --end-imsi 001011234567900"
-    echo "  $0 --add --imsi 001011234567891"
+    echo "  $0 --add-range --start-imsi 001010000000000 --end-imsi 001010000010000"
+    echo "  $0 --add --imsi 001010000000001"
 }
 
 # Function to validate IMSI format

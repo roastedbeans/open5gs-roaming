@@ -120,7 +120,6 @@ pull_images() {
     "udr"
     "upf"
     "webui"
-    "networkui"
   )
   
   # Pull each image
