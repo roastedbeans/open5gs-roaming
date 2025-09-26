@@ -12,7 +12,7 @@ variable "NODE_VERSION" {
 
 group "default" {
   targets = ["base-open5gs", "amf", "ausf", "bsf", "nrf", "nssf",
-              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui", "networkui"]
+              "pcf", "scp", "sepp", "smf", "udm", "udr", "upf", "webui", "networkui", "cicflowmeter"]
 }
 
 target "base-open5gs" {
@@ -198,5 +198,11 @@ target "networkui" {
   }
   context = "./images/networkui"
   tags = ["networkui:${OPEN5GS_VERSION}"]
+  output = ["type=image"]
+}
+
+target "cicflowmeter" {
+  context = "./images/cicflowmeter"
+  tags = ["docker.io/vinch05/cicflowmeter:latest"]
   output = ["type=image"]
 }

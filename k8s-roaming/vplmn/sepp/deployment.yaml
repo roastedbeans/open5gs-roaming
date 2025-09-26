@@ -18,13 +18,6 @@ spec:
           image: docker.io/vinch05/sepp:v2.7.5
           imagePullPolicy: IfNotPresent
           command: ['open5gs-seppd', '-c', '/etc/open5gs/sepp.yaml']
-          resources:
-            requests:
-              memory: '512Mi'
-              cpu: '250m'
-            limits:
-              memory: '10Gi'
-              cpu: '500m'
           volumeMounts:
             - name: config
               mountPath: /etc/open5gs/sepp.yaml
@@ -58,21 +51,27 @@ spec:
             privileged: true
           resources:
             requests:
-              cpu: '5m'
-              memory: '512Mi'
               ephemeral-storage: '1Gi'
             limits:
-              cpu: '10m'
-              memory: '5Gi'
               ephemeral-storage: '5Gi'
           volumeMounts:
             - name: pcap-volume
               mountPath: /pcap
+        - name: cicflowmeter
+          image: docker.io/vinch05/cicflowmeter:latest
+          imagePullPolicy: Always
+          command: ['/bin/bash', '-c']
+          args: ['source /etc/cicflowmeter/cicflowmeter-config.sh && while true; do if [ -f /pcap/test_dos.pcap ]; then echo "PCAP file found at $(date), size: $(du -h /pcap/test_dos.pcap | cut -f1)"; if [ ! -f /pcap/test_dos.csv ] || [ /pcap/test_dos.pcap -nt /pcap/test_dos.csv ]; then echo "Converting PCAP to CSV..." && /app/.venv/bin/cicflowmeter -f /pcap/test_dos.pcap -c /pcap/test_dos.csv --fields $CICFLOWMETER_FIELDS && echo "CSV conversion completed at $(date)"; else echo "CSV already up-to-date, checking again in 1 minute"; fi; else echo "Waiting for PCAP file..."; fi; sleep 60; done']
           resources:
             requests:
               ephemeral-storage: '1Gi'
             limits:
               ephemeral-storage: '5Gi'
+          volumeMounts:
+            - name: pcap-volume
+              mountPath: /pcap
+            - name: cicflowmeter-config
+              mountPath: /etc/cicflowmeter
       volumes:
         - name: config
           configMap:
@@ -88,3 +87,6 @@ spec:
             secretName: sepp-ca
         - name: pcap-volume
           emptyDir: {}
+        - name: cicflowmeter-config
+          configMap:
+            name: cicflowmeter-config

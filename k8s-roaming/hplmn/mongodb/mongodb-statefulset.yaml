@@ -26,14 +26,7 @@ spec:
           ports:
             - containerPort: 27017
               name: mongodb
-          # Resource limits to prevent OOM issues
-          resources:
-            limits:
-              memory: '1Gi'
-              cpu: '500m'
-            requests:
-              memory: '512Mi'
-              cpu: '250m'
+          # Resource limits removed for performance testing
           # Health probes for proper startup detection
           readinessProbe:
             exec:
