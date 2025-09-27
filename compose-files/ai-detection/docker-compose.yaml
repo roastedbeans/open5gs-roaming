@@ -1,0 +1,80 @@
+services:
+  ai-detection:
+    # Use published image from Docker Hub (recommended)
+    image: vinch05/open5gs-ai-detection:latest
+
+    # Alternative: Build locally (uncomment to use instead of image)
+    # build:
+    #   context: ../../
+    #   dockerfile: images/ai-detection/Dockerfile
+    container_name: open5gs-ai-detection
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ../../ai-detection/logs:/app/logs
+      - ../../ai-detection/performance_data:/app/performance_data
+    networks:
+      - open5gs
+    restart: unless-stopped
+    entrypoint: ["/app/entrypoint.sh"]
+    # Minimal resource configuration for development/testing
+    # Based on MLP model: ~0.1% CPU, ~278MB RAM peak
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'      # 1 CPU core (sufficient for MLP/Autoencoder models)
+          memory: 512M     # 512MB RAM (handles all models comfortably)
+        reservations:
+          cpus: '0.5'      # Reserve 0.5 CPU cores
+          memory: 256M     # Reserve 256MB RAM
+    healthcheck:
+      test: ["CMD", "python", "-c", "from handler import AIDetectionHandler; h = AIDetectionHandler(); print('healthy' if h.health_check().get('status') == 'healthy' else exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: ["--command", "server", "--host", "0.0.0.0", "--port", "8000"]
+
+# =============================================================================
+# ALTERNATIVE CONFIGURATIONS (Uncomment to use instead of minimal config above)
+# =============================================================================
+
+# STANDARD CONFIGURATION (4 CPU cores, 1GB RAM)
+# deploy:
+#   resources:
+#     limits:
+#       cpus: '4.0'      # 4 CPU cores (handles CNN model peak usage of ~3 cores)
+#       memory: 1G       # 1GB RAM limit (311MB peak + Python overhead + buffers)
+#     reservations:
+#       cpus: '1.0'      # Reserve 1 CPU core for guaranteed performance
+#       memory: 512M     # Reserve 512MB RAM for stable operation
+
+# PRODUCTION CONFIGURATION (6 CPU cores, 2GB RAM)
+# environment:
+#   - PYTHONPATH=/app
+#   - OMP_NUM_THREADS=4  # Limit OpenMP threads for better container performance
+#   - MKL_NUM_THREADS=4  # Limit MKL threads for better container performance
+# deploy:
+#   resources:
+#     limits:
+#       cpus: '6.0'      # 6 CPU cores (handles concurrent CNN/LSTM processing)
+#       memory: 2G       # 2GB RAM (handles multiple concurrent requests + overhead)
+#     reservations:
+#       cpus: '2.0'      # Reserve 2 CPU cores for consistent performance
+#       memory: 1G       # Reserve 1GB RAM for stable operation
+# healthcheck:
+#   test: ["CMD", "python", "-c", "from handler import AIDetectionHandler; h = AIDetectionHandler(); print('healthy' if h.health_check().get('status') == 'healthy' else exit(1))"]
+#   interval: 30s
+#   timeout: 10s
+#   retries: 3
+#   start_period: 60s  # Longer startup time for production
+
+networks:
+  open5gs:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/16

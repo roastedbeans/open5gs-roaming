@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-detection
+  namespace: vplmn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-detection
+  template:
+    metadata:
+      labels:
+        app: ai-detection
+    spec:
+      containers:
+        - name: ai-detection
+          image: docker.io/vinch05/open5gs-ai-detection:latest
+          imagePullPolicy: IfNotPresent
+          command: ['/app/entrypoint.sh']
+          args: ['--command', 'server', '--host', '0.0.0.0', '--port', '8000']
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+            - name: logs
+              mountPath: /app/logs
+            - name: performance-data
+              mountPath: /app/performance_data
+          ports:
+            - containerPort: 8000
+              name: api
+              protocol: TCP
+          env:
+            - name: PYTHONPATH
+              value: "/app"
+            - name: OMP_NUM_THREADS
+              value: "1"
+            - name: MKL_NUM_THREADS
+              value: "1"
+            - name: NUMEXPR_NUM_THREADS
+              value: "1"
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: ai-detection-config
+        - name: logs
+          emptyDir: {}
+        - name: performance-data
+          emptyDir: {}

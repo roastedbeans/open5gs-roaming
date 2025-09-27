@@ -1,0 +1,42 @@
+# Core machine learning and deep learning libraries
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# Data processing and analysis
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.2.0
+
+# Configuration and utilities
+PyYAML>=6.0
+python-dotenv>=1.0.0
+
+# Logging and monitoring
+loguru>=0.6.0
+
+# Optional: For API development (if needed)
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+
+# Optional: For data visualization (if needed for debugging)
+matplotlib>=3.6.0
+seaborn>=0.12.0
+
+# Optional: For Jupyter notebooks (if needed for development)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Performance monitoring and visualization
+psutil>=5.9.0
+plotly>=5.0.0
+
+# Optional: For network packet analysis (if integrating with packet capture)
+scapy>=2.5.0
+
+# Development dependencies
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0

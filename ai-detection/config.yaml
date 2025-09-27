@@ -1,0 +1,173 @@
+# AI Detection System Configuration
+
+# Model Configuration
+model:
+  # Available model types: cnn, mlp, rnn, lstm, gru, autoencoder
+  default_model: "ensemble"
+  num_classes: 4
+  input_features: 76
+  class_names: ["ddos", "normal", "probe", "tls"]
+
+  # Model-specific parameters
+  cnn:
+    in_channels: 1
+    dropout: 0.3
+
+  mlp:
+    dropout: 0.3
+
+  rnn:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  lstm:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  gru:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  autoencoder:
+    input_dim: 77
+    enc_dims: [128, 64]
+    latent_dim: 16
+    dec_dims: [64, 128]
+    dropout: 0.2
+
+# Training Configuration
+training:
+  batch_size: 64
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  validation_split: 0.125
+
+# Data Configuration
+data:
+  # Expected input format
+  features: 77
+  scaling: "standard"  # standard or minmax
+
+  # Class distribution (for reference)
+  class_distribution:
+    normal: 49000
+    ddos: 5264
+    probe: 5000
+    tls: 116
+
+# System Configuration
+system:
+  model_directory: "models"
+  device: "cpu"  # cpu or cuda
+  log_level: "INFO"
+
+  # Performance settings
+  max_batch_size: 1000
+  timeout_seconds: 30
+
+# API Configuration
+api:
+  enable_cors: true
+  max_request_size: "10MB"
+
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 100
+    burst_limit: 20
+
+# Security Configuration
+security:
+  # Threat level thresholds
+  threat_levels:
+    high:
+      confidence_threshold: 0.9
+      actions: ["block", "alert", "log"]
+    medium:
+      confidence_threshold: 0.7
+      actions: ["monitor", "alert", "log"]
+    low:
+      confidence_threshold: 0.5
+      actions: ["log"]
+
+  # Attack type priorities
+  attack_priorities:
+    ddos: "high"
+    probe: "medium"
+    tls: "medium"
+    normal: "low"
+
+# Monitoring Configuration
+monitoring:
+  enable_metrics: true
+  metrics_interval: 60  # seconds
+
+  # Alert thresholds
+  alerts:
+    false_positive_rate: 0.05
+    detection_delay: 5  # seconds
+    model_accuracy: 0.95
+
+# Integration Configuration (for Open5GS)
+integration:
+  open5gs:
+    enabled: true
+    api_endpoint: "http://localhost:7777"
+    auth_token: ""  # Set via environment variable
+
+    # Network interfaces to monitor
+    interfaces:
+      - "n1"
+      - "n2"
+      - "n3"
+      - "n32"
+
+  # Packet capture settings
+  pcap:
+    enabled: true
+    interface: "eth0"
+    filter: "tcp or udp"
+    max_packets: 10000
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/ai_detection.log"
+  max_file_size: "10MB"
+  backup_count: 5
+
+# Feature Extraction Configuration
+features:
+  # Network flow features to extract
+  flow_features:
+    - "duration"
+    - "packet_count"
+    - "byte_count"
+    - "packet_rate"
+    - "byte_rate"
+    - "packet_size_mean"
+    - "packet_size_std"
+    - "packet_size_min"
+    - "packet_size_max"
+
+  # Protocol-specific features
+  protocol_features:
+    tcp:
+      - "syn_count"
+      - "ack_count"
+      - "fin_count"
+      - "rst_count"
+    udp:
+      - "udp_packet_ratio"
+    icmp:
+      - "icmp_count"
+
+  # Statistical features
+  statistical_features:
+    - "entropy"
+    - "autocorrelation"
+    - "fft_coefficients"

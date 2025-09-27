@@ -1,0 +1,28 @@
+# Test and development files
+dos.csv
+__pycache__/
+*.pyc
+
+# Generated files and outputs
+performance_plots/
+performance_summary.md
+performance_table.png
+logs/
+
+# IDE and development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Documentation (if not needed in container)
+README.md
+BENCHMARK_README.md
+
+# Removed files
+benchmark_example.py
+demo_monitoring.py

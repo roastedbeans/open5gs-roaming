@@ -2,3 +2,5 @@ logs/
 
 /compose-files/roaming/captures/*
 /pcap-logs/*
+
+/venv/*
