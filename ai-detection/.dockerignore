@@ -4,9 +4,7 @@ __pycache__/
 *.pyc
 
 # Generated files and outputs
-performance_plots/
-performance_summary.md
-performance_table.png
+performance_data/
 logs/
 
 # IDE and development files
@@ -22,7 +20,5 @@ logs/
 # Documentation (if not needed in container)
 README.md
 BENCHMARK_README.md
-
-# Removed files
-benchmark_example.py
-demo_monitoring.py
+latex.txt
+process.md

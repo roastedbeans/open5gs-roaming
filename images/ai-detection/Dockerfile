@@ -36,9 +36,6 @@ COPY ai-detection/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories
-RUN mkdir -p /app/models /app/logs
-
 # Copy AI detection code and models
 COPY ai-detection/ .
 
@@ -46,7 +43,7 @@ COPY ai-detection/ .
 RUN useradd --create-home --shell /bin/bash app
 
 # Set proper permissions
-RUN chmod +x api_server.py test_models.py monitor_performance.py && \
+RUN chmod +x api_server.py test_models.py performance.py entrypoint.sh && \
     chown -R app:app /app
 USER app
 

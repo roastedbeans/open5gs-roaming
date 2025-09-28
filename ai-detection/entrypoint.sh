@@ -76,7 +76,7 @@ case $COMMAND in
         ;;
     monitor)
         echo "Running AI Detection Performance Monitoring with Graphs"
-        exec python monitor_performance.py
+        exec python performance.py
         ;;
     *)
         echo "Unknown command: $COMMAND"

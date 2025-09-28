@@ -13,22 +13,21 @@ services:
     environment:
       - PYTHONPATH=/app
     volumes:
-      - ../../ai-detection/logs:/app/logs
       - ../../ai-detection/performance_data:/app/performance_data
     networks:
       - open5gs
     restart: unless-stopped
     entrypoint: ["/app/entrypoint.sh"]
-    # Minimal resource configuration for development/testing
-    # Based on MLP model: ~0.1% CPU, ~278MB RAM peak
+    # Resource configuration based on performance testing
+    # Peak usage: LSTM=360% CPU/291MB RAM, CNN=265% CPU/297MB RAM
     deploy:
       resources:
         limits:
-          cpus: '1.0'      # 1 CPU core (sufficient for MLP/Autoencoder models)
-          memory: 512M     # 512MB RAM (handles all models comfortably)
+          cpus: '2.0'      # 2 CPU core (handles LSTM peak usage of ~3.6 cores)
+          memory: 2G     # 512MB RAM (handles all models comfortably, peak ~300MB)
         reservations:
-          cpus: '0.5'      # Reserve 0.5 CPU cores
-          memory: 256M     # Reserve 256MB RAM
+          cpus: '1.0'      # Reserve 1 CPU core for guaranteed performance
+          memory: 128M     # Reserve 128MB RAM for stable operation
     healthcheck:
       test: ["CMD", "python", "-c", "from handler import AIDetectionHandler; h = AIDetectionHandler(); print('healthy' if h.health_check().get('status') == 'healthy' else exit(1))"]
       interval: 30s
@@ -45,10 +44,10 @@ services:
 # deploy:
 #   resources:
 #     limits:
-#       cpus: '4.0'      # 4 CPU cores (handles CNN model peak usage of ~3 cores)
-#       memory: 1G       # 1GB RAM limit (311MB peak + Python overhead + buffers)
+#       cpus: '4.0'      # 4 CPU cores (handles concurrent LSTM processing)
+#       memory: 1G       # 1GB RAM (handles multiple concurrent requests + 300MB peak)
 #     reservations:
-#       cpus: '1.0'      # Reserve 1 CPU core for guaranteed performance
+#       cpus: '2.0'      # Reserve 2 CPU cores for concurrent processing
 #       memory: 512M     # Reserve 512MB RAM for stable operation
 
 # PRODUCTION CONFIGURATION (6 CPU cores, 2GB RAM)

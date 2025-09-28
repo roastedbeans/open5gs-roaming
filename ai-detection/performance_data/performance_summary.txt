@@ -1,0 +1,106 @@
+================================================================================
+AI DETECTION SYSTEM PERFORMANCE SUMMARY
+================================================================================
+Generated on: 2025-09-28 04:42:50
+
+SYSTEM INFORMATION
+------------------------------
+Platform: Linux 6.10.14-linuxkit
+Architecture: aarch64
+Python Version: 3.11.13
+CPU Cores: 8 physical, 8 logical
+Total Memory: 7.7 GB
+Available Memory: 6.4 GB
+
+DOCKER INFORMATION
+--------------------
+Running in Docker: No
+
+DATASET INFORMATION
+--------------------
+CSV File: dos.csv
+Total Packets: 67
+Features per packet: 76
+Packet types: flow_duration, flow_byts_s, flow_pkts_s, fwd_pkts_s, bwd_pkts_s... (showing first 5)
+
+PERFORMANCE RESULTS
+--------------------
+
+PERFORMANCE SUMMARY TABLE
+----------------------------------------------------------------------------------------------------
+Model      CPU (%)  Memory (MB)  End-to-End (ms) Preprocess (ms) Predict (ms) Throughput
+----------------------------------------------------------------------------------------------------
+CNN        8.5      385.5        0.44            0.07            0.37         2264      
+MLP        9.7      386.2        0.28            0.07            0.23         3568      
+RNN        107.1    387.2        3.47            0.08            3.38         288       
+LSTM       99.0     388.7        7.19            0.06            7.13         139       
+GRU        101.0    389.5        6.01            0.06            5.96         166       
+AUTOENCODER 11.2     389.5        0.34            0.06            0.27         2939      
+----------------------------------------------------------------------------------------------------
+
+DETAILED RESULTS PER MODEL
+------------------------------
+
+CNN Model:
+----------
+  CPU Utilization:     8.5%
+  Memory Usage:        385.5 MB
+  End-to-End Latency:  0.44 ms
+  Preprocessing Time:  0.07 ms
+  Prediction Time:     0.37 ms
+  Throughput:          2264 samples/sec
+  Samples Processed:   64
+
+MLP Model:
+----------
+  CPU Utilization:     9.7%
+  Memory Usage:        386.2 MB
+  End-to-End Latency:  0.28 ms
+  Preprocessing Time:  0.07 ms
+  Prediction Time:     0.23 ms
+  Throughput:          3568 samples/sec
+  Samples Processed:   65
+
+RNN Model:
+----------
+  CPU Utilization:     107.1%
+  Memory Usage:        387.2 MB
+  End-to-End Latency:  3.47 ms
+  Preprocessing Time:  0.08 ms
+  Prediction Time:     3.38 ms
+  Throughput:          288 samples/sec
+  Samples Processed:   67
+
+LSTM Model:
+-----------
+  CPU Utilization:     99.0%
+  Memory Usage:        388.7 MB
+  End-to-End Latency:  7.19 ms
+  Preprocessing Time:  0.06 ms
+  Prediction Time:     7.13 ms
+  Throughput:          139 samples/sec
+  Samples Processed:   67
+
+GRU Model:
+----------
+  CPU Utilization:     101.0%
+  Memory Usage:        389.5 MB
+  End-to-End Latency:  6.01 ms
+  Preprocessing Time:  0.06 ms
+  Prediction Time:     5.96 ms
+  Throughput:          166 samples/sec
+  Samples Processed:   66
+
+AUTOENCODER Model:
+------------------
+  CPU Utilization:     11.2%
+  Memory Usage:        389.5 MB
+  End-to-End Latency:  0.34 ms
+  Preprocessing Time:  0.06 ms
+  Prediction Time:     0.27 ms
+  Throughput:          2939 samples/sec
+  Samples Processed:   65
+
+================================================================================
+END OF PERFORMANCE SUMMARY
+================================================================================
