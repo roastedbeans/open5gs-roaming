@@ -1,0 +1,190 @@
+# Universal Academic Research Paper Cursor Rules
+
+## Document Structure & Formatting
+
+### LaTeX Document Setup
+- Use appropriate journal/conference document class
+- Include necessary packages for figures, tables, math, and bibliography
+- Follow target venue's formatting guidelines and style requirements
+
+### Document Organization
+- **Title Page**: Include complete title, author information, affiliations, and abstract
+- **Keywords**: Provide 3-10 relevant keywords
+- **Sections**: Introduction, Literature Review, Methodology, Results, Discussion, Conclusion
+- **References**: Use appropriate bibliography style (APA, IEEE, ACM, etc.)
+- **Appendices**: Include supplementary materials as needed
+
+### File Structure
+- Use descriptive filenames (e.g., `paper.tex`, `references.bib`)
+- Separate content from formatting when possible
+- Maintain version control with clear commit messages
+
+## Writing Style & Academic Standards
+
+### Language & Tone
+- Maintain formal, objective, academic tone throughout
+- Use third-person perspective; avoid first-person pronouns
+- Write clearly and concisely; avoid unnecessary jargon
+- Present findings factually without overstating significance
+- Use active voice when possible, passive when appropriate
+
+### Content Organization
+- **Introduction**: State problem, significance, objectives, and contributions
+- **Literature Review**: Summarize relevant work, identify gaps
+- **Methodology**: Detail approach, data collection, analysis methods
+- **Results**: Present findings with appropriate visualizations
+- **Discussion**: Interpret results, relate to literature, address limitations
+- **Conclusion**: Summarize contributions, suggest future work
+
+### Technical Writing
+- Define all acronyms and abbreviations on first use
+- Use consistent terminology throughout
+- Maintain appropriate level of technical detail for target audience
+- Explain complex concepts clearly
+
+### Abbreviations & Acronyms
+- Spell out abbreviations/acronyms completely on first mention followed by abbreviation in parentheses: "Security Edge Protection Proxy (SEPP)"
+- Use abbreviated form consistently in subsequent mentions: "SEPP interface"
+- Maintain consistent abbreviation usage throughout the document
+- Avoid over-abbreviation; only abbreviate terms used frequently
+
+## Citation & Referencing
+
+### Citation Style
+- Choose appropriate style (APA, IEEE, ACM, Vancouver, etc.) for field/venue
+- Cite sources appropriately: inline citations, footnotes, or endnotes
+- Ensure all references are cited in text and vice versa
+- Use tools like Zotero, Mendeley, or BibTeX for management
+
+### Reference Formatting
+- Include all required fields (authors, title, journal, year, DOI, etc.)
+- Format references consistently according to chosen style
+- Verify all DOIs and URLs are accessible
+- Cross-reference related work appropriately
+
+## Tables & Figures
+
+### Table Guidelines
+- Use appropriate table environment (`tabular`, `tabularx`, `longtable`)
+- Include descriptive captions above tables
+- Label tables for cross-referencing (`\label{tab:label}`)
+- Use `\toprule`, `\midrule`, `\bottomrule` for professional appearance
+- Ensure tables are self-contained and interpretable
+
+### Figure Guidelines
+- Use appropriate figure environment with placement options
+- Include descriptive captions below figures
+- Label figures for cross-referencing (`\label{fig:label}`)
+- Use vector formats (PDF, EPS) when possible
+- Ensure figures are high-resolution and legible
+- Cite figure sources if not original
+
+### Table & Figure Referencing
+- Reference tables and figures in text using proper LaTeX syntax: `Table~\ref{tab:label}` and `Figure~\ref{fig:label}`
+- Use tilde (~) before `\ref{}` to prevent line breaks between "Table"/"Figure" and the number
+- Introduce tables/figures before referencing: "As shown in Table~\ref{tab:results}..." or "The experimental setup is illustrated in Figure~\ref{fig:setup}"
+- Place references after the introductory text but before detailed descriptions
+- Ensure all referenced tables and figures exist and are properly numbered
+
+## Mathematical Content
+
+### Equations
+- Use appropriate equation environments (`equation`, `align`, `gather`)
+- Number equations for cross-referencing
+- Use consistent notation and symbols
+- Explain variables and parameters clearly
+- Format mathematical expressions professionally
+
+### Algorithms
+- Use algorithm packages (`algorithm`, `algpseudocode`)
+- Provide clear, step-by-step descriptions
+- Include proper indentation and structure
+- Label algorithms for cross-referencing
+- Test pseudocode for logical correctness
+
+## Code & Technical Elements
+
+### Code Formatting
+- Use `\texttt{}` or `listings` package for code snippets
+- Apply syntax highlighting where appropriate
+- Include comments for complex code sections
+- Ensure code is syntactically correct
+- Provide code repositories or supplements when possible
+
+### Technical Specifications
+- Format units consistently (MB, GB, ms, MHz, etc.)
+- Use appropriate numerical precision
+- Format IP addresses, URLs, and technical identifiers consistently
+- Include version numbers for software and tools
+- Specify hardware configurations clearly
+
+## Quality Assurance & Validation
+
+### Consistency Checks
+- Verify all abbreviations are defined before use
+- Ensure consistent terminology and spelling
+- Check table/figure numbering and references
+- Validate internal consistency across sections
+- Use spell-checking and grammar tools
+
+### Technical Validation
+- Verify mathematical equations and derivations
+- Test algorithms and code snippets
+- Ensure experimental results are reproducible
+- Validate statistical analyses and methodologies
+- Cross-check with established literature
+
+### Peer Review Preparation
+- Anticipate common reviewer concerns
+- Address potential limitations proactively
+- Ensure sufficient detail for reproducibility
+- Prepare response to potential criticisms
+- Follow venue-specific submission requirements
+
+## Research Ethics & Integrity
+
+### Academic Integrity
+- Cite all sources appropriately
+- Avoid plagiarism in all forms
+- Acknowledge collaborators and contributors
+- Disclose conflicts of interest
+- Maintain research data integrity
+
+### Reproducibility
+- Provide sufficient methodological detail
+- Share data and code when possible
+- Document experimental setups clearly
+- Include necessary supplementary materials
+- Enable verification of results
+
+## Version Control & Collaboration
+
+### Change Tracking
+- Use meaningful commit messages
+- Track major revisions and rationale
+- Maintain backup versions
+- Document collaborative contributions
+- Preserve research timeline
+
+### Collaboration Guidelines
+- Establish clear authorship criteria
+- Define roles and responsibilities
+- Use collaborative writing tools effectively
+- Maintain regular communication
+- Respect intellectual property rights
+
+## Field-Specific Considerations
+
+### Adapt to Research Domain
+- Follow domain-specific conventions (CS vs. Biology vs. Physics)
+- Use appropriate jargon and terminology
+- Adhere to field-specific citation practices
+- Consider domain-specific ethical requirements
+- Follow venue-specific formatting requirements
+
+### Publication Strategy
+- Identify appropriate target venues
+- Tailor content to audience expectations
+- Consider journal/conference review processes
+- Plan for potential revisions
+- Prepare for post-publication engagement

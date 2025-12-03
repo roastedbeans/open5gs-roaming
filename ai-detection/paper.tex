@@ -1,0 +1,1021 @@
+%Tech Science Press
+
+%=================================================================
+\documentclass[journal,article,submit,moreauthors,pdftex]{Definitions/tsp} 
+\input{Definitions/package}
+\include{Definitions/unicode}
+
+%----------
+% journal
+%----------
+% % Choose between the following TSP journals:
+%biocell, chd, cmc, cmes, csse, dedt, ee, fdmp, fhmt, iasc, icces, ijimh, jai, jbd, jbic, jcs, jihpp, jimh, jiot, jnm, jpm, jqc, jrm, or, phyton, po, rig, sdhm.
+%---------
+% article type
+%---------
+% The default type of manuscript is "article", but can be replaced by:
+%abstract, analysis, article, biographical item, case report, commentary, communication, correction, editorial, guideline, introduction, mini review, open forum, perspective, proceedings, protocol, retraction, review, short communication, technical report, theory, tutorial, viewpoint
+
+%----------
+% submit status
+%----------
+% The class option "submit" will be changed to "accept" by the Editorial Office when the paper is accepted. This will only make changes to the frontpage (e.g., the logo of the journal will get visible), the headings, and the copyright information. Also, line numbering will be removed. Journal info and pagination for accepted papers will also be assigned by the Editorial Office.
+%------------------
+% moreauthors
+%------------------
+% If there is only one author the class option oneauthor should be used. Otherwise use the class option moreauthors.
+%---------
+% pdftex
+%---------
+% The option pdftex is for use with pdfLaTeX. If eps figures are used, remove the option pdftex and use LaTeX and dvi2pdf.
+
+%=================================================================
+% Internal commands---Please do not modify
+\continuouspages{yes}
+\firstpage{1} 
+\makeatletter 
+\setcounter{page}{\@firstpage} 
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{12345}
+\pubyear{2025}
+\copyrightyear{2025}
+\datereceived{Day Month Year}
+\dateaccepted{Day Month Year}
+\dateonlinefirst{}
+\datepublished{}
+%\datecorrected{} % For corrected papers: "Corrected: XXX" date in the original paper.
+%\dateretracted{} % For corrected papers: "Retracted: XXX" date in the original paper.
+%\hreflink{https://doi.org/} %for future citation
+%=================================================================
+% Add packages and commands here. The following packages are loaded in the class file: fontenc, inputenc, calc, indentfirst, fancyhdr, graphicx, epstopdf, lastpage, ifthen, lineno, float, amsmath, setspace, enumitem, mathpazo, booktabs, titlesec, etoolbox, tabto, xcolor, soul, multirow, microtype, tikz, refcount, totcount, attrib, amsthm, upgreek, array, tabularx, pbox, ragged2e, tocloft, adjustbox, enotez
+
+\usepackage{algorithm}
+\usepackage{algpseudocode} % provides 'algorithmic' inside 'algorithm'
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{subcaption}
+
+
+%=================================================================
+%% Please use the following mathematics environments: Theorem, Lemma, Corollary, Proposition, Characterization, Property, Problem, Example, ExamplesandDefinitions, Hypothesis, Remark, Definition, Notation, Assumption
+%% For proofs, please use the proof environment (the amsthm package is loaded by the TSP class).
+
+%=================================================================
+% Full title of the paper (Capitalized)
+\Title{Enhancing Roaming Security in Cloud-Native 5G Core Network Through Deep Learning-Based Intrusion Detection System}
+%\TitleCitation{Title}
+
+% Author Orchid ID: enter ID or remove command
+%\newcommand{\orcidauthorA}{0000-0000-000-000X} % Add \orcidA{} behind the author's name
+%\newcommand{\orcidauthorB}{0000-0000-000-000X} % Add \orcidB{} behind the author's name
+\newcommand{\orcidauthorA}{0009-0006-3767-027X} % Add \orcidA{} behind the author's name
+\newcommand{\orcidauthorB}{0009-0007-2526-1759} % Add \orcidB{} behind the author's name
+\newcommand{\orcidauthorC}{0009-0009-2121-6066} % Add \orcidB{} behind the author's name
+\newcommand{\orcidauthorD}{0009-0006-4905-6912} % Add \orcidB{} behind the author's name
+\newcommand{\orcidauthorE}{0000-0002-0604-3445} % Add \orcidB{} behind the author's name
+
+
+% Authors, for the paper (add full first names)
+\Author{I Wayan Adi Juliawan Pawana\textsuperscript{1,2}\orcidA{}, Vincent Abella\textsuperscript{2}\orcidB{}, Jhury Kevin Lastre\textsuperscript{2}\orcidC{}, Yongho Ko\textsuperscript{2}\orcidD{} and Ilsun You\textsuperscript{2,*}\orcidE{}}
+%\AuthorCitation{Lastname F, Lastname F, Lastname F}
+
+% Authors, for metadata in PDF
+\AuthorNames{I Wayan Adi Juliawan Pawana, Vincent Abella, Jhury Kevin Lastre, Yongho Ko and Ilsun You}
+
+% Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
+\address{%
+\textsuperscript{1} Department of Electrical Engineering, Udayana University, Badung, 80361, Indonesia \\
+\textsuperscript{2} Department of Cyber Security, Kookmin University, Seoul, 02707, South Korea 
+
+}%`
+
+% Contact information of the corresponding author
+\corres{Corresponding Author: Ilsun You. Email: isyou@kookmin.ac.kr}
+
+% Current address and/or shared authorship
+%\firstnote{These authors contributed equally to this work} 
+%\secondnote{}
+%The commands \thirdnote{} till \myeighthnote{} are available for further notes
+
+% Abstract (Do not use inserted blank lines, i.e. \\)
+\abstract{Roaming in 5G networks enables seamless global mobility but also introduces significant security risks due to legacy protocol dependencies, uneven Security Edge Protection Proxy (SEPP) deployment, and the dynamic nature of inter-Public Land Mobile Network (inter-PLMN) signaling. Traditional rule-based defenses are inadequate for protecting cloud-native 5G core networks, particularly as roaming expands into enterprise and Internet of Things (IoT) domains. This work addresses these challenges by designing a scalable 5G Standalone testbed, generating the first intrusion detection dataset specifically tailored to roaming threats, and proposing a deep learning based intrusion detection framework for cloud-native environments. Six deep learning models including Multilayer Perceptron (MLP), one-dimensional Convolutional Neural Network (1D CNN), Autoencoder (AE), Recurrent Neural Network (RNN), Gated Recurrent Unit (GRU), and Long Short-Term Memory (LSTM) were evaluated on the dataset using both weighted and balanced metrics to account for strong class imbalance. While all models achieved over 99\% accuracy, recurrent architectures such as GRU and LSTM outperformed others in balanced accuracy and macro-level evaluation, demonstrating superior effectiveness in detecting rare but high-impact attacks. These results confirm the importance of sequence-aware Artificial Intelligence (AI) models for securing roaming scenarios, where transient and context-dependent threats are common. The proposed framework provides a foundation for intelligent, adaptive intrusion detection in 5G and offers a path toward resilient security in Beyond 5G and 6G networks.}
+
+% List 3 to 10  pertinent keywords specific to the article, yet reasonably common within the subject discipline.
+\keyword{Roaming; 5G; Cloud Native; Intrusion Detection System; Deep Learning}  
+
+% The fields PACS, MSC, and JEL may be left empty or commented out if not applicable
+%\PACS{}
+%\MSC{}
+%\JEL{}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction} \label{sect:s1}
+Global roaming enables mobile users to access voice, messaging, and data services outside their home networks by connecting to international partner networks. It relies on standardized signaling protocols and inter-operator agreements to ensure interoperability across diverse infrastructures. While traditionally essential for international travelers, roaming is increasingly important for enterprise applications, such as IoT and private networks. Although only 34\% of enterprises currently require international IoT connectivity~\cite{RadarRoamingPostCovid2021}, use cases like asset tracking demand seamless transitions between private and public networks and compatibility with legacy systems~\cite{Private5GNetworks2024}. As roaming expands into these new domains, the protection of signaling information becomes a critical concern, particularly due to the sensitive data exchanged across networks with varying security standards.
+
+However, the roaming ecosystem has long faced significant security challenges, many of which stem from the use of legacy signaling protocols. In 2G and 3G networks, the SS7 protocol lacked encryption and authentication, enabling attackers to eavesdrop on communications, track subscriber locations, and conduct denial-of-service or call interception attacks~\cite{raoWeKnowWhere2016,kirchgaessnerIsraeliSpyFirm2020,ullahSS7VulnerabilitiesSurvey2020}. Although the introduction of Diameter in 4G introduced improvements, many networks maintained backward compatibility with SS7, and insecure interconnection practices via IPX providers remained prevalent. These hybrid deployments left mobile core networks vulnerable to cross-domain attacks. The Syniverse breach, for example, demonstrated how attackers could maintain persistent, unauthorized access to signaling infrastructure over several years, affecting hundreds of operators and millions of subscribers~\cite{SyniverseBreach2021}.
+
+The emergence of 5G Standalone (SA) architecture introduced major enhancements to roaming security through Service-Based Architecture (SBA) and the Security Edge Protection Proxy (SEPP)~\cite{Specification33501,5GRoamingSecurity,5GSRoamingGuidelinesV12}. SBA modularizes core network functions as stateless microservices that communicate over APIs, increasing flexibility and scalability. SEPP, mandated for inter-PLMN signaling, aims to secure the N32 interface using TLS and mutual authentication, preventing unauthorized access and eavesdropping on cross-border signaling. However, deployment remains uneven. According to 2025 reports~\cite{5GStandaloneApril2025}, only 73 of the 163 operators investing in 5G SA had launched fully standalone services. Many continue to rely on Non-Standalone (NSA) or hybrid architectures, which either bypass SEPP or operate in insecure transitional modes. Additionally, core interfaces such as N32-c (for control signaling) and N32-f (for service discovery) are underexplored, despite their growing importance and susceptibility to abuse in inter-operator roaming.
+
+This uneven rollout of 5G SA highlights broader security challenges as networks shift toward cloud-native architectures, large-scale data exchange, and massive IoT connectivity. While these changes enable flexibility and innovation, they also expand the attack surface~\cite{shinEnhancingCloudnativeDevSecOps2025, kumarComprehensiveReviewVulnerabilities2024, uddinDenialServiceAttacks2024, aslanComprehensiveReviewCyber2023, arisdakessianSurveyIoTIntrusion2023, sajidEnhancingIntrusionDetection2024}, particularly in roaming scenarios that span multiple administrative domains. The adoption of SBA and containerized functions across cloud environments introduces vulnerabilities beyond the reach of legacy telecom defenses. Threats like signaling overload, probing, and TLS attacks on SEPPs are increasingly feasible in this fragmented landscape. As noted by~\cite{SecuringPrivateNetworks2021}, 32\% of operators are concerned about the broader attack surface in 5G, with 29\% citing roaming as a key risk. Securing these evolving infrastructures is critical to maintaining trust in global mobile networks.
+
+Traditional rule-based security tools are inadequate for addressing the scale, complexity, and dynamism of cloud-native 5G roaming systems. To this end, AI offer a promising alternative by enabling systems to learn behavioral baselines and detect anomalous activities in real time~\cite{sajidEnhancingIntrusionDetection2024,pawanaLightweightLLMBasedAnomaly2025,altunayHybridCNNLSTMbasedIntrusion2023,kasongoDeepLearningTechnique2023}. AI-based detection systems can model interactions among distributed network functions, monitor deviations in control-plane signaling, and identify patterns indicative of SEPP misuse or cross-domain signaling abuse. Despite growing interest in AI for telecom security, little attention has been given to SBA-specific inter-PLMN interactions, especially those involving N32-c and N32-f signaling. These interfaces represent blind spots in both standardization and practical defense mechanisms. Intelligent, context-aware monitoring of these components is essential for enabling real-time, adaptive protection in roaming environments that lack centralized visibility or trust enforcement.
+
+This work addresses these emerging challenges and fills key research gaps through the following contributions:
+\begin{itemize}
+    \item Design and implement a cloud-native 5G Core Network testbed that emulates realistic roaming scenarios within a scalable, containerized environment.
+    \item Introduce the 5G Core Network Roaming Intrusion Detection Dataset, the first of its kind tailored specifically for roaming-related threats in a 5G cloud-native environment.
+    \item Propose an intrusion detection framework that operates natively within the cloud infrastructure, enabling efficient detection of roaming attacks.
+    \item Evaluate a range of deep learning algorithms within this framework to assess their effectiveness in identifying roaming intrusions, offering valuable insights into the viability of AI-based defense mechanisms in B5G and 6G.
+\end{itemize}
+
+The remainder of this paper is organized as follows. Section 2 reviews existing research on roaming security, SEPP deployments, and AI-based intrusion detection systems in 5G networks. Section 3 details the methodology, including the design of our cloud-native 5G SA testbed, the generation of roaming threat scenarios, and the architecture of the proposed AI-based detection framework. Section 4 presents the experimental setup, including dataset collection, feature engineering, and model implementation. Section 5 discusses the evaluation results of multiple deep learning algorithms and provides analysis on their performance in detecting roaming-specific threats. Finally, Section 6 concludes the paper and outlines future research directions to advance secure and intelligent roaming in Beyond 5G and 6G networks.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Works}
+
+%[roaming attack]
+
+Roaming remains a critical component of mobile communication systems, yet it introduces significant security vulnerabilities that persist across generations of network technologies. The study~\cite{langeWhereverMayRoam2024a} demonstrates how attackers with access to roaming agreements can exploit authentication mechanisms to deploy stealthy Rogue Base Stations (RBSes), enabling undetected traffic interception and manipulation even under updated 5G procedures. Similarly, the work~\cite{chang6GSecurityVulnerability2024} analyzes signaling-based denial-of-service (DoS) attacks in 5G roaming environments, showing that such attacks can amplify their impact on Public Land Mobile Networks (PLMNs) by up to 2.69× compared to non-roaming scenarios. Legacy signaling protocols like SS7, which are still partially used for interoperability in roaming infrastructure, pose additional risks. The study~\cite{ullahSS7VulnerabilitiesSurvey2020} provides a comprehensive survey of SS7 vulnerabilities, detailing how attackers can intercept messages, track users, hijack calls, or commit financial fraud by exploiting its trust-based design. Building on these concerns, the work~\cite{guoEmpiricalStudyDeep2023} presents a large-scale empirical study on deep learning (DL)-based detection of SS7 related attacks. It evaluates eight supervised and five semi-supervised models, demonstrating that rule-based detection mechanisms are largely ineffective, while DL approaches show greater promise, particularly in identifying attacks targeting the location update functions in visiting networks.
+
+
+%[DDoS attack]
+As 5G networks evolve, the security of the 5G Core Network (5GCN) has become a critical concern due to its software-defined, service-based, and virtualized architecture. Broader threats such as Distributed Denial-of-Service (DDoS) attacks have gained prominence, exploiting the increased complexity and openness of 5G infrastructures. The study~\cite{hussainDeepLearningBasedDDoSAttack2021} demonstrates how deep learning, specifically Convolutional Neural Networks (CNNs), can detect botnet-driven DDoS attacks targeting core components. To address such threats proactively, the work~\cite{thantharateSecure5GDeepLearning2020} proposes a neural network-based framework that identifies and blocks malicious traffic before it infiltrates the core network. Likewise, the study~\cite{sattarSecureSlicingUsing2019} stresses the importance of resource isolation to contain the impact of DDoS attacks, particularly in multi-tenant, virtualized environments. Further advancing detection capabilities, the research~\cite{farzanehDTL5GDeepTransfer2024} explores deep learning-based intrusion detection in cyber–physical systems over 5G, proposing transfer learning as a solution to the scarcity of labeled training data in operational settings. In addition to DDoS threats, anomaly detection in the control plane is essential for safeguarding network function (NF) interactions. 
+
+Several recent studies highlight the effectiveness of RNN-based architectures in modeling sequential patterns for intrusion detection. ADSeq-5GCN~\cite{tianADSeq5GCNAnomalyDetection2023} employs a BiLSTM-based framework to capture NF-to-NF communication sequences, enabling the detection of subtle control-plane anomalies. Similarly, DeepSecure~\cite{kuadeyDeepSecureDetectionDistributed2022} utilizes LSTM models to identify DDoS attacks in 5G environments without relying on manual thresholds or handcrafted features. A federated RNN-based IDS~\cite{rezaeiFederatedRNNIntrusion2025} has also been proposed for IoT environments, demonstrating how sequential modeling can be leveraged in distributed settings while preserving data locality. These approaches underscore the importance of modeling temporal behaviors in complex network environments, where attacks often manifest as subtle, time-dependent deviations. In this context, LSTM networks are particularly effective in learning long-range dependencies in signaling sequences, making them well-suited for detecting anomalies in dynamic 5G core network traffic.
+ 
+Targeting signaling-level threats, the study~\cite{parkMachineLearningBased2022} demonstrates how entropy and statistics-based preprocessing combined with classical ML classifiers can effectively identify high-volume signaling attacks, with Random Forest achieving 98.7\% accuracy. Secure5G~\cite{thantharateSecure5GDeepLearning2020} further extends IDS functionality by integrating proactive threat isolation into a deep learning-based slicing model, enabling secure, end-to-end network slicing services. Additionally, the study~\cite{kimEffectiveFeatureSelection2022} highlights how efficient feature selection can maintain high detection performance while significantly improving the computational efficiency of ML-based detection systems in real-time 5G CN environments.
+
+Recent advances in AI have significantly enhanced the capabilities of IDS, especially in addressing the challenges posed by high-throughput, cloud-native, and big data-driven environments. Traditional machine learning-based IDS approaches often fall short in scalability and adaptability, prompting the emergence of more dynamic and intelligent models. The work~\cite{yuanRecomposeEventSequences2021} introduces a deep autoencoder-based method that reconstructs complete event sequences for anomaly detection, effectively capturing structural dependencies to reduce false positives and improve detection accuracy. To address the complexities of large-scale distributed networks, the study~\cite{louatiBigIDSDecentralizedMulti2024} proposes a decentralized Multi-Agent Reinforcement Learning (MARL) framework that leverages cloud computing and big data streaming techniques to enable real-time, cooperative intrusion detection with minimal latency and high accuracy. The research~\cite{lanskyDeepLearningBasedIntrusion2021} offers a comprehensive review and taxonomy of deep learning-based IDS techniques, including autoencoders, deep belief networks, restricted Boltzmann machines, and recurrent neural networks, emphasizing their role in detecting sophisticated and evolving threats. In the context of 5G and virtualized infrastructures, the study~\cite{abdulqadderMultilayeredIntrusionDetection2020} presents a multi-layered intrusion detection and prevention system that combines SDN/NFV technologies with AI-based mechanisms such as entropy-based classification, deep reinforcement learning, and game-theoretic models to effectively mitigate attacks like DDoS and flow table overloading. Focusing on adaptability within cloud environments, the work~\cite{sethiRobustAdaptiveCloud2020} develops an intrusion detection system based on Double Deep Q-Networks (DDQN) and prioritized experience replay, which can detect novel and adversarial attacks while maintaining computational efficiency. Complementing these approaches, the study~\cite{aldribiHypervisorbasedCloudIntrusion2020} introduces a hypervisor-based IDS that utilizes online multivariate statistical change tracking and an instance-oriented feature model to detect anomalies at the virtualization layer.
+
+A recent contribution in the domain of 5G security datasets is 5G-NIDD~\cite{samarakoon5GNIDDComprehensiveNetwork2022}, which introduces a fully labeled dataset collected from a functional 5G testbed. It captures a range of application-layer traffic such as HTTP, HTTPS, SSH, and SFTP, providing a valuable resource for developing and benchmarking AI/ML-based intrusion detection systems. The dataset has been used to evaluate classical machine learning models, offering insights into their performance in realistic 5G environments. However, its focus remains on general network activity rather than signaling-specific threats. As such, while 5G-NIDD is useful for broad IDS evaluation, it does not include inter-PLMN signaling anomalies over the SEPP interface.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methodology}
+
+In this research, we present our cloud-based testbed setup for the global roaming environment, as well as our methods in generating the normal and attacked datasets. The overall methodology is illustrated in Figure~\ref{fig:methodology}.
+
+\begin{figure*}[h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{./images/conceptual-framework.png}
+  \caption{AI-Driven Intrusion Detection Framework for Cloud-Native 5G Networks Using SEPP Interface Analysis}
+  \label{fig:methodology}
+\end{figure*}
+
+\subsection{The Cloud-Native 5G Core Network}
+
+% Explain 
+% 1. The Cloud-Native 5G Core Network
+% 2. Dataset 
+
+\begin{figure*}[h]
+  \centering
+  \includegraphics[width=\textwidth]{./images/testbed.png}
+  \caption{5G Testbed Architecture with Inter-PLMN SEPP Communication and Attack Vector Simulation Environment}
+  \label{fig:fiveg_cloud_native_testbed}
+\end{figure*}
+
+The experimental environment employs a cloud-native 5G core network architecture implemented using Open5GS~\cite{Open5GS} deployed on a Kubernetes cluster~\cite{kubernetes} to simulate realistic global roaming scenarios as shown in Figure~\ref{fig:fiveg_cloud_native_testbed}. Open5GS provides a complete implementation of 3GPP Release-17 specifications, including all necessary Network Functions (NFs) for 5G Service-Based Architecture (SBA) operations. The containerized deployment ensures scalability and isolation while maintaining the flexibility required for comprehensive security testing across geographically distributed network components.
+
+The Kubernetes deployment is organized into two distinct namespaces representing geographically separated Public Land Mobile Networks (PLMNs). The HPLMN namespace hosts the home network infrastructure, containing core network functions including Authentication Server Function (AUSF), Unified Data Management (UDM), Access and Mobility Management Function (AMF), and Session Management Function (SMF). The VPLMN namespace mirrors this architecture to represent the visited network, enabling complete inter-PLMN roaming scenarios with realistic network function interactions. Security Edge Protection Proxy (SEPP) instances are deployed in both namespaces to handle inter-PLMN communications through standardized N32 interfaces, with N32-c managing control plane operations including TLS 1.3 handshake procedures and N32-f handling forwarding plane operations, both implementing TLS 1.3 encryption for secure inter-PLMN communications.
+
+The subscriber database consists of 100,000 entries stored in MongoDB collections, with International Mobile Subscriber Identities (IMSIs) ranging from 0000000001 to 0000100000, each containing complete authentication credentials including permanent keys (K), operator variant algorithm configuration (OPc), and Authentication Management Field (AMF) values. PacketRusher~\cite{demmanuelePacketRusherHighPerformance2023} is employed to simulate both User Equipment (UE) and gNodeB functionalities, generating realistic 5G registration procedures and mobility management scenarios. The PacketRusher implementation follows 3GPP procedures for initial registration, authentication, and session establishment, providing a comprehensive simulation environment for both normal roaming operations and attack scenario evaluation.
+
+\subsection{Dataset Acquisition and Attack Simulation}
+The dataset generation process represents the first comprehensive approach to simulating roaming-specific threats targeting SEPP network functions within a cloud-native 5G environment. Unlike existing datasets that focus on traditional network attacks or general 5G core network threats, our approach specifically targets the unique vulnerabilities and attack vectors present in inter-PLMN roaming scenarios through SEPP interfaces. The attack simulation incorporates proven attack methodologies from established research \cite{vashishthaStrengtheningCybersecurityTestCloudIDS2025} while adapting them to the unique characteristics of cloud-native 5G roaming environments. Tables~\ref{tab:attacker_setup} and~\ref{tab:kubernetes_config} summarize the general setup within the controlled environment.
+
+\begin{table}[H]
+\tablesize{\footnotesize}
+\caption{Attacker Simulator Setup Configuration.}
+\label{tab:attacker_setup}
+\begin{tabularx}{\textwidth}{CC}
+\toprule
+\textbf{Component}	&\textbf{Specification}	\\
+\midrule
+Operating System & Kali Linux 2025.2 \\
+Virtualization & Oracle VirtualBox \\
+Allocated RAM & 16384 MB (16 GB) \\
+Processors & 4 vCPUs \\
+Storage & 50 GB \\
+Video Memory & 17 MB VMSVGA \\
+Network Interface & Intel PRO/1000 MT Desktop  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\tablesize{\footnotesize}
+\caption{Kubernetes Cluster Configuration.}
+\label{tab:kubernetes_config}
+\begin{tabularx}{\textwidth}{CC}
+\toprule
+\textbf{Component}	&\textbf{Specification}	\\
+\midrule
+Operating System & Ubuntu 22.04 LTS \\
+Virtualization & Oracle VirtualBox \\
+Allocated RAM & 16384 MB (16 GB) \\
+Processors & 4 vCPUs \\
+Storage & 50 GB \\
+Video Memory & 17 MB VMSVGA \\
+Network Interface & Intel PRO/1000 MT Desktop \\
+Kubernetes Cluster & MicroK8s v1.28 \\
+Namespaces & hplmn, vplmn \\
+Container Runtime & containerd \\
+Network Plugin & Calico CNI \\
+DNS Service & CoreDNS with 3GPP FQDN rewrite \\
+Persistent Storage & hostPath volumes \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\tablesize{\footnotesize}
+\caption{PacketRusher Simulator Setup Configuration.}
+\label{tab:packetrusher_setup}
+\begin{tabularx}{\textwidth}{CC}
+\toprule
+\textbf{Component}	&\textbf{Specification}	\\
+\midrule
+Operating System & Ubuntu 22.04 LTS \\
+Virtualization & Oracle VirtualBox \\
+Allocated RAM & 8192 MB (8 GB) \\
+Processors & 2 vCPUs \\
+Storage & 25 GB \\
+Video Memory & 12 MB VMSVGA \\
+Network Interface & Intel PRO/1000 MT Desktop  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+ \tablesize{\footnotesize}
+\caption{Attack Tools and Dataset Information.}
+\label{table:ddos_tools}
+\begin{tabularx}{\textwidth}{CCCC}
+\toprule
+\textbf{Name}	&\textbf{Tools Used}	&\textbf{Type}	&\textbf{PCAP Size}\\
+\midrule
+GoldenEye & Goldeneye v2.1~\cite{GoldeneyeKaliLinux}& DoS & 400 MB \\
+Slowris & Slowloris~\cite{andreYoloFTWPyLoris2022} & DoS & 355.7 KB \\
+SYN Flood & aSynCrone~\cite{ovuncEmreOvuncPythonSYNFloodAttackTool2025} & DoS & 363.8 MB \\
+Tors Hammer & Tors~\cite{karlKarlheinzniebuhrTorshammer2025} & DoS & 540 MB \\
+Hulk & Hulk-master~\cite{i.grafovGrafovHulk2025} & DoS & 1.1 GB \\
+TCP Flood & hping3~\cite{Hping3KaliLinux} & DoS & 255 MB \\
+RST Flood & hping3~\cite{Hping3KaliLinux} & DoS & 175.7 KB \\
+UDP Flood & hping3~\cite{Hping3KaliLinux} & DoS & 200 KB \\
+LOIC-HTTP & LOIC v1.0.8~\cite{oliveiraNewEraCrackerLOIC2025} & DoS & 2.4 GB \\
+Heartbleed & TLS Attacker~\cite{somorovskySystematicFuzzingTesting2016} & Heartbleed & 100 KB \\
+0rtt Replay & TLS Attacker~\cite{somorovskySystematicFuzzingTesting2016} & MiTM & 700 KB \\
+CVE Probe & openssl~\cite{OpensslOpenssl2025}, python, curl & Probing & 23.8 MB \\
+Crypto Probe & openssl~\cite{OpensslOpenssl2025} & Probing & 6.2 MB \\
+Cert Probe & openssl~\cite{OpensslOpenssl2025}, date & Probing & 7.4 MB \\
+Protocol Probe & openssl~\cite{OpensslOpenssl2025} & Probing & 9.9 MB \\
+Benign & PacketRusher~\cite{demmanuelePacketRusherHighPerformance2023} & Normal & 9.41 GB \\
+\bottomrule
+\end{tabularx}
+\label{tab:attacks}
+\end{table}
+
+\subsubsection{Normal Traffic Dataset Generation}
+
+Normal network behavior data is generated using PacketRusher, an open-source gNB and UE simulator that interfaces directly with the deployed 5G core network. The PacketRusher simulator configuration is detailed in Table~\ref{tab:packetrusher_setup}. The simulator orchestrates realistic roaming scenarios where UEs execute periodic registrations every 1 second, generating 100,000 registration procedures, resulting in a dataset totaling 9.41 GB. Each registration follows the complete 5G Authentication and Key Agreement (5G-AKA) protocol flow, including SEPP establishment for secure inter-operator communication.
+
+The key novelty lies in capturing authentic SEPP-mediated inter-PLMN signaling patterns. PacketRusher's configuration enables authentic roaming signaling patterns where simulated UEs register to the VPLMN infrastructure while authentication credentials are validated against the HPLMN subscriber database through N32-c and N32-f interfaces. The simulator captures comprehensive protocol message exchanges that include:
+
+
+\begin{itemize}
+\item \textbf{N32-c Control Signaling}: TLS 1.3 handshake procedures, certificate exchanges, and control plane message routing between SEPP instances
+\item \textbf{N32-f Forwarding Operations}: Service discovery messages and forwarding plane communications
+\item \textbf{Inter-PLMN Authentication Flows}: Complete 5G-AKA procedures spanning multiple administrative domains
+\item \textbf{Service-Based Architecture Communications}: HTTP/2 REST API interactions between distributed network functions
+\end{itemize}
+
+\subsubsection{Attack Framework and Taxonomy}
+
+Our attack simulation employs a hybrid taxonomy combining MITRE ATT\&CK techniques with 3GPP TS 33.501 security threat specifications to comprehensively categorize 5G network attacks, building upon established methodologies from existing research \cite{hussainDeepLearningBasedDDoSAttack2021} \cite{parkMachineLearningBased2022}. The framework maps network reconnaissance activities to technique MITRE-T1595 (Active Scanning), encompassing port scanning, service enumeration, and 5G network function discovery. Availability attacks leverage MITRE-T1498 (Network Denial of Service) and MITRE-T1499 (Endpoint Denial of Service) taxonomies, covering protocol-specific resource exhaustion targeting 5G core network functions like the SEPP.
+
+TLS vulnerability exploitation maps to MITRE-T1040 (Network Sniffing) and MITRE-T1557.002, encompassing downgrade attacks, certificate validation bypass, and cipher suite manipulation targeting the 5G SBA interfaces. This hybrid approach ensures comprehensive coverage of both traditional network attacks and 5G-specific threat vectors, enabling systematic attack scenario development and accurate ground truth labeling for deep learning model training.
+
+\subsubsection{Attack Dataset Generation}
+
+Attack traffic datasets were systematically generated using established methodologies adapted from recent cloud-based intrusion detection research~\cite{vashishthaStrengtheningCybersecurityTestCloudIDS2025}. The simulations were conducted on a Kali Linux virtual machine (VM) configured within the same local area network, simulating an adversary targeting the SEPP communication channel. This setup mimics realistic attack scenarios in the context of inter-PLMN 5G roaming traffic, as described in Table~\ref{tab:attacker_setup}.
+
+Each attack category was executed using specialized tools designed to exploit specific vulnerabilities in cloud-native 5G infrastructure. These include a range of DoS techniques, probing activities, and TLS exploitation (such as Heartbleed and 0-RTT replay). A detailed list of the attack types, tools used, and corresponding PCAP sizes is provided in Table~\ref{tab:attacks}, which serves as the basis for the construction of the labeled attack dataset.
+
+\paragraph{Denial of Service Attacks}
+The Denial of Service (DoS) dataset encompasses multiple attack variants targeting different layers of the SEPP infrastructure. Following methodologies established in \cite{vashishthaStrengtheningCybersecurityTestCloudIDS2025} for network attacks, we implement diverse DoS techniques: high-intensity application-layer attacks using GoldenEye and Slowloris with controlled load testing and gradual ramp-up patterns to evade detection mechanisms. Transport-layer attacks include SYN flooding using aSynCrone, TCP flooding via hping3, and RST flooding. Distributed attack scenarios leverage Hulk-master and LOIC HTTP to simulate coordinated multi-source attacks, while Tors Hammer represents anonymized attack vectors through Tor networks.
+
+\paragraph{TLS Exploitation and Probing Attacks}
+Comprehensive probing and Transport Layer Security (TLS) exploitation campaigns target the N32 interface between SEPP nodes, adapting techniques from established TLS vulnerability research. These attacks systematically discover security properties of the inter-operator communication channel while attempting to exploit known Common Vulnerabilities and Exposures (CVEs) affecting TLS implementations. The Heartbleed and 0rtt Replay attacks employ TLS Attacker tools to exploit OpenSSL implementations. CVE reconnaissance utilizes a multi-tool approach with openssl, python, and curl for comprehensive vulnerability discovery. Cryptographic analysis leverages openssl for cipher suite enumeration and weakness identification, while certificate validation attacks employ openssl and date utilities for certificate chain manipulation and validation bypass attempts. Protocol-level attacks target TLS version negotiation vulnerabilities in SEPP N32 interfaces.
+
+\subsubsection{Attack Execution and Data Collection Methodology}
+
+Attack execution leverages a combination of specialized tools and custom scripts to simulate diverse threat scenarios against the 5G roaming infrastructure, following established penetration testing methodologies adapted for cloud-native environments. Network reconnaissance employs nmap with SSL-specific NSE scripts for service enumeration and TLS configuration analysis, while OpenSSL utilities (s\_client, x509, ciphers, version) conduct comprehensive cryptographic vulnerability assessments including cipher suite downgrade attacks and certificate validation bypasses. 
+
+Data collection employs tcpdump for comprehensive packet capture across multiple network interfaces, capturing both attack traffic and normal operational flows simultaneously. Each attack execution generates labeled datasets with precise temporal correlation between attack initiation timestamps and observed network behaviors. The collection framework preserves complete protocol stacks from physical layer radio frequency patterns to application layer HTTP/2 service communications, enabling multi-granular analysis of attack signatures and their propagation through the 5G network stack, ensuring the normal traffic dataset reflects genuine 5G roaming operational characteristics and timing patterns essential for establishing baseline network behavior.
+
+\subsection{Dataset Preprocessing}
+
+% Explain how dataset is process before going to ML model 
+
+The preprocessing of the dataset begins with the capture of raw network traffic using tcpdump, a tool that extracts flow-based features from packet-level traces. CICFlowMeter~\cite{HieulwCicflowmeterCICFlowmeter} generates bidirectional flow records and computes 82 statistical features per flow, including metrics such as flow duration, packet and byte counts, inter-arrival times, and throughput characteristics. The complete feature extraction is formalized in Algorithm~\ref{alg:pcap_feature_extraction}.
+
+\begin{algorithm}[H]
+\caption{PCAP Feature Extraction for 5G Roaming Traffic}
+\label{alg:pcap_feature_extraction}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Raw network traffic in PCAP format
+\State \textbf{Output:} Flow-based features dataset
+\State \textbf{Step 1.1: PCAP Data Capture}
+\State \quad Capture raw network traffic using tcpdump and store in PCAP format
+\State \textbf{Step 1.2: Flow Feature Extraction}
+\State \quad flow\_records $\gets$ CICFlowMeter.process(PCAP\_files)
+\State \quad Generate bidirectional flow records from packet-level traces
+\State \quad Compute 82 statistical features per flow including:
+\State \quad \quad - Flow duration
+\State \quad \quad - Packet and byte counts  
+\State \quad \quad - Inter-arrival times
+\State \quad \quad - Throughput characteristics
+\State \Return Flow dataset with 82 features per record
+\end{algorithmic}
+\end{algorithm}
+
+After the flow features are extracted, the data is labeled for multiclass classification, assigning each flow to its respective category for supervised learning tasks. Following labeling, a feature selection process is applied to reduce redundancy and enhance model performance. The Time column is removed first, as it provides little value for behavioral analysis. Features exhibiting no variance across all records are discarded since they do not contribute useful information for classification. In addition, identifier-related fields such as source and destination IP addresses, source and destination ports, and the protocol field are excluded to prevent data leakage and ensure the model focuses on behavioral aspects rather than static network identifiers. These steps reduce the original 82 features down to a more focused set of 76.
+
+To improve the dataset’s quality and robustness, further data cleansing is performed. Records containing infinite values, which can result from measurement anomalies or division-by-zero errors, are removed. Rows with negative values are also excluded, as network flow features like durations and byte counts are expected to be non-negative. Once cleansing is complete, the dataset undergoes normalization. All numerical features are standardized using z-score normalization via StandardScaler, transforming them to have a mean of zero and a standard deviation of one. This normalization step ensures consistent feature scaling and contributes to more stable and accurate model training during classification. An overview of this end-to-end dataset generation and preprocessing workflow is illustrated in Figure~\ref{fig:dataset_generation_and_preprocessing}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{images/dataset-preprocessing.png}
+    \caption{Dataset Generation and Preprocessing Diagram}
+    \label{fig:dataset_generation_and_preprocessing}
+\end{figure}
+
+\subsection{Proposed intrusion detection framework}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\columnwidth]{images/ai-framework-v4.png}
+    \caption{AI Framework and Process Flow on Cloud-native Environment}
+    \label{fig:ai_ids_framework}
+\end{figure}
+
+This section presents a cloud-native intrusion detection framework specifically designed to detect roaming-related threats within 5G SBA environments. Traditional rule-based security tools are insufficient to address the complexity, scalability, and dynamic nature of modern 5G roaming systems, particularly in inter-PLMN communications. To overcome these limitations, the proposed AI-driven framework leverages Kubernetes-native deployment and operates through containerized microservices, enabling real-time threat detection within SEPP-mediated roaming traffic. The framework includes dedicated components for data capture, preprocessing, and AI-based classification, ensuring efficient and scalable operation in distributed environments. The overall architecture and process flow of the system are illustrated in Figure~\ref{fig:ai_ids_framework}.
+
+The proposed framework adopts a distributed microservices architecture deployed on Kubernetes for scalable and efficient operation. The system comprises three primary components: SEPP Data Capture, Preprocessing Pipeline, and AI Detection System. Each component operates as an independent containerized service within the Kubernetes cluster, ensuring scalability and seamless integration with existing 5G core network functions. The complete algorithmic implementation of this cloud-native intrusion detection framework is detailed in Algorithm~\ref{alg:ai_ids_framework}, which demonstrates the systematic data flow from SEPP network function packet capture through comprehensive preprocessing stages to AI-based analysis utilizing the deep learning algorithms evaluated in Section V. The design ensures minimal latency between threat detection and response while maintaining the performance characteristics required for production 5G roaming operations.
+
+\begin{algorithm}[H]
+\caption{AI-Driven Intrusion Detection Framework for Cloud-Native 5G Networks}
+\label{alg:ai_ids_framework}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Preprocessed flow dataset, cloud-native 5G infrastructure, trained AI model
+\State \textbf{Output:} Real-time threat detection and classification
+
+\State \textbf{Step 2.1: SEPP Data Capture Component}
+\State \quad Deploy sidecar container alongside each SEPP network function pod
+\State \quad Monitor N32-c and N32-f interface traffic using \texttt{tcpdump} and eBPF
+\State \quad Generate timestamped PCAP files with roaming-relevant traffic
+\State \quad Transfer PCAP files to Preprocessing Pipeline via shared persistent volumes
+
+\State \textbf{Step 2.2: Preprocessing Pipeline Component}
+\State \quad Convert raw PCAP files into structured datasets using Algorithm 1
+\State \quad Reduce features from 82 to 76 optimized features
+\State \quad Clean and normalize data using \texttt{StandardScaler}
+
+\State \textbf{Step 2.3: AI Detection System Component}
+\State \quad Deploy as dedicated pod within the same Kubernetes namespace as SEPP instances
+\State \quad Load pre-trained AI model (e.g., MLP, 1D CNN, Autoencoder, RNN, GRU, or LSTM)
+\State \quad Receive structured datasets from the Preprocessing Pipeline
+
+\State \textbf{Step 2.4: Threat Classification}
+\State \quad predictions $\gets$ model.classify(structured\_dataset)
+\State \quad Classify each instance as:
+\State \quad \quad - Normal roaming operation
+\State \quad \quad - DoS attack
+\State \quad \quad - TLS exploitation
+\State \quad \quad - Probing activity
+
+\State \textbf{Step 2.5: Real-Time Detection}
+\State \quad Provide detection results in real-time
+\State \quad Generate detailed threat reports for operational teams
+\State \quad Enable dynamic scaling using Kubernetes Horizontal Pod Autoscaler (HPA)
+
+\State \textbf{Step 2.6: Framework Integration}
+\State \quad Deploy using Kubernetes for container orchestration
+\State \quad Support geographically distributed 5G environments
+\State \quad Integrate with 5G core network via standardized APIs
+
+\State \Return Threat detection results and security alerts
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{SEPP Data Capture Component}
+
+The SEPP Data Capture component operates as a sidecar container alongside each SEPP network function pod within the Kubernetes cluster, monitoring N32-c and N32-f interface traffic through tcpdump and eBPF-based mechanisms. The component generates timestamped PCAP files with intelligent filtering for roaming-relevant traffic patterns and transfers them to the Preprocessing Pipeline through shared persistent volumes within the Kubernetes environment.
+
+\subsubsection{Preprocessing Pipeline Component}
+
+The Preprocessing Pipeline transforms raw PCAP files into structured datasets suitable for deep learning analysis. The pipeline implements the comprehensive methodology detailed in Section III-C, including CICFlowMeter feature extraction reducing the original 82 features to 76 optimized features, data labeling for multiclass classification, cleansing procedures to eliminate infinite values and negative measurements, normalization using StandardScaler, and dataset generation optimized for the deep learning architectures evaluated in this work.
+
+\subsubsection{AI Detection System Component}
+
+The AI Detection System is deployed as a dedicated pod within the same Kubernetes namespace as the monitored SEPP instances, ensuring low-latency data access and efficient resource utilization. It receives structured datasets from the Preprocessing Pipeline and utilizes a selected pre-trained deep learning model for intrusion detection. The supported models include MLP, 1D-CNN, Autoencoder, RNN, GRU, and LSTM.
+
+The system does not rely on a multi-model ensemble; instead, it utilizes a single pre-trained model selected based on deployment needs or prior evaluation results to perform multi-class classification. This model is responsible for distinguishing between normal roaming operations and various attack categories, including DoS attacks, TLS exploitation, and probing activities. The system supports real-time detection by generating predictions with associated confidence scores and provides detailed threat analysis to assist operational security teams. Its containerized design enables dynamic resource scaling through Kubernetes, ensuring consistent detection performance under varying network traffic conditions.
+
+\subsubsection{Framework Deployment and Integration}
+
+The framework is deployed using Kubernetes for enterprise-grade container orchestration, providing fault tolerance, high availability, and scalability. Horizontal scaling is achieved through integration with the Kubernetes Horizontal Pod Autoscaler (HPA), allowing automatic adjustment of detection system replicas based on CPU utilization or traffic volume.
+
+This architecture supports deployment across geographically distributed 5G environments, enabling localized threat detection with centralized oversight. Integration with the existing 5G core network infrastructure is facilitated through standardized APIs, ensuring seamless compatibility with operational workflows, network management systems, and security platforms.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Experiments}
+
+\subsection{Dataset}
+The dataset used in this study was specifically constructed to evaluate deep learning models for intrusion detection in a roaming network scenario. The traffic samples were derived from a collection of pre-processed CSV files, each representing either benign traffic or a specific network attack type. The benign category, labeled normal, was sourced from normal scenario, while malicious traffic was organized into three major categories: TLS-based attacks, Probe attacks, and DoS attacks.
+
+The TLS attack category included the 0-RTT and Heartbleed attack datasets in their entirety. The Probe category comprised four subtypes: certificate probe, cryptographic probe, CVE-based probe, and protocol probe. For this category, stratified sampling was applied to ensure balanced representation across subtypes, with 1,000 samples each from certificate, cryptographic, and protocol probes, and 2,000 samples from CVE-based probes. The DoS category was formed by combining eight attack subtypes: GoldenEye, HULK, RST flood, Slowloris, SYN flood, TCP ACK flood, Tors, and UDP flood. Each subtype was randomly sampled with a fixed number of instances where applicable, while others were included in full to preserve variability.
+
+To prevent class imbalance from skewing model performance, the benign traffic class was randomly downsampled to 49,000 records while preserving statistical representativeness. The final dataset also included 5,264 samples labeled as DoS, 5,000 as Probe, and 116 as TLS attack. This resulted in a balanced and manageable dataset comprising 59,380 flow records, each containing 76 behavioral features. The dataset was subsequently divided into training, validation, and testing subsets using a 70:10:20 split, ensuring that the class distribution remained consistent across all subsets. A detailed breakdown of class-wise sample allocation is presented in Table~\ref{tab:dataset_distribution}.
+
+
+
+\begin{table}[H] 
+\caption{Class-wise Distribution of Flow Records Across Training, Validation, and Testing Sets.\label{tab:dataset_distribution}}
+\begin{tabularx}{\textwidth}{CCCCC}
+\toprule
+\textbf{Label}	& \textbf{Train}	& \textbf{Validation} & \textbf{Testing} & \textbf{Total}\\
+\midrule
+Benign		& 34300			& 4900 & 9800 & 49000\\
+DoS		&  	3685		&  526 &  1053 & 5264 \\
+Probe		&  	3500		&  500 &  1000 & 5000 \\
+TLS		&  	81		&  12 &  23 & 116 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+
+\subsection{Implementation Details}
+The experiments were conducted out on a computer with an Intel Core i7-13700K CPU (3.40 GHz), 64 GB of RAM, and an NVIDIA GeForce RTX 4080 GPU (16 GB), running on a 64-bit Ubuntu 24.01.1 LTS operating system. The experiment was implemented using PyTorch version 2.4.1 as the deep learning framework.
+
+\subsection{Deep Learning Model }
+
+To evaluate the effectiveness of deep learning in intrusion detection for roaming network environments, we trained and compared multiple architectures, including a MLP, 1D-CNN, Autoencoder, RNN, GRU, and LSTM. These models were selected to capture different representational capabilities.
+
+Each model was trained using the same intrusion detection dataset, which is characterized by a highly imbalanced distribution of classes. To ensure fair comparison, consistent preprocessing steps and training protocols were applied across all models. Hyperparameters such as learning rate, number of hidden layers, activation functions, and optimization strategies were carefully tuned for each architecture are describe in table~\ref{dl-model-hyperparameters}.
+
+By evaluating models with both accuracy-based and imbalance-aware metrics, we aim to capture not only their overall classification ability but also their effectiveness in detecting rare and transient attack types that are particularly critical in roaming environments.
+
+\begin{table}[!h]
+\caption{Deep Learning Model Hyperparameters \label{dl-model-hyperparameters}}
+\newcolumntype{Y}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{Y{0.2} Y{0.8}}
+\toprule
+\textbf{Model }	& \textbf{Hyperparameter}	\\
+\midrule
+MLP   & Input: 76 features; Hidden (3): [L1: Dense(128), ReLU, Dropout=0.3], [L2: Dense(64), ReLU, Dropout=0.3], [L3: Dense(32), ReLU, Dropout=0.3]; Output: Dense(4) (logits; Softmax); Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Loss: CrossEntropy; Epochs = 50; Batch size = 64.  \\
+\hline
+1D-CNN   & Input: (1, 76) feature sequence; Blocks: [B1: Conv1d(1→64, k=5, s=1, p=2), BatchNorm1d, ReLU, Dropout(0.3)], [B2: Conv1d(64→128, k=3, s=1, p=1), BatchNorm1d, ReLU, Dropout(0.3)], [B3: Conv1d(128→128, k=3, s=1, p=1), BatchNorm1d, ReLU]; Pooling: AdaptiveAvgPool1d(1); Head: Linear(128→4) (logits; Softmax); Loss: Class‑weighted CrossEntropy; Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Epochs = 50; Batch size = 64.\\
+\hline
+Autoencoder & Input: 76 features; Encoder: [L1: Dense(128), ReLU, Dropout(0.2)], [L2: Dense(64), ReLU, Dropout(0.2)], Latent: Dense(16); Classifier head on latent: ReLU → Dropout(0.2) → Dense(4) (logits; Softmax); Decoder: [D1: Dense(64), ReLU, Dropout(0.2)], [D2: Dense(128), ReLU, Dropout(0.2)], Output: Dense(76); Loss: Class‑weighted CrossEntropy + \(\lambda_{\text{recon}}=0.2\)\(\times\)MSE (reconstruction); Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Epochs = 80; Batch size = 128. \\
+\hline
+RNN & Input: (76, 1) sequence; Core: Vanilla RNN(num\_layers=2, hidden\_size=128, nonlinearity=tanh, batch\_first=True, dropout=0.3, bidirectional=False); Readout: last hidden → Dropout(0.3) → Linear(128→4) (logits; Softmax); Loss: Class‑weighted CrossEntropy; Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Regularization: gradient clipping (max\_norm = 2.0); Epochs = 60; Batch size = 64.\\
+\hline
+GRU & Input: (76, 1) sequence; Core: GRU(num\_layers=2, hidden\_size=128, batch\_first=True, dropout=0.3, bidirectional=False); Readout: last hidden → Dropout(0.3) → Linear(128→4) (logits; Softmax); Loss: Class‑weighted CrossEntropy; Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Regularization: gradient clipping (max\_norm = 2.0); Epochs = 50; Batch size = 64.\\
+\hline
+LSTM & Input: (76, 1) sequence; Core: LSTM(num\_layers=2, hidden\_size=128, batch\_first=True, dropout=0.3, bidirectional=False); Readout: last hidden → Dropout(0.3) → Linear(128→4) (logits; Softmax); Loss: Class‑weighted CrossEntropy; Optimizer: Adam (learning\_rate = 0.001, weight\_decay = 1e{-}4); Regularization: gradient clipping (max\_norm = 2.0); Epochs = 60; Batch size = 64.\\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Evaluation Metrics}
+
+To evaluate the performance of classification models, we adopt a range of metrics derived from the confusion matrix. This matrix provides a summary of prediction outcomes by comparing actual class labels with those predicted by the model, as illustrated in Table~\ref{table:confusion_matrix}. In the context of binary classification, the four primary outcomes are: True Positives (TP), where positive instances are correctly classified; False Positives (FP), where negative instances are incorrectly predicted as positive (Type I error); True Negatives (TN), where negative instances are correctly identified; and False Negatives (FN), where positive instances are mistakenly classified as negative (Type II error).
+
+
+\begin{table}[H] 
+ \tablesize{\footnotesize}
+\caption{Confusion Matrix.}
+\label{table:confusion_matrix}
+\begin{tabularx}{\textwidth}{CCC}
+\toprule
+	&\textbf{Predicted Positive}	&\textbf{Predicted Negative}\\
+\midrule
+Actual Positive & True Positive (TP) & False Negative (FN) \\
+Actual Negative & False Positive (FP) & True Negative (TN) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H] 
+ \tablesize{\footnotesize}
+\caption{Notation Used in Multiclass Classification Evaluation Metrics.}
+\label{table:confusion_matrix_notation}
+\begin{tabularx}{\textwidth}{CC}
+\toprule
+\textbf{Symbol} & \textbf{Definition} \\
+\midrule
+$TP_i$ & True Positives for class $i$ \\
+$FP_i$ & False Positives for class $i$ \\
+$FN_i$ & False Negatives for class $i$ \\
+$TN_i$ & True Negatives for class $i$ \\
+$N$ & Total number of samples across all classes \\
+$S_i$ & Number of true samples (support) of class $i$ \\
+$C$ & Number of classes \\
+\bottomrule
+\end{tabularx}
+\end{table}
+From the confusion matrix, various evaluation metrics can be derived to assess classification performance. In multiclass settings, these metrics are extended using macro-averaging, which treats each class equally, and weighted-averaging, which accounts for class imbalance by assigning weights based on class frequency. The notations used in the following definitions are summarized in Table~\ref{table:confusion_matrix_notation}.
+
+\begin{itemize}
+    \item \textbf{Accuracy (ACC)} is the ratio of correctly predicted instances to the total number of predictions
+    \begin{equation}
+    \textit{ACC} = \frac{\sum_{i=1}^{C} TP_i}{N}
+    \end{equation}
+    \item \textbf{Balanced Accuracy (BACC)} is the average of recall scores across all classes, offering a more robust evaluation under class imbalance
+    \begin{equation}
+    \textit{BACC} = \frac{1}{C} \sum_{i=1}^{C} \frac{TP_i}{TP_i + FN_i}
+    \end{equation}
+    \item \textbf{Macro Precision (MP)}: Arithmetic mean of per-class precision:
+    \begin{equation}
+    \textit{MP} = \frac{1}{C} \sum_{i=1}^{C} \frac{TP_i}{TP_i + FP_i}
+    \end{equation}
+    \item \textbf{Macro Recall (MR)}: Arithmetic mean of per-class recall:
+    \begin{equation}
+    \textit{MR} = \frac{1}{C} \sum_{i=1}^{C} \frac{TP_i}{TP_i + FN_i}
+    \end{equation}
+    \item \textbf{Macro F1-score (MF1)}: Arithmetic mean of per-class F1-scores, where
+    \begin{equation}
+    \textit{F1}_i = \frac{2 \cdot \text{Precision}_i \cdot \text{Recall}_i}{\text{Precision}_i + \text{Recall}_i}, \quad
+    \textit{MF1} = \frac{1}{C} \sum_{i=1}^{C} \textit{F1}_i
+    \end{equation}
+    
+    \item \textbf{Weighted Precision (wP)}: The weighted average of per-class precision, weighted by the number of true instances in each class.
+    \begin{equation}
+    \textit{wP} = \sum_{i=1}^{C} \frac{S_i}{N} \cdot \frac{TP_i}{TP_i + FP_i}
+    \end{equation}
+    \item \textbf{Weighted Recall (wR)}: The weighted average of per-class recall.
+    \begin{equation}
+    \textit{wR} = \sum_{i=1}^{C} \frac{S_i}{N} \cdot \frac{TP_i}{TP_i + FN_i}
+    \end{equation}
+    \item \textbf{Weighted F1-score (wF1)}:  The weighted average of per-class F1 scores.
+    \begin{equation}
+    \textit{wF1} = \sum_{i=1}^{C} \frac{S_i}{N} \cdot \textit{F1}_i
+    \end{equation}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Result and Discussion}
+
+\subsection{Experimental results}
+
+\begin{table}[H]
+\caption{Multiclass metric for various deep learning method \label{dl-model-results}}
+\newcolumntype{Y}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{Y{0.12} Y{0.10} Y{0.10} Y{0.09} Y{0.09} Y{0.09} Y{0.09} Y{0.09} Y{0.09}}
+\toprule
+\textbf{Model} &  \textbf{ACC(\%)}  & \textbf{BACC(\%)}  & \textbf{MP(\%)} & \textbf{MR(\%)} & \textbf{MF1(\%)} & \textbf{wP(\%)} & \textbf{wR(\%)} & \textbf{wF1(\%)}\\
+\midrule
+MLP & 99.6548 & 84.2175  & 97.2672 & 84.2175 & 88.2364 & 99.6442 & 99.6548 & 99.6296\\
+1D-CNN & 99.0317 & 96.8908 & 80.8543 & 96.8908 & 84.9240 & 99.3296 & 99.0317 & 99.1459\\
+Autoencoder & 99.2422 & 97.1266 & 79.9733 & 97.1266 & 83.0045 & 99.7620 & 99.2422 & 99.4579\\
+RNN & 99.6042 & 85.2430  & 90.3468 & 85.2430 & 87.3672 & 99.5822 & 99.6042 & 99.5895\\
+GRU & 99.4443 & 97.1679  & 81.8194 & 97.1679 & 85.3571 & 99.7513 & 99.4443 & 99.5651\\
+LSTM & 99.5453 & 98.2605 & 83.1094 & 98.2605 & 86.9202 & 99.7862 & 99.5453 & 99.6361 \\
+
+\bottomrule
+\end{tabularx}
+%\noindent{\footnotesize{* ACC = Accuracy, BACC = Balanced Accuracy, M P = Macro Precision, M R = Macro Recall, M F1 = Macro F1, wP = Weighted Precision, wR = Weighted Recall, sF1 = Weighted F1.}}
+\end{table}
+
+
+
+\begin{figure}[H]
+\centering
+ \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/6. mlp_counts.png} \\
+        (\textbf{a})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/7. 1d-cnn_counts.png} \\
+        (\textbf{b})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/12. autoencoder_counts.png} \\
+        (\textbf{c})
+    \end{minipage} \\ 
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/8. rnn_counts.png} \\
+        (\textbf{d})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/10. gru_counts.png} \\
+        (\textbf{e})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[scale=0.33]{images/11. lstm_counts.png} \\
+        (\textbf{f})
+    \end{minipage}
+\caption{Confusion matrices of deep learning models for multi-class classification. (\textbf{a}) MLP (\textbf{b}) 1D-CNN (\textbf{c}) Autoencoder (\textbf{d}) RNN (\textbf{e}) GRU (\textbf{f}) LSTM}
+\label{fig:confusion_matrices}
+\end{figure}   
+
+Table~\ref{dl-model-results} presents the comparative performance of six deep learning models, namely MLP, 1D-CNN, Autoencoder, RNN, GRU, and LSTM, across multiple evaluation metrics on the proposed multiclass intrusion detection dataset for roaming scenarios. All models achieved very high overall accuracy, exceeding 99\%, with MLP attaining the highest at 99.65\%. However, in the context of a highly imbalanced dataset dominated by normal traffic (82.5\% of samples), overall accuracy does not provide a reliable indication of intrusion detection performance. This limitation is evident in MLP’s case: despite achieving the highest accuracy, its BACC dropped to only 84.21\%, reflecting weak detection of minority attack classes such as TLS intrusions, which accounted for only 0.2\% of the dataset.
+
+
+
+\begin{figure}[H]
+\centering
+ \centering
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/acc_bar_chart.png} \\
+        (\textbf{a})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/bacc_bar_chart.png} \\
+        (\textbf{b})
+    \end{minipage}%
+\caption{Comparison of deep learning models in terms of classification performance. (\textbf{a}) Accuracy comparison. (\textbf{b}) Balanced Accuracy comparison.}
+\label{fig:acc_bacc_compare}
+\end{figure} 
+
+In contrast, models capable of learning temporal and sequential features exhibited stronger generalization across all classes. LSTM achieved the best BACC at 98.26\%, closely followed by GRU (97.17\%) and Autoencoder (97.13\%). These models also recorded superior macro-level performance, with LSTM obtaining the highest macro F1 score of 88.19\%, followed by MLP at 88.23\% and GRU at 85.36\%. The performance trade-offs between precision and recall are noteworthy: MLP achieved the highest macro precision at 97.27\%, but its macro recall was significantly lower at 84.21\%, indicating a tendency to minimize false positives at the expense of missing minority-class attacks. Conversely, GRU and LSTM demonstrated high macro recall (97.17\% and 97.19\%, respectively), making them more reliable in detecting rare and transient intrusions.
+
+
+\begin{figure}[H]
+\centering
+ \centering
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/gru_train_val.png} \\
+        (\textbf{a})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/lstm_train_val.png} \\
+        (\textbf{b})
+    \end{minipage}%
+\caption{Training and Validation Loss. (\textbf{a}) GRU. (\textbf{b}) LSTM.}
+\label{fig:train_val_compare}
+\end{figure}
+
+The Autoencoder exhibited an interesting performance profile. While its weighted F1 score reached 99.46\%, indicating excellent overall performance when majority-class dominance was considered, its macro F1 dropped to 83.00\%, revealing difficulties in handling underrepresented classes. The RNN provided intermediate results, with a BACC of 85.24\% and macro F1 of 87.37\%, outperforming MLP in recall but failing to match the advanced gated recurrent architectures. Collectively, these findings suggest that recurrent models such as GRU and LSTM are better suited to roaming intrusion detection, as their ability to capture sequential dependencies enables them to differentiate anomalous patterns from normal roaming fluctuations more effectively than feedforward or convolutional networks.
+
+Figure~\ref{fig:acc_bacc_compare} further illustrates these performance differences. As shown in Figure~\ref{fig:acc_bacc_compare}(a), overall accuracy remains high and comparable across all models. However, Figure~\ref{fig:acc_bacc_compare}(b) reveals substantial variation in balanced accuracy. LSTM and GRU clearly outperform MLP in this regard, emphasizing the importance of using evaluation metrics that reflect class imbalance.
+
+Training and validation behaviors of GRU and LSTM are depicted in Figure~\ref{fig:train_val_compare}. For GRU, both training and validation loss steadily decreased during the first 25 epochs. Balanced accuracy improved from 76.5\% in the first epoch to over 97\% by epoch 25, after which it remained consistently high. This trend indicates effective generalization to minority classes and stable performance throughout the remaining epochs, with validation accuracy maintained above 99.5\% and balanced accuracy ranging from 95 to 97\%.
+
+LSTM showed a similar pattern, with some variability early in training. Nevertheless, the model gradually converged. By epoch 30, validation accuracy consistently exceeded 99\%, and validation loss stabilized between 0.08 and 0.15. These trends are consistent with LSTM’s strong final performance metrics, particularly its BACC and macro F1 score. While LSTM took longer to converge compared to GRU, it ultimately demonstrated superior capability in learning sequential dependencies critical for detecting rare intrusions.
+
+
+\begin{table}[H]
+\caption{LSTM performance across various configurations of layers, hidden sizes, and dropout rates \label{lstm-model-results}}
+\newcolumntype{Y}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{Y{0.09} Y{0.08} Y{0.08} Y{0.09} Y{0.08} Y{0.08} Y{0.08} Y{0.08} Y{0.08} Y{0.08}}
+\toprule
+\textbf{Number of Layers} &  \textbf{Hidden Size} & \textbf{Dropout}  & \textbf{BACC}  & \textbf{MP} & \textbf{MR} & \textbf{MF1} & \textbf{wP} & \textbf{wR} & \textbf{wF1}\\
+\midrule
+\multirow{8}{=}{2}  &  \multirow{2}{=}{64}  & 0.2 & 96.0960  & 85.7803 & 96.096 & \textbf{89.2184} & 99.7401 & 99.6379 & 99.6755\\
+                                        &   & 0.3 & 96.0896 & 84.1619 & 96.0896 & 87.6965 & 99.7692 & 99.6127 & 99.6719\\
+\cline{2-10}
+                    & \multirow{2}{=}{128}  & 0.2 & 96.1077 & 83.0728 & 96.1077 & 86.6015 & 99.7355 & 99.5285 & 99.6085\\
+                                        &   & 0.3 & \textbf{98.2605} & 83.1094 & \textbf{98.2605} & 86.9202 & \textbf{99.7862} & 99.5453 & 99.6361\\
+\cline{2-10}
+                    & \multirow{2}{=}{192}  & 0.2 & 97.1671 & 82.6852 & 97.1671 & 86.3330 & 99.7662 & 99.5200 & 99.6149\\
+                                        &   & 0.3 & 97.1684 & 82.9235 & 97.1684 & 86.5991 & 99.7516 & 99.5200 & 99.6149\\
+\cline{2-10}
+                    & \multirow{2}{=}{256}  & 0.2 & 96.0626  & 85.6612 & 96.0626 & 89.0492 & 99.7804 & 99.6716 & 99.7116\\
+                                        &   & 0.3 & 96.1077  & 84.9508 & 96.1077 & 88.6248 & 99.6462 & 99.5285 & 99.5719\\
+\hline
+\multirow{8}{=}{3}  &  \multirow{2}{=}{64}  & 0.2 & 95.0282  & 86.1225 & 95.0282 & 89.2089 & 99.7755 & \textbf{99.6884} & \textbf{99.7210}\\
+                                        &   & 0.3 & 85.2328  & 86.0657 & 85.2328 & 85.6427 & 99.5659 & 99.5706 & 99.5677\\
+\cline{2-10}
+                    & \multirow{2}{=}{128}  & 0.2 & 96.0865 & 83.4387 & 96.0865 & 87.0065 & 99.7136 & 99.5285 & 99.5994\\
+                                        &   & 0.3 & 84.1509 & \textbf{87.9308} & 84.1509 & 85.7810 & 99.5552 & 99.5790 & 99.5647\\
+\cline{2-10}
+                    & \multirow{2}{=}{192}  & 0.2 & 97.1615 & 81.6768 & 97.1615 & 85.2195 & 99.7424 & 99.4274 & 99.5517\\
+                                         &  & 0.3 & 97.2248 & 83.3768 & 97.2248 & 87.0835 & 99.7716 & 99.5621 & 99.6415\\
+\cline{2-10}
+                    & \multirow{2}{=}{256}  & 0.2 & 94.9738  & 83.7289 & 94.9738 & 87.0433 & 99.7487 & 99.5874 & 99.6499\\
+                                        &   & 0.3 & 86.3430  & 83.8525 & 86.3430 & 84.9130 & 99.5485 & 99.5116 & 99.5285\\
+
+\bottomrule
+\end{tabularx}
+
+\end{table}
+
+\begin{figure}[H]
+\centering
+ \centering
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.43]{images/heatmap_layer2_bacc.png} \\
+        (\textbf{a})
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[scale=0.43]{images/heatmap_layer3_bacc.png} \\
+        (\textbf{b})
+    \end{minipage}%
+\caption{Heatmaps of BACC across different LSTM configurations. (\textbf{a}) 2 Layers. (\textbf{b}) 3 Layers.}
+\label{fig:heatmap_bacc_lstm}
+\end{figure}
+
+To further optimize the performance of the LSTM model, an extensive hyperparameter tuning experiment was conducted by varying the number of layers (2 or 3), hidden sizes (64, 128, 192, and 256), and dropout rates (0.2 and 0.3). Table~\ref{lstm-model-results} summarizes the results across multiple metrics, while Figure~\ref{fig:heatmap_bacc_lstm} provides a visual overview of BACC across the various configurations. The heatmaps clearly illustrate how different combinations of hidden size and dropout affect performance for both 2-layer and 3-layer LSTM models, helping to identify the most effective architectural choices.
+
+\begin{figure}[H]
+\centering
+ \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/lstm_01.png} \\
+        (\textbf{a})
+    \end{minipage}%
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/lstm_02.png} \\
+        (\textbf{b})
+    \end{minipage}% \\
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/lstm_03.png} \\
+        (\textbf{c})
+    \end{minipage}%
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{images/lstm_04.png} \\
+        (\textbf{d})
+    \end{minipage}%
+\caption{Confusion matrices of LSTM models for various configuration. (\textbf{a}) num\_layer 2, hidden\_size 64 and dropout 0.2 (\textbf{b}) num\_layer 2, hidden\_size 128 and dropout 0.3 (\textbf{c}) num\_layer 3, hidden\_size 64 and dropout 0.2 (\textbf{d}) num\_layer 3, hidden\_size 128 and dropout 0.3}
+\label{fig:confusion_matrices_lstm}
+\end{figure}   
+
+
+
+Among all tested configurations, the LSTM model with 2 layers, a hidden size of 64, and a dropout rate of 0.2 achieved the highest macro F1-score of 89.22\%, while maintaining a strong BACC of 96.10\%. As shown in the confusion matrix in Figure~\ref{fig:confusion_matrices_lstm}(a), this model demonstrates balanced classification performance across both majority and minority classes. The matrix reveals clear separability even for infrequent attacks, indicating robust generalization without overfitting.
+
+The highest Balanced Accuracy (98.26\%) was achieved by the configuration with 2 layers, a hidden size of 128, and dropout 0.3. This model also attained the best macro Recall (98.26\%) and the highest weighted Precision (99.79\%), reflecting strong performance in detecting rare attack classes while maintaining low false positive rates. The corresponding confusion matrix in Figure~\ref{fig:confusion_matrices_lstm}(b) shows notably high true positive rates across all attack categories, including the rare TLS class, making this configuration the most suitable for sensitive environments where minority detection is critical.
+
+The model using 3 layers, a hidden size of 64, and a dropout rate of 0.2 demonstrated the best weighted Recall (99.69\%) and weighted F1-score (99.72\%), as seen in Figure~\ref{fig:confusion_matrices_lstm}(c). While its BACC was slightly lower (95.03\%), this configuration maintained high performance across all samples, particularly in the dominant normal class, and showed fewer misclassifications overall. This makes it a strong candidate for deployment in scenarios where consistent performance across all traffic is prioritized.
+
+Interestingly, the configuration with 3 layers, hidden size of 128, and dropout 0.3 produced the highest macro Precision (87.93\%), highlighting its tendency to minimize false positives. However, its overall BACC and F1 were lower, as seen in Figure~\ref{fig:confusion_matrices_lstm}(d), where the confusion matrix shows more frequent misclassifications of rare attack classes. This model may be more appropriate in operational settings where precision is prioritized over recall, such as minimizing false alarms in real-time intrusion detection systems.
+
+
+\subsection{Performance Analysis}
+
+The performance evaluation was conducted within a cloud-native Kubernetes environment, as detailed in Table~\ref{tab:kubernetes_config}. The deployment utilized MicroK8s v1.28 with containerd runtime and Calico CNI for container orchestration and networking, with dedicated namespaces (hplmn, vplmn) for home and visited public land mobile networks. Each AI detection model was deployed as a containerized microservice with resource limits of 2 CPU cores and 2 GB RAM, and reservations of 1 CPU core and 128 MB RAM, representing a realistic cloud-native intrusion detection setup for 5G core network security monitoring in roaming scenarios.
+
+This evaluation framework ensures that performance metrics reflect the resource constraints of the cloud-native deployment environment used for the experiments.
+
+
+\subsubsection{Performance Metrics}
+
+Table~\ref{tab:performance_metrics} presents the measured performance metrics for each deep learning model when deployed as containerized microservices with resource limits of 2 CPU cores and 2 GB RAM. The evaluation was conducted using the same resource constraints across all models to ensure fair comparison.
+
+The metrics include model size, which represents the memory footprint of the trained model in kilobytes and affects storage requirements and loading times; memory consumption, which indicates the runtime RAM usage during inference in megabytes and determines resource allocation needs; latency, which measures the end-to-end processing time per network flow in milliseconds and indicates real-time processing capability; throughput, which quantifies the number of network flows processed per second and shows processing capacity; and CPU utilization, which reflects the percentage of allocated CPU resources used during processing and indicates computational intensity.
+
+All models operated within the 2 GB RAM limit specified for the containerized deployment. CPU utilization varied significantly across architectures, ranging from 8.5\% for CNN to 107.1\% for RNN, indicating different computational intensities required for inference operations.
+
+\begin{table}[H]
+\caption{Performance Metrics for Deep Learning Models}
+\label{tab:performance_metrics}
+\begin{tabularx}{\textwidth}{XXXXXX}
+\toprule
+Model & Size (KB) & Memory (MB) & Latency (ms) & Throughput (samp/sec) & CPU (\%) \\
+\midrule
+MLP & 82.7 & 386.2 & 0.28 & 3568 & 9.7 \\
+CNN & 304.9 & 385.5 & 0.44 & 2264 & 8.5 \\
+RNN & 198.8 & 387.2 & 3.47 & 288 & 107.1 \\
+GRU & 587.9 & 389.5 & 6.01 & 166 & 101.0 \\
+LSTM & 782.4 & 388.7 & 7.19 & 139 & 99.0 \\
+Autoencoder & 155.3 & 389.5 & 0.34 & 2939 & 11.2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Performance Characteristics}
+
+The performance results show clear differences between model architectures in terms of computational requirements and processing capabilities. These differences have direct implications for the deployment of intrusion detection systems in varying network traffic conditions.
+
+Feedforward models (MLP, Autoencoder) achieved the highest throughput rates of 2,939-3,568 samples per second with correspondingly low latency values of 0.28-0.34 ms. These models maintained moderate memory consumption between 386.2-389.5 MB and operated at relatively low CPU utilization levels of 9.7-11.2\%. The high throughput and low latency characteristics indicate capability for processing high-volume network traffic with minimal processing delay.
+
+Convolutional networks (CNN) provided intermediate performance levels with 2,264 samples per second throughput and 0.44 ms latency. Memory consumption was measured at 385.5 MB with CPU utilization at 8.5\%, indicating efficient resource usage for the processing capability achieved.
+
+Recurrent models (RNN, GRU, LSTM) showed significantly lower throughput rates ranging from 139-288 samples per second, with correspondingly higher latency values of 3.47-7.19 ms. These models consumed 387.2-389.5 MB of memory while operating at high CPU utilization levels between 99.0-107.1\%. The lower throughput and higher latency reflect the increased computational complexity required for processing sequential dependencies in network traffic patterns.
+
+All models operated within the 2 GB RAM limit specified for the containerized deployment environment. The variation in CPU utilization across architectures, with recurrent models showing near-full utilization of allocated resources, indicates fundamental differences in computational complexity between feedforward and sequential processing approaches. Figure~\ref{fig:performance_comparison} illustrates these performance differences across the different architectures, highlighting the trade-offs between processing speed, computational resource requirements, and memory usage.
+
+\subsubsection{Performance Summary}
+
+The performance results, combined with the detection accuracy metrics from Table~\ref{dl-model-results}, reveal trade-offs between computational efficiency and detection capability across the evaluated architectures. While all models achieved high overall accuracy rates above 99\%, the performance characteristics varied significantly depending on the architectural approach used.
+
+Feedforward models (MLP, Autoencoder) achieved the highest throughput rates of 2,939-3,568 samples per second with low latency values of 0.28-0.34 ms. Convolutional networks (CNN) provided intermediate performance levels with 2,264 samples per second throughput and 0.44 ms latency. Recurrent models (RNN, GRU, LSTM) showed lower throughput rates ranging from 139-288 samples per second with correspondingly higher latency values of 3.47-7.19 ms, reflecting the additional computational requirements for processing sequential patterns in network traffic data.
+
+These performance differences, when considered alongside the detection accuracy results, illustrate the trade-offs between computational efficiency and detection capability across the different architectural approaches evaluated in this study.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{./images/cpu_utilization.png}
+    \subcaption{\footnotesize CPU utilization comparison across deep learning models}
+    \label{fig:cpu_usage_comparison}
+\end{minipage}%
+\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{./images/memory_usage.png}
+    \subcaption{\footnotesize Memory consumption comparison across deep learning models}
+    \label{fig:memory_usage_comparison}
+\end{minipage}%
+
+\vspace{0.5cm}
+
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{./images/latency_breakdown.png}
+    \subcaption{\footnotesize End-to-end latency comparison across deep learning models}
+    \label{fig:latency_comparison}
+\end{minipage}
+\caption{Performance comparison across deep learning models for intrusion detection: (a) CPU utilization, (b) memory consumption, and (c) end-to-end latency}
+\label{fig:performance_comparison}
+\end{figure}
+
+\subsection{Discussion}
+
+The experimental results underscore several critical insights for intrusion detection in cloud-native 5G roaming environments. First, the findings demonstrate the inadequacy of accuracy as a primary evaluation metric in highly imbalanced datasets. Although all models achieved greater than 99\% accuracy, this metric masked important weaknesses in detecting minority-class intrusions. In roaming scenarios, overlooking a single TLS or signaling attack may lead to cross-network propagation, making Balanced Accuracy and macro-level metrics far more reliable indicators of operational effectiveness.
+
+Second, the superior performance of sequential deep learning models such as GRU and LSTM highlights the importance of temporal feature learning in roaming security. Roaming traffic is inherently dynamic, characterized by frequent re-attachments, abrupt signaling transitions, and protocol variability. Gated recurrent models, with their ability to retain relevant context and filter transient noise, achieved higher BACC and macro recall compared to static architectures such as MLP and CNN. This capability allowed them to identify short-lived or subtle anomalies that could otherwise be overlooked in the variability of roaming traffic. Among all models, LSTM emerged as the most balanced approach, delivering the best macro F1 and BACC scores, while GRU offered a competitive alternative with reduced computational complexity. However, this detection capability comes with trade-offs in computational performance, with recurrent models showing lower throughput (139-288 samples/second) and higher latency (3.47-7.19 ms) compared to feedforward models (2,939-3,568 samples/second throughput and 0.28-0.34 ms latency).
+
+Third, the comparative results highlight trade-offs between false positives and false negatives in intrusion detection, as well as between detection accuracy and computational requirements. MLP's bias toward precision suggests that it may be more suitable in environments where false alarms must be minimized, though this comes at the cost of failing to detect rare but critical attacks. The Autoencoder, despite excelling in modeling majority-class behavior, demonstrated limited effectiveness in detecting minority-class anomalies, underscoring the need for complementary techniques such as oversampling, synthetic attack generation, or ensemble learning to mitigate class imbalance. Recurrent models (RNN, GRU, LSTM) exhibited higher CPU utilization (99.0-107.1%) compared to feedforward models (8.5-11.2%), reflecting their increased computational demands for sequential processing.
+
+Despite the comprehensive analysis of classical and deep learning techniques, reinforcement learning (RL) presents a promising yet underexplored direction for intrusion detection in cloud-native 5G environments. Unlike traditional supervised models, RL enables agents to learn adaptive detection strategies through continuous interaction with dynamic environments, making it well-suited for decentralized and evolving architectures such as inter-PLMN roaming. As highlighted in the work~\cite{kheddarReinforcementLearningBasedIntrusionDetection2025}, RL techniques offer significant advantages in modeling long-term dependencies, adapting to changing threat patterns, and reducing the reliance on static labeled data. In the context of cloud-based IDS, RL can support real-time adaptation and optimization of detection policies across distributed network functions. Additionally, combining RL with temporal deep learning models like LSTM or GRU could further enhance the system’s ability to capture complex sequential behaviors while continuously refining its decision-making capabilities in response to new or evolving attacks. 
+
+Finally, the implications for practical deployment are significant. The results suggest that intrusion detection systems for cloud-native 5G roaming should prioritize models that are sensitive to minority-class threats, as these represent the most consequential risks in inter-PLMN signaling. Sequential deep learning architectures are particularly well suited for monitoring critical interfaces such as N32-c and N32-f, where subtle deviations in signaling sequences may indicate early stages of attacks. Future research should explore hybrid ensemble approaches that combine the precision of feedforward and convolutional models with the recall advantages of gated recurrent architectures. In addition, data augmentation strategies could improve minority-class representation, while explainability mechanisms would enhance trust and facilitate faster operator response in complex multi-domain roaming environments.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusion}
+
+This work addressed the emerging security challenges of roaming in cloud-native 5G core networks by proposing and evaluating an intrusion detection framework based on deep learning. We designed a testbed that emulates realistic roaming scenarios and introduced the first roaming-specific intrusion detection dataset for 5G, enabling the systematic study of rare and complex attack patterns. Six deep learning models, including feedforward, convolutional, and recurrent architectures, were assessed on this dataset to examine their suitability for detecting roaming-specific intrusions in highly imbalanced traffic environments.
+
+The experimental results demonstrated that while all models achieved accuracies above 99\%, overall accuracy was not a reliable indicator of performance in the presence of class imbalance. Balanced accuracy and macro-averaged metrics provided more meaningful insights into model effectiveness, particularly for minority-class intrusions such as TLS-based attacks. Sequential models, especially LSTM and GRU, consistently outperformed others by achieving higher macro recall and balanced accuracy, reflecting their ability to capture temporal dependencies and adapt to dynamic roaming traffic patterns. However, this superior detection capability comes with trade-offs in computational performance, with recurrent models showing lower throughput (139-288 samples/second) and higher latency (3.47-7.19 ms) compared to feedforward models (2,939-3,568 samples/second throughput and 0.28-0.34 ms latency). These findings highlight the importance of prioritizing sequential architectures for roaming intrusion detection in cloud-native deployments, where short-lived or subtle anomalies may otherwise remain undetected, while considering the computational requirements for practical implementation.
+
+The results further emphasize the necessity of reevaluating evaluation metrics and model design for roaming security. Models such as MLP and Autoencoder excelled in precision and majority-class detection but struggled to identify rare intrusions, demonstrating that traditional approaches optimized for overall accuracy are insufficient in this domain. Recurrent architectures offered a more balanced trade-off between detection accuracy and computational requirements, making them particularly well suited for monitoring critical inter-PLMN signaling interfaces such as N32-c and N32-f, despite their higher resource demands (99.0-107.1\% CPU utilization versus 8.5-11.2\% for feedforward models).
+
+Future advancements in roaming intrusion detection for next-generation networks may benefit from addressing several emerging challenges. One potential direction involves the use of data augmentation techniques, such as synthetic oversampling and generative modeling, to improve class balance and enhance the representation of infrequent attack types. In addition, the adoption of federated learning could support collaborative detection efforts among mobile network operators while maintaining data privacy. Another promising area is the integration of explainable AI (XAI) approaches to increase the interpretability and transparency of deep learning models, allowing network operators to better understand and act upon detection results. Together, these research directions offer the potential to improve the robustness, scalability, and trustworthiness of roaming-aware intrusion detection systems in B5G and future 6G environments.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Future Works}
+
+%Future research will focus on three main directions to further strengthen roaming intrusion detection in cloud-native 5G and beyond. First, data augmentation techniques will be explored to address the severe class imbalance observed in roaming traffic datasets. Methods such as synthetic minority oversampling and generative models can expand the representation of rare intrusions, improving model robustness against underrepresented attack types. Second, federated learning will be investigated as a means of enabling collaborative intrusion detection across multiple operators without requiring direct data sharing. This approach can preserve privacy while enhancing the global detection capability against cross-domain roaming attacks. Third, the integration of explainable AI (XAI) techniques will be prioritized to improve the interpretability of deep learning models, providing operators with actionable insights and increasing trust in automated detection decisions. Together, these directions will enhance the adaptability, scalability, and operational transparency of intrusion detection systems for roaming in B5G networks.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Statements} \label{sect:s5}
+%Please note that the 6 pieces of information (Acknowledgement, Funding Statement, Author Contributions, Availability of Data and Materials, Ethics Approval, Conflicts of Interest) need to be truthfully provided at the end of the article.
+
+\acknowledgement{This work was supported by Institute of Information \& communications Technology Planning \& Evaluation (IITP) grant funded by the Korea government (MSIT)}
+
+\funding{This work was supported by Institute of Information \& communications Technology Planning \& Evaluation (IITP) grant funded by the Korea government (MSIT) (RS-2024-00441484, Development of open roaming technology for Private 5G network).}
+
+\authorcontributions{The authors confirm contribution to the paper as follows: Conceptualization, I Wayan Adi Juliawan Pawana and Ilsun You; methodology, I Wayan Adi Juliawan Pawana; validation, I Wayan Adi Juliawan Pawana and Yongho Ko; formal analysis, I Wayan Adi Juliawan Pawana; investigation, I Wayan Adi Juliawan Pawana and Vincent Abella; data curation, Vincent Abella and Jhury Kevin Lastre; writing---original draft preparation, I Wayan Adi Juliawan Pawana; writing---review and editing, Vincent Abella, Jhury Kevin Lastre, Yongho Ko, and Ilsun You; visualization, Vincent Abella and Jhury Kevin Lastre; supervision, Ilsun You; project administration, Ilsun You; funding acquisition, Ilsun You. All authors reviewed the results and approved the final version of the manuscript}
+
+\availabilityofdataandmaterials{The data that support the findings of this study are available from the Author, [Pawana I.W.A.J], upon reasonable request}
+
+\ethicsapproval{Not applicable}
+
+\conflictsofinterest{The authors declare no conflicts of interest to report regarding the present study.} 
+
+%% Optional
+%\supplementary{Supplementary Materials should be uploaded separately on submission. The supplementary files will also be available to the referees as part of the peer-review process. Any file format is acceptable; however, we recommend that common, non-proprietary formats are used where possible. Supplementary materials should be clean, without tracked changes, highlights, comments or line numbers. Supplementary figures must be clear and readable, and we recommend a minimum resolution of 300 dpi, figure legends must be clear and accurate. Supplementary materials must be mentioned in the main text. The citation format of Supplementary Figure, Table, Equation, etc., should start with a prefix “S” (i.e., Fig. S1, Eq. (S2), Table S1, etc.).}
+
+%% Optional
+%\abbreviations{Abbreviations}{\indent The following abbreviations are used in this manuscript:\\
+
+%\noindent 
+%\begin{tabular}{@{}ll}
+%Term 1 & Interpretation 1\\
+%Term 2 & Interpretation 2\\
+%Term 3 & Interpretation 3
+%\end{tabular}}
+
+%% Optional
+
+
+% Please provide either the correct journal abbreviation (e.g. according to the “List of Title Word Abbreviations” http://www.issn.org/services/online-services/access-to-the-ltwa/) or the full name of the journal.
+% Citations and References in Supplementary files are permitted provided that they also appear in the reference list here. 
+% All references should be cited in the main text sequentially (including citations in tables and legends) and listed individually at the end of the manuscript. We recommend preparing the references with a bibliography software package, such as EndNote, Mendeley or Zotero, to avoid typing mistakes and duplicated references. Include the digital object identifier (DOI) for all references where available.
+%For citations of references, please use square brackets and consecutive numbers, e.g., [1], [2,3], [4--6]. For embedded citations in the text with pagination, use both parentheses and brackets to indicate the reference number and page numbers; for example [5] (p. 10), or [6] (p. 101--105). When a cited reference is the subject of a sentence, use the author’s last name (e.g., Rhee [1]) or “Reference/Ref.” (e.g., Reference [1]). For multiple authors, use the first author followed by et al. (e.g., Al-Khshali et al. [2] or Refs. [4--6]). It is not recommended to cite more than 5 consecutive references. Citations and references in the Supplementary Materials are permitted if they also appear in the reference list here.
+%Please include the first 6 authors’ names before using “et al.” in the references.
+%The following are examples of the reference style (Vancouver style), which should be strictly adhered to (More details of style can refer to: https://www.ncbi.nlm.nih.gov/books/NBK7256/).
+
+%=====================================
+% References, variant A: external bibliography
+%=====================================
+\reftitle{References}
+\bibliography{references}
+
+%=====================================
+% References, variant B: internal bibliography
+%=====================================
+
+%\reftitle{References}
+%\begin{thebibliography}{999}
+%%Journal
+%Author AA, Author BB. Title of article. Abbreviated Journal Name. Year;volume(issue):pagination.
+%Author AA Jr, Author BB 2nd, Author CC, Author DD, Author EE, Author FF, et al. Title of article. Abbreviated Journal Name. Year;volume(issue):pagination.
+%\bibitem{ref-1}
+%Rhee HS. Chosen-ciphertext attack secure public-key encryption with keyword search. Comput Mater Contin. 2022;73(1):69--85. [\href{https://doi.org/10.32604/cmc.2022.026751}{CrossRef}]
+%\bibitem{ref-2}
+%Al-Khshali HH, Ilyas M. Impact of portable executable header features on malware detection accuracy. Comput Mater Contin. 2023;74(1):153--78. [\href{https://doi.org/10.32604/cmc.2023.032182}{CrossRef}]
+%\bibitem{ref-3}
+%Khan MA, Usman M, Zhao Y. First principles calculations for corrosion in Mg-Li-Al alloys with focus on corrosion resistance: a comprehensive review. Comput Mater Contin. 2024;81(2):1905--52. [\href{https://doi.org/10.32604/cmc.2024.054691}{CrossRef}]
+%\bibitem{ref-4}
+%Dong Y, Zhao K, Gao L, Li H. A hybrid level set optimization design method of functionally graded cellular structures considering connectivity. Comput Mater Contin. 2024;79(1):1--18. [\href{https://doi.org/10.32604/cmc.2024.048870}{CrossRef}]
+%\bibitem{ref-5}
+%Long Y, Zhong J, Zhang T, Chen L, Zhang L. Multiscale simulation of microstructure evolution during preparation and service processes of physical vapor deposited c-TiALN coatings. Comput Mater Contin. 2024;79(3):3435--53. [\href{https://doi.org/10.32604/cmc.2024.0516290}{CrossRef}]
+%\bibitem{ref-6}
+%Shoeibi M, Nevisi MMS, Salehi R, Martín D, Halimi Z, Baniasadi S. Enhancing hyper-spectral image classification with reinforcement learning and advanced multi-objective binary grey wolf optimization. Comput Mater Contin. 2024;79(3):3469--93. [\href{https://doi.org/10.32604/cmc.2024.049847}{CrossRef}]
+%\bibitem{ref-7}
+%Hong Y, Fang S, Su J, Xu W, Wei Y, Wu J, et al. A novel approach for image encryption with chaos-RNA. Comput Mater Contin. 2023;77(1):139--60. [\href{https://doi.org/10.32604/cmc.2023.043424}{CrossRef}]
+
+%%Book
+%Author AA, Author BB. Title of the book. Publisher Location: Publisher; Year. Pagination (Optional).
+%Editor AA, Editor BB, editors. Title of the book. Publisher Location: Publisher; Year. Pagination (Optional).
+%Author AA, Author BB. Title of the book. xth ed. (if not first) Vol. x (if any). Publisher Location: Publisher; Year. Pagination (Optional).
+%Author AA, Author BB. Title of the book. xth ed. Translator AA, translator. Publisher Location: Publisher; Year. Pagination (Optional).
+%Author AA, Author BB. Title of the book. Publisher Location: Publisher; Year. Section/Table/Charts/… x; Pagination (Required).
+%Author AA, Author BB. Title of the chapter. In: Editor AA, Editor BB, editors. Title of the book. xth ed. (if not first) Publisher Location: Publisher; Year. Pagination (Required).
+%\bibitem{ref-8}
+%Jenkins PF. Making sense of the chest X-ray: a hands-on guide. New York, NY, USA: Oxford University Press; 2005. 194 p.
+%\bibitem{ref-9}
+%Eyre HJ, Lange DP, Morris LB. Informed decisions: the complete book of cancer diagnosis, treatment, and recovery. 2nd ed. Atlanta, GA, USA: American Cancer Society; 2002. 768 p
+%\bibitem{ref-10}
+%Friedman EA, L’Esperance FA Jr, editors. Diabetic renal-retinal syndrome: pathogenesis and management update 2002. Boston, MA, USA: Kluwer Academic; 2002. 246 p
+%\bibitem{ref-11}
+%Voet D, Voet JG. Biochemistry. 3rd ed. Vol. 2, The expression and transmission of genetic information. New York, NY, USA: John Wiley \& Sons; 2004. p. 1107--560.
+%\bibitem{ref-12}
+%Ettinger SJ, Feldman EC. Textbook of veterinary medicine: diseases of the dog and cat. 6th ed. St. Louis, MO, USA: Elsevier Saunders; 2005. Section 7, Dietary considerations of systemic problems; p. 553--98.
+%\bibitem{ref-13}
+%Newton CW, Brown CE Jr. Geriatric endodontics. In: Cohen S, Burns RC, editors. Pathways of the pulp. 7th ed. Burns RC, illustrator. St. Louis, MO, USA: Mosby; 1998. p. 759--90.
+
+%%Conferences
+%Editor AA, Editor BB, editors. Book title (Optional). Conference Title: (Proceedings of the) xth Name of Conference; Date of Conference; Location of the Conference (Optional). Publisher Location: Publisher; Year of publication. Pagination (Optional).
+%Author AA, Author BB. Title of the paper. In: Editor AA, Editor BB, editors. Book title (Optional). Conference Title: (Proceedings of the) xth Name of Conference; Date of Conference; Location of the Conference (Optional). Publisher Location: Publisher; Year of publication. Pagination (Required).
+%Author AA, Author BB. Title of the paper/Poster session. Paper/Poster session presented at: Name of the conference; Date of Conference; Location of the Conference (Optional).
+%\bibitem{ref-14}
+%Ferreira de Oliveira MJ, editor. Accessibility and quality of health services. Proceedings of the 28th Meeting of the European Working Group on Operational Research Applied to Health Services (ORAHS); 2002 Jul 28--Aug 2; Rio de Janeiro, Brazil. Frankfurt, Germany: Peter Lang; 2004. 287 p.
+%\bibitem{ref-15}
+%Dittmar A, Beebe D, editors. 1st Annual International IEEE-EMBS Special Topic Conference on Microtechnologies in Medicine \& Biology; 2000 Oct 12--14; Lyon, France. Piscataway, NJ, USA: IEEE; 2000. 643 p.
+%\bibitem{ref-16}
+%Leonard KJ, Winkelman W. Developing electronic patient records: employing interactive methods to ensure patient involvement. In: Ferreira de Oliveira MJ, editor. Accessibility and quality of health services. Proceedings of the 28th Meeting of the European Working Group on Operational Research Applied to Health Services (ORAHS); 2002 Jul 28--Aug 2; Rio de Janeiro, Brazil. Frankfurt, Germany: Peter Lang; 2004. p. 241--55.
+%\bibitem{ref-17}
+%Rice AS, Farquhar-Smith WP, Bridges D, Brooks JW. Canabinoids and pain. In: Dostorovsky JO, Carr DB, Koltzenburg M, editors. Proceedings of the 10th World Congress on Pain; 2002 Aug 17--22; San Diego, CA, USA. Seattle, WA, USA: IASP Press; 2003. p. 437--68.
+%\bibitem{ref-18}
+%Patrias K. Computer-compatible writing and editing. Paper presented at: Interacting with the digital environment: modern scientific publishing. 46th Annual Meeting of the Council of Science Editors; 2003 May 3--6; Pittsburgh, PA, USA.
+
+%% Dissertations and Theses
+%Author AA. Title of dissertation [dissertation/master’s thesis]. Location: Institution Name; Year of publication. Pagination (Optional).
+%\bibitem{ref-19}
+%Jones DL. The role of physical activity on the need for revision total knee arthroplasty in individuals with osteoarthritis of the knee [dissertation]. Pittsburgh, PA, USA: University of Pittsburgh; 2001. 436 p.
+%\bibitem{ref-20}
+%Weisbaum LD. Human sexuality of children and adolescents: a comprehensive training guide for social work professionals [master’s thesis]. Long Beach, CA, USA: California State University; 2005. 101 p.
+
+%%Web Sites
+%Author AA/Organization (Optional). Title of electronic publication/webpage [Internet/Video/…]. Publisher Location: Publisher (Optional); Date of publication (Optional) [cited 2024 Jan 1]. Available from: http://URL.
+%\bibitem{ref-21}
+%Complementary/Integrative Medicine [Internet]. Houston, TX, USA: University of Texas; 2007 [cited 2007 Feb 21]. Available from: \url{http://www.mdanderson.org/departments/CIMER/}.
+
+%%Patents
+%Inventor AA, Inventor BB, inventors; Assignee AA, assignee. Title of the patent. Country of patent Patent number. Issue date/grant date.
+%\bibitem{ref-22}
+%Caffey JC, Moe R, Freund MA, Hutton J, inventors; Carbomedics Inc., assignee. Heart valve stent with alignment posts. United States patent US 6,635,085. 2003 Oct 21.
+%\end{thebibliography}
+\end{document}  
